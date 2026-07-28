@@ -585,7 +585,8 @@ Public Function BuildBulkTransaction(program As String, method As String, _
                 
                 ' Escape special characters in value
                 Dim escapedValue As String
-                escapedValue = Replace(values(i), """", "!!")
+                escapedValue = Replace(values(i), "\", "\\")
+                escapedValue = Replace(escapedValue, """", "\""")
                 
                 ' Handle PAR1 numeric validation
                 If fields(i) = "PAR1" Then

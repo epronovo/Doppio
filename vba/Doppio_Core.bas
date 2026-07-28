@@ -12,7 +12,7 @@ Option Explicit
 ' =============================================================================
 ' VERSION
 ' =============================================================================
-Public Const DOPPIO_VERSION As String = "v2.07"
+Public Const DOPPIO_VERSION As String = "v2.10"
 
 ' =============================================================================
 ' COMPILER CONSTANTS
@@ -132,6 +132,7 @@ Public Type ApiSettings
     splitChar As String         ' Character for splitting values
     conoDivi As ConoDiviOption  ' Company/Division display option
     sheetNaming As Integer      ' Sheet naming method (0=API+Txn, 1=Txn, 2=API, 3=first 6 of API)
+    developer As Boolean        ' Show developer-only buttons (e.g. Rep)
 End Type
 
 ' Session State (runtime values)
@@ -673,7 +674,7 @@ End Sub
 ''
 Public Sub Core_GetVersionHistory()
     Dim ws As Worksheet
-    Dim e(0 To 6) As VersionEntry
+    Dim e(0 To 9) As VersionEntry
     Dim i As Long
 
     On Error GoTo ErrorHandler
@@ -685,7 +686,7 @@ Public Sub Core_GetVersionHistory()
 
     ' --- Version data: update this block for each release ---
     e(0).version = "1.3"
-    e(0).description = "Released to Doppio CafŽ"
+    e(0).description = "Released to Doppio Cafï¿½"
     e(0).releaseDate = ""
     e(0).status = "complete"
 
@@ -705,7 +706,7 @@ Public Sub Core_GetVersionHistory()
     e(3).status = "complete"
 
     e(4).version = "2.05"
-    e(4).description = "AutoFit toggle - first click fits row 7 headers, second click fits full UsedRange"
+    e(4).description = "AutoFit toggle - first click fits row 7 headers, second click fits columns from row 7 downward"
     e(4).releaseDate = "2026-04-06"
     e(4).status = "complete"
 
@@ -718,6 +719,21 @@ Public Sub Core_GetVersionHistory()
     e(6).description = "Added new setting for sheet renaming"
     e(6).releaseDate = "2026-04-08"
     e(6).status = "complete"
+
+    e(7).version = "2.08"
+    e(7).description = "Misc bug fixes"
+    e(7).releaseDate = "2026-05-01"
+    e(7).status = "complete"
+    
+    e(8).version = "2.09"
+    e(8).description = "MAC fixes"
+    e(8).releaseDate = "2026-06-18"
+    e(8).status = "complete"
+    
+    e(9).version = "2.10"
+    e(9).description = "EXPORTMI helper for indexes"
+    e(9).releaseDate = "2026-07-15"
+    e(9).status = "complete"
     ' --- End version data ---
 
     Set ws = ActiveWorkbook.Sheets("Versions")

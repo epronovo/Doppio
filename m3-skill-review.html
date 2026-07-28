@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "m3-api-mapping-guide", "runs": [{"id": "eval-0-build-template-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "API_CRS610MI_Add.xlsx", "type": "xlsx", "data_b64": "UEsDBBQAAAAIAAuD4VxGx01IlQAAAM0AAAAQAAAAZG9jUHJvcHMvYXBwLnhtbE3PTQvCMAwG4L9SdreZih6kDkQ9ip68zy51hbYpbYT67+0EP255ecgboi6JIia2mEXxLuRtMzLHDUDWI/o+y8qhiqHke64x3YGMsRoPpB8eA8OibdeAhTEMOMzit7Dp1C5GZ3XPlkJ3sjpRJsPiWDQ6sScfq9wcChDneiU+ixNLOZcrBf+LU8sVU57mym/8ZAW/B7oXUEsDBBQAAAAIAAuD4Vwtws/17gAAACsCAAARAAAAZG9jUHJvcHMvY29yZS54bWzNksFqwzAMhl9l+J7IcUYHJvWlo6cOBits7GZstTWLE2NrJH37OVmbMrYH2NHS70+fQI0J0vQRn2MfMJLDdDf6tkvShDU7EQUJkMwJvU5lTnS5eeij15Sf8QhBmw99RBCcr8AjaatJwwQswkJkqrFGmoia+njBW7Pgw2dsZ5g1gC167ChBVVbA1DQxnMe2gRtgghFGn74LaBfiXP0TO3eAXZJjcktqGIZyqOdc3qGCt6fdy7xu4bpEujOYfyUn6Rxwza6TX+vN437LlOBiVfCHgld7UUtxL4V4n1x/+N2EfW/dwf1j46ugauDXXagvUEsDBBQAAAAIAAuD4VyZXJwjEAYAAJwnAAATAAAAeGwvdGhlbWUvdGhlbWUxLnhtbO1aW3PaOBR+76/QeGf2bQvGNoG2tBNzaXbbtJmE7U4fhRFYjWx5ZJGEf79HNhDLlg3tkk26mzwELOn7zkVH5+g4efPuLmLohoiU8nhg2S/b1ru3L97gVzIkEUEwGaev8MAKpUxetVppAMM4fckTEsPcgosIS3gUy9Zc4FsaLyPW6rTb3VaEaWyhGEdkYH1eLGhA0FRRWm9fILTlHzP4FctUjWWjARNXQSa5iLTy+WzF/NrePmXP6TodMoFuMBtYIH/Ob6fkTlqI4VTCxMBqZz9Wa8fR0kiAgsl9lAW6Sfaj0xUIMg07Op1YznZ89sTtn4zK2nQ0bRrg4/F4OLbL0otwHATgUbuewp30bL+kQQm0o2nQZNj22q6RpqqNU0/T933f65tonAqNW0/Ta3fd046Jxq3QeA2+8U+Hw66JxqvQdOtpJif9rmuk6RZoQkbj63oSFbXlQNMgAFhwdtbM0gOWXin6dZQa2R273UFc8FjuOYkR/sbFBNZp0hmWNEZynZAFDgA3xNFMUHyvQbaK4MKS0lyQ1s8ptVAaCJrIgfVHgiHF3K/99Ze7yaQzep19Os5rlH9pqwGn7bubz5P8c+jkn6eT101CznC8LAnx+yNbYYcnbjsTcjocZ0J8z/b2kaUlMs/v+QrrTjxnH1aWsF3Pz+SejHIju932WH32T0duI9epwLMi15RGJEWfyC265BE4tUkNMhM/CJ2GmGpQHAKkCTGWoYb4tMasEeATfbe+CMjfjYj3q2+aPVehWEnahPgQRhrinHPmc9Fs+welRtH2Vbzco5dYFQGXGN80qjUsxdZ4lcDxrZw8HRMSzZQLBkGGlyQmEqk5fk1IE/4rpdr+nNNA8JQvJPpKkY9psyOndCbN6DMawUavG3WHaNI8ev4F+Zw1ChyRGx0CZxuzRiGEabvwHq8kjpqtwhErQj5iGTYacrUWgbZxqYRgWhLG0XhO0rQR/FmsNZM+YMjszZF1ztaRDhGSXjdCPmLOi5ARvx6GOEqa7aJxWAT9nl7DScHogstm/bh+htUzbCyO90fUF0rkDyanP+kyNAejmlkJvYRWap+qhzQ+qB4yCgXxuR4+5Xp4CjeWxrxQroJ7Af/R2jfCq/iCwDl/Ln3Ppe+59D2h0rc3I31nwdOLW95GblvE+64x2tc0LihjV3LNyMdUr5Mp2DmfwOz9aD6e8e362SSEr5pZLSMWkEuBs0EkuPyLyvAqxAnoZFslCctU02U3ihKeQhtu6VP1SpXX5a+5KLg8W+Tpr6F0PizP+Txf57TNCzNDt3JL6raUvrUmOEr0scxwTh7LDDtnPJIdtnegHTX79l125COlMFOXQ7gaQr4Dbbqd3Do4npiRuQrTUpBvw/npxXga4jnZBLl9mFdt59jR0fvnwVGwo+88lh3HiPKiIe6hhpjPw0OHeXtfmGeVxlA0FG1srCQsRrdguNfxLBTgZGAtoAeDr1EC8lJVYDFbxgMrkKJ8TIxF6HDnl1xf49GS49umZbVuryl3GW0iUjnCaZgTZ6vK3mWxwVUdz1Vb8rC+aj20FU7P/lmtyJ8MEU4WCxJIY5QXpkqi8xlTvucrScRVOL9FM7YSlxi84+bHcU5TuBJ2tg8CMrm7Oal6ZTFnpvLfLQwJLFuIWRLiTV3t1eebnK56Inb6l3fBYPL9cMlHD+U751/0XUOufvbd4/pukztITJx5xREBdEUCI5UcBhYXMuRQ7pKQBhMBzZTJRPACgmSmHICY+gu98gy5KRXOrT45f0Usg4ZOXtIlEhSKsAwFIRdy4+/vk2p3jNf6LIFthFQyZNUXykOJwT0zckPYVCXzrtomC4Xb4lTNuxq+JmBLw3punS0n/9te1D20Fz1G86OZ4B6zh3OberjCRaz/WNYe+TLfOXDbOt4DXuYTLEOkfsF9ioqAEativrqvT/klnDu0e/GBIJv81tuk9t3gDHzUq1qlZCsRP0sHfB+SBmOMW/Q0X48UYq2msa3G2jEMeYBY8wyhZjjfh0WaGjPVi6w5jQpvQdVA5T/b1A1o9g00HJEFXjGZtjaj5E4KPNz+7w2wwsSO4e2LvwFQSwMEFAAAAAgAC4PhXK/mz6WMAQAATQMAABgAAAB4bC93b3Jrc2hlZXRzL3NoZWV0MS54bWyFU9tO4zAQ/RXLH4DTSrAIJZFKEKIPSFWrXR6Rm0waC1+y4ylh/37HoY2K1MJTZsZzjs/xTPIh4FvsAEh8OOtjITui/k6pWHfgdLwKPXg+aQM6TZziTsUeQTcjyFk1z7Ib5bTxsszH2grLPOzJGg8rFHHvnMZ/92DDUMiZPBbWZtdRKqgy7/UONkC/+xVypiaWxjjw0QQvENpCLmZ31Tz1jw1/DAzxJBbJyTaEt5Qsm0JmSRBYqCkxaP68QwXWJiKW8ffAKacrE/A0PrI/jt7Zy1ZHqIJ9MQ11hbyVooFW7y2tw/AEBz/Xk8AHTbrMMQwCk88yr1Mw3j0+BHcbn15pQ8inhq+j8uU4jlwRa0lFVR+g999DHyDWaPrk9gy4+gHMYr+iFCuf5M8n+fMLBIvV8rVab25m2fPyddE05/Rfwla8TwRCC89jrPeRggPkmdcBz/FUl3g+zjlQJ8NIi/ascWd8FBZaJsmufl1LgZ/D+0wo9OM7bQOxkDHseN8BUwOftyHQMUm7M/1B5X9QSwMEFAAAAAgAC4PhXLbn79NSBQAAaB4AABgAAAB4bC93b3Jrc2hlZXRzL3NoZWV0Mi54bWyVmVt32jgQx7+Kj5+6D1tzaZI2J+Qc1ZiElouDIWn6pmARfGpbXlmUsp9+JZlQtmcGoRfwZX6j0Vj+z9i+2XLxo14zJr1fRV7WPX8tZXUdBPVyzQpav+cVK9WZFRcFlWpXvAZ1JRhNDVTkQafVugwKmpX+7Y05FovbG76ReVayWHj1piio2H1mOd/2/Lb/dmCWva6lPhDc3lT0lSVMLqpYqL3g4CXNClbWGS89wVY9n7SvyUNXA8biMWPb+mjb01N54fyH3hmmPb/la9cl834lVZ6Zwbzd703JqxFbyZDlec//3PE9upTZTxYroue/cCl5YYJUIUsq1bGV4P+y0ozPcqaMVWCVsVauGlPgXONJj4Sf3Y/TBNAERHSq/tnP2z+kRc/tePstAQNzfVS+X2jNQp4/Zalc9/yPvpeyFd3kcsa392yf8wvtb8nz2vx628a2rVKw3NQqnD2sIiiysvmnv/bXKmg4M2ifSnp7I/jWE/qs8qY3TORNhnt+Vup1kEihzmaKk7fjKEnIXXQTSOVMHwqWe/DzaTBczMcAFVqo6WQKUP3TVH/4OASo6DQ1moR9gBrY5gVGeGeloGzc2yjSBqihleoA1Bcr1QWor1bqA0CNTlMxfJXHFuoepCZWCsrG9DQ1H4BjxdY1HwPUw2mKjMIFQM1OU8+zaABQiZWCsjG3iAAZjgBqYclGAt5fj6epKCQzgHqyjDUIoTvlm5WCsvFspaA75buVgu4UYtFfhV1AmE19B+ElhNnkdxBeQZhFfxX2EcIsAqywTxBmU+BB2IIwmwRHCYEwiwYnczKHMIsIx09jELOo8PDxDlIQYpHh+fRpAmEWHQ4XCaQ8xCLEg1kIiSOxKHHUjxIIs0hxREbgaBYtnpEETIlFjJN49EezE6iO6dA2dd7aJt2Bwjk1PRkTnmRFlatO1HtHrtutv6BeCPXBC9Vv7rx3k+suBPYxsJ/9zEwHrsYEyQgjR7R83ajGXpMdiBxYJ1xuihf1h073zu6BFiaA7iXE31t5mqaC1bXXxp0Mz3bSwZ18OdtJF3fy9WwnH3AnI8xJzNVjUO4teXpiAY4xeq6ee6o1Vw9j+4tqMtoGQ5ic7aSDO5liTgZ0WWdFlrPj5QW6iO135K5i+p5qQ/gDhieMiuXa+8F2eCJnGPzMN0I/DjPByiXbL0zQRXKmiw7uYo65iP5WT/z5YT0pBxeggwUuSJtSit1hOYHa8ojRRDAamKdyVF2eMHYlGPNWGcvT/RoEA/+GLp/feMdc+gsIfz4D76Lz/n4GbW5hcGxCzsAvzNRBHC1ER/glnjmCFqEj/gpPHUFr0RH/Ec0dQQvSEf4JTx5alY7wdgvPHlqTknHiZamJG1ywxF6N9Irf1OiSJ2gpimldb7lIT1w1tAINy588UzLxKvimwtOOF59MGp3rwOOi9Wa60S8PqyrPfncCVO7fUJ3qCghahIzo7LxhX8NXIIvWnjinyxOFj6D1JiITL+dLal76NXKnlj6cRLTizLTa6su/b8WQIPCSI2mZUrUAKp6V8s94AH//61G7h1d7XcR/yaH3eZj1jtVQ8+rkvO9kHTlZD5ys79ymee9mPnSK5YuT9Vcn65GT9djJeuJkPXWyjp2sH5ysZ07WiZP13Ml64WT96GT95GT9zcn62cn6u5M1cdMrggoWbO4mWMRNsYibZBE3zSKoaMHmqGjB5m6iRdxUi7jJFnHTLeImXMRNuYibdBE37SJni1dT3oOjr3j6G+yYitesrL2crZSX1vurC98TzTfDZkfyyrzoar5ams01oykT2kCdX3Eu33b0t8LDx+Xb/wBQSwMEFAAAAAgAC4PhXE9/sXVjAgAAbQoAAA0AAAB4bC9zdHlsZXMueG1s3VbbjpswEP0VxAfUIWhRqEIeihRppbZaafehryaYxJIv1JhV0q+vxyaQ7HpWatWnggLjOT5zt8h2sBfBnk+M2eQshRqq9GRt/5mQ4XBikg6fdM+UQzptJLVuaY5k6A2j7QAkKch6tSqIpFylu60a5V7aITnoUdkqXaVkt+20WjTrNCjcVipZ8kpFldZU8MZwv5dKLi5BvQbFQQttEutCYVWagWb4FeAsrCDKyY7kShtQkuAhPJtp+w3gX4PbwIW4j8wpdtueWsuM2ruF53jlOyiZ5JdL70I7GnrJ1g/pQvAv56TRpmVmdpOlV9VuK1hnHcHw4wneVvcEQGu1dELL6VEr6mO4MibBmT0wIZ6hdz+6O9vnLglNeGyh/gmkehVdQJMYzIQF2L+1FmzfmF3/ldmk56/afhldNsqvf47asifDOn7263M3+8esZ//EOpnyuSnaXclmbQIzWaXfYdTFYiJpRi4sV9PqxNuWqXeVc+YtbdxZurPv9reso6OwLzNYpYv8jbV8lOW86wnSmnYt8leYkKyYD4TzxVXLzqytp6U5Nl5MnOC8ThcQ3iJ7f8URjBOwOAIY5geLAOMEFubnf8png+YTMCy2TRTZoJwNygmsGFL7G/MT55TuimdalnleFFhF6zoaQY3VrSjgF7eGxQYMzA94+rNa493GJ+TjOcB6+tGEYJnik4hlitcakHjdgFGW8W5jfoCBdQGbHfAf9wMzFefkOXQViw07wThSlhgCsxif0aJAqlPAHe8PdkryvCzjCGDxCPIcQ+A04ggWAcSAIXnuv4Nvvkfk+p0iyx/M3W9QSwMEFAAAAAgAC4PhXJeKuxzAAAAAEwIAAAsAAABfcmVscy8ucmVsc52SuW7DMAxAf8XQnjAH0CGIM2XxFgT5AVaiD9gSBYpFnb+v2qVxkAsZeT08EtweaUDtOKS2i6kY/RBSaVrVuAFItiWPac6RQq7ULB41h9JARNtjQ7BaLD5ALhlmt71kFqdzpFeIXNedpT3bL09Bb4CvOkxxQmlISzMO8M3SfzL38ww1ReVKI5VbGnjT5f524EnRoSJYFppFydOiHaV/Hcf2kNPpr2MitHpb6PlxaFQKjtxjJYxxYrT+NYLJD+x+AFBLAwQUAAAACAALg+FcwP0QBVIBAAC6AgAADwAAAHhsL3dvcmtib29rLnhtbLVSy2rDMBD8FaMPqB3TBhriQEhoa+gjJCXXIFvreIkeRpKTNl/ftYypoVB66Wm1s8toZqT5xdhTYcwp+lBSu4zV3jezOHZlDYq7G9OApkllrOKeWnuMXWOBC1cDeCXjNEmmseKo2WI+cG1sPG6Mh9Kj0QR2wB7h4r7nXRud0WGBEv1nxsJZAosUalR4BZGxhEWuNpcnY/FqtOdyV1ojZcYm/WAP1mP5A951It954QLiebHlJCRj04QIK7TOh43Az0njGWi571pvHlB6sGvu4dGatkF97GjIRTyyEXIYah/izP4lRlNVWMLalK0C7fscLchOoHY1No5FmivI2IoMk6vOEV2Ri96dJ1mjrOwMaWBzEQT+n5jlJj+strvpJHnJD0shRqrSX1SlIbYhKwEVahCvxOgIp3crNzbqSnCX3t5N7ul9WilXhL3pZ8PFEP3wbRZfUEsDBBQAAAAIAAuD4VyN9yxatAAAAIkCAAAaAAAAeGwvX3JlbHMvd29ya2Jvb2sueG1sLnJlbHPFkk0KgzAQRq8ScoCO2tJFUVfduC1eIOj4g9GEzJTq7Wt1oYEuupGuwjch73swiR+oFbdmoKa1JMZeD5TIhtneAKhosFd0MhaH+aYyrlc8R1eDVUWnaoQoCK7g9gyZxnumyCeLvxBNVbUF3k3x7HHgL2B4GddRg8hS5MrVyImEUW9jguUITzNZiqxMpMvKUMK/hSJPKDpQiHjSSJvNmr3684H1PL/FrX2J69DfyeXjAN7PS99QSwMEFAAAAAgAC4PhXG6nJLweAQAAVwQAABMAAABbQ29udGVudF9UeXBlc10ueG1sxZTPTsMwDMZfpcp1ajJ24IDWXYAr7MALhNZdo+afYm90b4/bbpNAo2IqEpdGje3v5/iLsn47RsCsc9ZjIRqi+KAUlg04jTJE8BypQ3Ka+DftVNRlq3egVsvlvSqDJ/CUU68hNusnqPXeUvbc8Taa4AuRwKLIHsfEnlUIHaM1pSaOq4OvvlHyE0Fy5ZCDjYm44AShrhL6yM+AU93rAVIyFWRbnehFO85SnVVIRwsopyWu9Bjq2pRQhXLvuERiTKArbADIWTmKLqbJxBOG8Xs3mz/ITAE5c5tCRHYswe24syV9dR5ZCBKZ6SNeiCw9+3zQu11B9Us2j/cjpHbwA9WwzJ/xV48v+jf2sfrHPt5DaP/6qverdNr4M18N78nmE1BLAQIUAxQAAAAIAAuD4VxGx01IlQAAAM0AAAAQAAAAAAAAAAAAAACAAQAAAABkb2NQcm9wcy9hcHAueG1sUEsBAhQDFAAAAAgAC4PhXC3Cz/XuAAAAKwIAABEAAAAAAAAAAAAAAIABwwAAAGRvY1Byb3BzL2NvcmUueG1sUEsBAhQDFAAAAAgAC4PhXJlcnCMQBgAAnCcAABMAAAAAAAAAAAAAAIAB4AEAAHhsL3RoZW1lL3RoZW1lMS54bWxQSwECFAMUAAAACAALg+Fcr+bPpYwBAABNAwAAGAAAAAAAAAAAAAAAgIEhCAAAeGwvd29ya3NoZWV0cy9zaGVldDEueG1sUEsBAhQDFAAAAAgAC4PhXLbn79NSBQAAaB4AABgAAAAAAAAAAAAAAICB4wkAAHhsL3dvcmtzaGVldHMvc2hlZXQyLnhtbFBLAQIUAxQAAAAIAAuD4VxPf7F1YwIAAG0KAAANAAAAAAAAAAAAAACAAWsPAAB4bC9zdHlsZXMueG1sUEsBAhQDFAAAAAgAC4PhXJeKuxzAAAAAEwIAAAsAAAAAAAAAAAAAAIAB+REAAF9yZWxzLy5yZWxzUEsBAhQDFAAAAAgAC4PhXMD9EAVSAQAAugIAAA8AAAAAAAAAAAAAAIAB4hIAAHhsL3dvcmtib29rLnhtbFBLAQIUAxQAAAAIAAuD4VyN9yxatAAAAIkCAAAaAAAAAAAAAAAAAACAAWEUAAB4bC9fcmVscy93b3JrYm9vay54bWwucmVsc1BLAQIUAxQAAAAIAAuD4VxupyS8HgEAAFcEAAATAAAAAAAAAAAAAACAAU0VAABbQ29udGVudF9UeXBlc10ueG1sUEsFBgAAAAAKAAoAhAIAAJwWAAAAAA=="}], "grading": {"expectations": [{"text": "Produces an .xlsx workbook", "passed": true, "evidence": "API_CRS610MI_Add.xlsx"}, {"text": "Standard naming: Control sheet + API_CRS610MI_Add sheet", "passed": true, "evidence": "['Control', 'API_CRS610MI_Add']"}, {"text": "Row 1 = MESSAGE + all 42 input fields in FRPO order", "passed": true, "evidence": "42/42 fields, order match=True"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": true, "evidence": "mandatory row match=True"}], "summary": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4}}}, {"id": "eval-0-build-template-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "CRS610MI_Add_template.xlsx", "type": "xlsx", "data_b64": "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"}], "grading": {"expectations": [{"text": "Produces an .xlsx workbook", "passed": true, "evidence": "CRS610MI_Add_template.xlsx"}, {"text": "Standard naming: Control sheet + API_CRS610MI_Add sheet", "passed": false, "evidence": "['Overview', 'Field Mapping', 'Data Entry', 'Output Fields']"}, {"text": "Row 1 = MESSAGE + all 42 input fields in FRPO order", "passed": false, "evidence": "sheet missing"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": false, "evidence": "sheet missing"}], "summary": {"pass_rate": 0.25, "passed": 1, "failed": 3, "total": 4}}}, {"id": "eval-1-metadata-qa-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# MMS200MI / AddItmBasic \u2014 Mandatory Input Fields\n\nSource: local M3 API metadata (`cmifld`, `MAND='1'`) in doppio.db.\nTransaction: **AddItmBasic** \u2014 \"Add Item Basic\" (single-record transaction).\nOf the 108 input fields, **8 are mandatory**:\n\n| # | Field | Description | Type | Length | Positions |\n|---|-------|-------------|------|--------|-----------|\n| 1 | STAT | Status | A (alpha) | 2 | 19\u201320 |\n| 2 | ITNO | Item number | A (alpha) | 15 | 21\u201335 |\n| 3 | ITDS | Name | A (alpha) | 60 | 36\u201395 |\n| 4 | RESP | Responsible | A (alpha) | 10 | 236\u2013245 |\n| 5 | UNMS | Basic unit of measure | A (alpha) | 3 | 246\u2013248 |\n| 6 | ITTY | Item type | A (alpha) | 3 | 265\u2013267 |\n| 7 | MABU | Make/buy code | N (numeric) | 1 | 270 |\n| 8 | PRVG | Commission group | A (alpha) | 2 | 661\u2013662 |\n\nNotes:\n- CONO (Company, N:3) is optional in the metadata \u2014 it defaults from the API connection context if omitted.\n- All other 100 input fields are optional per the metadata; the transaction has no output fields.\n"}], "grading": {"expectations": [{"text": "Names all 8 mandatory fields (STAT ITNO ITDS RESP UNMS ITTY MABU PRVG)", "passed": true, "evidence": "found 8/8: ['STAT', 'ITNO', 'ITDS', 'RESP', 'UNMS', 'ITTY', 'MABU', 'PRVG']"}, {"text": "Reports correct length for each mandatory field", "passed": true, "evidence": "all lengths present"}], "summary": {"pass_rate": 1.0, "passed": 2, "failed": 0, "total": 2}}}, {"id": "eval-1-metadata-qa-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "answer.md", "type": "text", "content": "# MMS200MI AddItmBasic \u2014 Mandatory Input Fields\n\nSource: `cmifld` in `doppio.db`, filtered on `MINM='MMS200MI'`, `TRNM='AddItmBasic'`, `TRTP='I'` (input), `MAND='1'`.\n\n| Field | Description | Length | Type | Positions (from\u2013to) |\n|-------|-------------|--------|------|---------------------|\n| STAT  | Status | 2 | A (alpha) | 19\u201320 |\n| ITNO  | Item number | 15 | A | 21\u201335 |\n| ITDS  | Name | 60 | A | 36\u201395 |\n| RESP  | Responsible | 10 | A | 236\u2013245 |\n| UNMS  | Basic unit of measure | 3 | A | 246\u2013248 |\n| ITTY  | Item type | 3 | A | 265\u2013267 |\n| MABU  | Make/buy code | 1 | N (numeric) | 270 |\n| PRVG  | Commission group | 2 | A | 661\u2013662 |\n\n8 mandatory fields out of 110 total input fields for this transaction.\n\nNotes:\n- CONO (Company, 3 N, positions 16\u201318) is present in the input record but flagged optional (`MAND='0'`); it normally defaults from the API connection context.\n- PRVG (Commission group) being mandatory is somewhat unusual compared to standard Infor documentation \u2014 this reflects the metadata as loaded in this environment's repository, so it may be a customization or version-specific flag worth verifying.\n- The transaction has no output fields in the metadata (`TRTP` only contains `'I'` rows for this transaction).\n"}], "grading": {"expectations": [{"text": "Names all 8 mandatory fields (STAT ITNO ITDS RESP UNMS ITTY MABU PRVG)", "passed": true, "evidence": "found 8/8: ['STAT', 'ITNO', 'ITDS', 'RESP', 'UNMS', 'ITTY', 'MABU', 'PRVG']"}, {"text": "Reports correct length for each mandatory field", "passed": true, "evidence": "all lengths present"}], "summary": {"pass_rate": 1.0, "passed": 2, "failed": 0, "total": 2}}}, {"id": "eval-2-guide-plus-loader-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "API_CRS075MI_Add.xlsx", "type": "xlsx", "data_b64": "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"}, {"name": "load_crs075mi_add.py", "type": "text", "content": "#!/usr/bin/env python3\n\"\"\"Load payment terms into M3 via CRS075MI/Add (\"AddPayTerm\").\n\nReads the mapping-guide workbook API_CRS075MI_Add.xlsx:\n  row 1  = field names (column A is MESSAGE, used for load feedback)\n  row 6  = transformation rules (informational; length rules enforced below)\n  row 7+ = data rows\n\nFor each data row it builds a record dict of FLNM -> string value,\nvalidates it against the cmifld metadata (mandatory fields, lengths,\nnumeric fields), posts in one batch through the user's InforMI helper:\n\n    {\"program\": \"CRS075MI\", \"transactions\":\n        [{\"transaction\": \"Add\", \"record\": {...}}]}\n\nand writes the per-row result (OK or the API errorMessage) back into\nthe MESSAGE column of the sheet.\n\nUsage:\n    python3 load_crs075mi_add.py [workbook.xlsx]\n\nRequires: openpyxl, and InforMI.py (auth/batching helper) on the path.\n\"\"\"\nimport sys\n\nimport openpyxl\n\nfrom InforMI import post_batch_to_m3  # user's helper: auth, batching, logging\n\nPROGRAM = \"CRS075MI\"\nTRANS = \"Add\"\nSHEET = f\"API_{PROGRAM}_{TRANS}\"\nDEFAULT_WORKBOOK = f\"API_{PROGRAM}_{TRANS}.xlsx\"\n\n# Input-field metadata from cmifld (MINM='CRS075MI', TRNM='Add', TRTP='I'),\n# in FRPO order. (name, type, length, mandatory)\nFIELDS = [\n    (\"TEPY\", \"A\", 3,  True),   # Payment terms\n    (\"LNCD\", \"A\", 2,  False),  # Language\n    (\"TX15\", \"A\", 15, False),  # Name\n    (\"TEL1\", \"A\", 36, False),  # Terms text\n    (\"TEL2\", \"A\", 36, False),  # Terms text (overflow)\n    (\"SDAY\", \"N\", 2,  False),  # Start day\n    (\"TEFM\", \"N\", 2,  False),  # Month free of payment\n    (\"TEPD\", \"N\", 3,  False),  # Number of days\n    (\"PDAY\", \"N\", 2,  False),  # Payment day\n    (\"CAPY\", \"N\", 1,  False),  # Cash payment\n    (\"CCOD\", \"A\", 1,  False),  # Calculate COD\n    (\"UOWR\", \"A\", 1,  False),  # Update Outstanding w/o risk\n    (\"PAYP\", \"N\", 1,  False),  # Payment proposal\n    (\"CSPC\", \"N\", 1,  False),  # Cash customer process\n]\nMETA = {name: (ftype, length, mand) for name, ftype, length, mand in FIELDS}\nMANDATORY = [name for name, _, _, mand in FIELDS if mand]\n\nTRUNCATE_FIELDS = {\"TX15\", \"TEL1\", \"TEL2\"}  # row-6 rule: truncate text fields\nDATA_START_ROW = 7\n\n\ndef clean_value(name, raw, warnings):\n    \"\"\"Normalize one cell to the string M3 expects, or None to omit it.\"\"\"\n    if raw is None:\n        return None\n    value = str(raw).strip()\n    if value == \"\":\n        return None\n    ftype, length, _ = META[name]\n\n    if ftype == \"N\":\n        # openpyxl gives numeric cells as int/float: render without \".0\"\n        if isinstance(raw, float) and raw.is_integer():\n            value = str(int(raw))\n        if not value.replace(\".\", \"\", 1).replace(\"-\", \"\", 1).isdigit():\n            raise ValueError(f\"{name}: '{value}' is not numeric\")\n\n    if len(value) > length:\n        if name in TRUNCATE_FIELDS:\n            warnings.append(f\"{name} truncated to {length} chars\")\n            value = value[:length]\n        else:\n            raise ValueError(\n                f\"{name}: '{value}' exceeds max length {length}\")\n    return value\n\n\ndef build_record(field_names, row_values, warnings):\n    \"\"\"Build FLNM -> value dict; blank optional fields are omitted entirely\n    (never send blanks). Raises ValueError on validation failure.\"\"\"\n    record = {}\n    for name, raw in zip(field_names, row_values):\n        if name not in META:\n            continue  # ignore any extra columns\n        value = clean_value(name, raw, warnings)\n        if value is not None:\n            record[name] = value\n    missing = [f for f in MANDATORY if f not in record]\n    if missing:\n        raise ValueError(f\"missing mandatory field(s): {', '.join(missing)}\")\n    return record\n\n\ndef main():\n    path = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_WORKBOOK\n    wb = openpyxl.load_workbook(path)\n    if SHEET not in wb.sheetnames:\n        sys.exit(f\"Sheet {SHEET} not found in {path}\")\n    ws = wb[SHEET]\n\n    header = [c.value for c in ws[1]]\n    if header[0] != \"MESSAGE\":\n        sys.exit(\"Column A of row 1 must be MESSAGE \u2014 is this a valid template?\")\n    field_names = [str(v).strip() for v in header[1:] if v]\n\n    records, row_map = [], []  # row_map[i] = worksheet row of records[i]\n    for row_idx, row in enumerate(\n            ws.iter_rows(min_row=DATA_START_ROW, values_only=True),\n            start=DATA_START_ROW):\n        if not any(v not in (None, \"\") for v in row[1:]):\n            continue  # skip empty rows\n        warnings = []\n        try:\n            record = build_record(field_names, row[1:], warnings)\n        except ValueError as exc:\n            ws.cell(row=row_idx, column=1, value=f\"SKIPPED: {exc}\")\n            print(f\"row {row_idx}: SKIPPED \u2014 {exc}\")\n            continue\n        if warnings:\n            print(f\"row {row_idx}: \" + \"; \".join(warnings))\n        records.append(record)\n        row_map.append(row_idx)\n\n    if not records:\n        wb.save(path)\n        sys.exit(\"No valid data rows found (data starts at row 7).\")\n\n    print(f\"Posting {len(records)} record(s) to {PROGRAM}/{TRANS} ...\")\n    response = post_batch_to_m3(PROGRAM, TRANS, records,\n                                selected_columns=[\"TEPY\"])\n    results = response.get(\"results\", response) if isinstance(response, dict) \\\n        else response\n\n    ok = failed = 0\n    for i, result in enumerate(results):\n        row_idx = row_map[i]\n        error = (result or {}).get(\"errorMessage\") or \"\"\n        if error.strip():\n            ws.cell(row=row_idx, column=1, value=f\"ERROR: {error.strip()}\")\n            print(f\"row {row_idx} ({records[i].get('TEPY')}): \"\n                  f\"ERROR {error.strip()}\")\n            failed += 1\n        else:\n            ws.cell(row=row_idx, column=1, value=\"OK\")\n            ok += 1\n\n    wb.save(path)\n    print(f\"Done: {ok} loaded, {failed} failed, \"\n          f\"results written to MESSAGE column of {path}\")\n    if failed:\n        sys.exit(1)\n\n\nif __name__ == \"__main__\":\n    main()\n"}], "grading": {"expectations": [{"text": "Produces an .xlsx workbook", "passed": true, "evidence": "API_CRS075MI_Add.xlsx"}, {"text": "Standard naming: Control sheet + API_CRS075MI_Add sheet", "passed": true, "evidence": "['Control', 'API_CRS075MI_Add']"}, {"text": "Row 1 = MESSAGE + all 14 input fields in FRPO order", "passed": true, "evidence": "14/14 fields, order match=True"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": true, "evidence": "mandatory row match=True"}, {"text": "Python loader builds {program, transactions:[{transaction, record}]} payloads", "passed": true, "evidence": "payload shape found"}, {"text": "Loader validates mandatory fields and lengths before posting", "passed": true, "evidence": "validation logic present"}], "summary": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6}}}, {"id": "eval-2-guide-plus-loader-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "CRS075MI_Add_mapping_guide.md", "type": "text", "content": "# Mapping Guide \u2014 CRS075MI / Add (Payment Terms)\n\n**Source of truth:** M3 API metadata tables `cmipgm`, `cmitrn`, `cmifld` in `doppio.db` (queried 2026-07-01).\n\n> **Naming note:** There is no transaction literally named `AddPayTerm` in CRS075MI.\n> The API program **CRS075MI \u2014 \"Payment Term\"** exposes five transactions:\n> `Add`, `Update`, `Get`, `List`, `Delete`. The transaction that adds a payment\n> term is **`Add`**, and that is what this guide (and the loader) uses.\n> If your interface spec says \"AddPayTerm\", map it to `CRS075MI/Add`.\n\n---\n\n## 1. API overview\n\n| Property | Value |\n|---|---|\n| Program (MINM) | `CRS075MI` |\n| Program description | Payment Term / Payment term |\n| Transaction (TRNM) | `Add` |\n| Transaction type (SIMU) | `S` \u2014 single-record transaction |\n| Related interactive program | CRS075 (Payment Terms. Open) |\n| Underlying storage | CSYTAB (system table, constant type TEPY) |\n| Company / division | `CONO`/`DIVI` are not part of the MI record; they come from the API connection context (set company on the session or via the REST `cono` query parameter if needed) |\n\nCompanion transactions useful for a load routine:\n\n- `Get` (in: TEPY, LNCD) \u2014 verify a record after load / check existence.\n- `List` \u2014 dump existing payment terms (multi-record).\n- `Update` \u2014 same field list as `Add`; use for re-runs when the record already exists.\n- `Delete` (in: TEPY, LNCD) \u2014 remove a record.\n\n---\n\n## 2. Input field mapping \u2014 CRS075MI/Add\n\nPositions are the fixed-record offsets from `cmifld` (FRPO\u2013TOPO); when calling\nthrough the REST/ION interface you pass fields by name, but lengths still apply \u2014\n**values longer than `Len` are truncated or rejected**.\n\n| # | Field | Description | Pos | Len | Type | Mand. | Mapping / rules |\n|---|-------|-------------|-----|-----|------|-------|-----------------|\n| 1 | `TEPY` | Payment terms | 16\u201318 | 3 | A | **Yes** | Key. The payment-terms ID that controls due-date calculation. Uppercase alphanumeric, max 3 chars (e.g. `N30`, `COD`). |\n| 2 | `LNCD` | Language | 19\u201320 | 2 | A | No | Language code for the language-specific name/terms text (e.g. `GB`). Blank = base language record. To load translations, send one Add per language. |\n| 3 | `TX15` | Name | 21\u201335 | 15 | A | No | Short name, 15 chars. If blank, M3 proposes the first 15 chars of the description on manual entry \u2014 for API loads, populate it explicitly. |\n| 4 | `TEL1` | Terms text, line 1 | 36\u201371 | 36 | A | No | Explanatory terms text printed on external documents (language-specific when LNCD is used). |\n| 5 | `TEL2` | Terms text, line 2 | 72\u2013107 | 36 | A | No | Continuation of TEL1. |\n| 6 | `SDAY` | Start day | 108\u2013109 | 2 | N | No | Due-date calc **parameter 1**: day the calculation starts. Valid `1\u201331` or `99` = last day of month. Must be `99` if a month free of payment (TEFM) applies. |\n| 7 | `TEFM` | Month free of payment | 110\u2013111 | 2 | N | No | Due-date calc **parameter 2**: whole months added, starting from the SDAY result. |\n| 8 | `TEPD` | Number of days | 112\u2013114 | 3 | N | No | Due-date calc **parameter 3**: days added, starting from the TEFM result. Classic \"Net 30\" = `TEPD=30`. |\n| 9 | `PDAY` | Payment day | 115\u2013116 | 2 | N | No | Due-date calc **parameter 4**: forces the due day. Valid `1\u201331` or `99` = last day of month. Applied to the TEPD result. |\n| 10 | `CAPY` | Cash payment | 117 | 1 | N | No | `0` = No, payment via invoicing. `1` = Cash payment, no A/R update. `2` = Cash payment via Cash Desk Sales (OIS215). |\n| 11 | `CCOD` | Calculate COD | 118 | 1 | A | No | `0` = No. `1` = COD amount = total gross value of delivery. `2` = COD amount = total net value of delivery. |\n| 12 | `UOWR` | Update outstanding w/o risk | 119 | 1 | A | No | `1` = No. `2` = Yes. `3` = Yes, update credit monitoring. Controls whether invoiced amount counts as \"outstanding without risk\" in credit checks. |\n| 13 | `PAYP` | Payment proposal | 120 | 1 | N | No | `0`/`1` flag. `1` activates prepayment with payment documents (requires 'Advance invoicing' = 3, 4 or 5 in OIS010). |\n| 14 | `CSPC` | Cash customer process | 121 | 1 | N | No | `0`/`1` flag. `1` = payment term allowed for cash customers (CRS610/J). |\n\n**Output fields:** `Add` returns no output record (PRFO `Y0` is empty in `cmifld`);\nsuccess/failure comes from the MI status. Use `Get` to read back what was stored\n(its output echoes all 14 fields above).\n\n### Due-date calculation cheat-sheet (SDAY \u2192 TEFM \u2192 TEPD \u2192 PDAY)\n\nThe four numeric parameters are applied **in order**, each starting from the\nprevious result:\n\n| Business term | SDAY | TEFM | TEPD | PDAY |\n|---|---|---|---|---|\n| Net 30 days | \u2013 | \u2013 | 30 | \u2013 |\n| Net 10 days | \u2013 | \u2013 | 10 | \u2013 |\n| End of month + 1 month, pay the 15th | 99 | 1 | \u2013 | 15 |\n| Cash on delivery | \u2013 | \u2013 | 0 | \u2013 (set CAPY/CCOD) |\n\n---\n\n## 3. Source-to-target mapping template\n\nFill the \"Source\" column with your legacy system's columns:\n\n| Target (M3) | Source column | Transform |\n|---|---|---|\n| TEPY | payment_term_code | Uppercase, max 3 chars, must be unique |\n| LNCD | language_code (opt.) | ISO-ish M3 language code, blank for base record |\n| TX15 | term_name | Truncate to 15 |\n| TEL1 | term_text | Chars 1\u201336 |\n| TEL2 | term_text | Chars 37\u201372 (overflow of TEL1) |\n| SDAY | start_day | Int 1\u201331 or 99; force 99 when TEFM > 0 |\n| TEFM | months_free | Int \u2265 0 |\n| TEPD | net_days | Int 0\u2013999 |\n| PDAY | fixed_pay_day | Int 1\u201331 or 99, blank/0 if unused |\n| CAPY | is_cash | 0/1/2 per \u00a72 |\n| CCOD | cod_basis | 0/1/2 per \u00a72 |\n| UOWR | outstanding_wo_risk | 1/2/3 per \u00a72 |\n| PAYP | payment_proposal | 0/1 |\n| CSPC | cash_customer | 0/1 |\n\n---\n\n## 4. Call format\n\nREST (M3 API / ION API, single transaction):\n\n```\nGET /m3api-rest/execute/CRS075MI/Add?TEPY=N30&TX15=Net 30 days&TEPD=30\n```\n\nREST v2 bulk (the format used by the loader script, matches the payloads seen in\n`api_logs`):\n\n```json\nPOST /m3api-rest/v2/execute\n{\n  \"program\": \"CRS075MI\",\n  \"transactions\": [\n    { \"transaction\": \"Add\",\n      \"record\": { \"TEPY\": \"N30\", \"TX15\": \"Net 30 days\", \"TEPD\": \"30\" } },\n    { \"transaction\": \"Add\",\n      \"record\": { \"TEPY\": \"N60\", \"TX15\": \"Net 60 days\", \"TEPD\": \"60\" } }\n  ]\n}\n```\n\nEach element of the response's `results` array carries its own\n`errorMessage` / `errorField` / `errorCode`, so one bad record does not fail the\nwhole batch.\n\n---\n\n## 5. Load-routine rules\n\n1. **Validate before sending** \u2014 lengths per \u00a72; TEPY mandatory; numeric fields must be integers; SDAY/PDAY in {1..31, 99}; CAPY/CCOD in {0,1,2}; UOWR in {1,2,3}; PAYP/CSPC in {0,1}; if TEFM > 0 then SDAY should be 99.\n2. **Idempotency** \u2014 a re-run will get \"record already exists\" from `Add`; either pre-check with `Get` or fall back to `Update` (same field list).\n3. **Language records** \u2014 load the base (blank LNCD) record first, then per-language rows.\n4. **Verification** \u2014 after load, `List`/`Get` and diff against the source file.\n5. **Batching** \u2014 chunk transactions (the loader defaults to 100 per POST) to keep payloads and error handling manageable.\n"}, {"name": "load_crs075mi_payterms.py", "type": "text", "content": "#!/usr/bin/env python3\n\"\"\"\nLoad payment terms into M3 through CRS075MI/Add.\n\nNote: the transaction that adds a payment term in CRS075MI is named `Add`\n(there is no `AddPayTerm` transaction in the API metadata); specs that say\n\"AddPayTerm\" map to CRS075MI/Add.\n\nInput : CSV file whose headers are the M3 field names (TEPY, LNCD, TX15, TEL1,\n        TEL2, SDAY, TEFM, TEPD, PDAY, CAPY, CCOD, UOWR, PAYP, CSPC).\n        Extra columns are ignored with a warning; TEPY is mandatory.\nTarget: POST {base_url}/m3api-rest/v2/execute with a bulk payload\n        {\"program\": \"CRS075MI\", \"transactions\": [{\"transaction\": \"Add\",\n        \"record\": {...}}, ...]}.\n\nUsage:\n    python3 load_crs075mi_payterms.py payterms.csv \\\n        --base-url https://mingle-ionapi.inforcloudsuite.com/TENANT/M3 \\\n        --token \"$ION_BEARER_TOKEN\" \\\n        [--update-existing] [--batch-size 100] [--dry-run] [--cono 300]\n\n    # write a template CSV to fill in:\n    python3 load_crs075mi_payterms.py --write-template payterms_template.csv\n\nAuthentication: pass an OAuth2 bearer token via --token or the environment\nvariable ION_BEARER_TOKEN (obtain it with your ION API client-credentials\nflow), or use --user/--password for basic auth against an on-prem M3 grid.\n\nValidation rules are generated from the API metadata db (cmifld,\nMINM='CRS075MI', TRNM='Add'):\n\n    Field  Description                     Len  Type  Mandatory\n    TEPY   Payment terms                    3    A      yes\n    LNCD   Language                         2    A      no\n    TX15   Name                            15    A      no\n    TEL1   Terms text                      36    A      no\n    TEL2   Terms text                      36    A      no\n    SDAY   Start day                        2    N      no   (1-31 or 99)\n    TEFM   Month free of payment            2    N      no\n    TEPD   Number of days                   3    N      no\n    PDAY   Payment day                      2    N      no   (1-31 or 99)\n    CAPY   Cash payment                     1    N      no   (0/1/2)\n    CCOD   Calculate COD                    1    A      no   (0/1/2)\n    UOWR   Update Outstanding w/o risk      1    A      no   (1/2/3)\n    PAYP   Payment proposal                 1    N      no   (0/1)\n    CSPC   Cash customer process            1    N      no   (0/1)\n\nOnly the Python standard library is required.\n\"\"\"\n\nimport argparse\nimport base64\nimport csv\nimport json\nimport os\nimport sys\nimport urllib.error\nimport urllib.parse\nimport urllib.request\n\nPROGRAM = \"CRS075MI\"\nTRANSACTION = \"Add\"\nTRANSACTION_UPDATE = \"Update\"\n\n# (name, description, max_len, type A/N, mandatory, allowed_values or None)\nFIELDS = [\n    (\"TEPY\", \"Payment terms\",               3,  \"A\", True,  None),\n    (\"LNCD\", \"Language\",                    2,  \"A\", False, None),\n    (\"TX15\", \"Name\",                        15, \"A\", False, None),\n    (\"TEL1\", \"Terms text 1\",                36, \"A\", False, None),\n    (\"TEL2\", \"Terms text 2\",                36, \"A\", False, None),\n    (\"SDAY\", \"Start day\",                   2,  \"N\", False, set(range(1, 32)) | {99}),\n    (\"TEFM\", \"Month free of payment\",       2,  \"N\", False, None),\n    (\"TEPD\", \"Number of days\",              3,  \"N\", False, None),\n    (\"PDAY\", \"Payment day\",                 2,  \"N\", False, set(range(1, 32)) | {99}),\n    (\"CAPY\", \"Cash payment\",                1,  \"N\", False, {0, 1, 2}),\n    (\"CCOD\", \"Calculate COD\",               1,  \"A\", False, {0, 1, 2}),\n    (\"UOWR\", \"Update outstanding w/o risk\", 1,  \"A\", False, {1, 2, 3}),\n    (\"PAYP\", \"Payment proposal\",            1,  \"N\", False, {0, 1}),\n    (\"CSPC\", \"Cash customer process\",       1,  \"N\", False, {0, 1}),\n]\nFIELD_NAMES = [f[0] for f in FIELDS]\nFIELD_MAP = {f[0]: f for f in FIELDS}\nNUMERIC_HINT = {\"SDAY\", \"TEFM\", \"TEPD\", \"PDAY\", \"CAPY\", \"CCOD\", \"UOWR\", \"PAYP\", \"CSPC\"}\n\n\n# ---------------------------------------------------------------- validation\n\ndef validate_row(row, line_no):\n    \"\"\"Return (record_dict, errors list). record_dict has only non-blank fields.\"\"\"\n    errors = []\n    record = {}\n    for name, desc, max_len, ftype, mandatory, allowed in FIELDS:\n        raw = (row.get(name) or \"\").strip()\n        if not raw:\n            if mandatory:\n                errors.append(f\"line {line_no}: {name} ({desc}) is mandatory\")\n            continue\n        if name in NUMERIC_HINT:\n            try:\n                val = int(float(raw)) if \".\" in raw else int(raw)\n            except ValueError:\n                errors.append(f\"line {line_no}: {name}={raw!r} is not numeric\")\n                continue\n            if allowed is not None and val not in allowed:\n                errors.append(\n                    f\"line {line_no}: {name}={val} not in allowed values \"\n                    f\"{sorted(allowed)}\"\n                )\n                continue\n            raw = str(val)\n        if len(raw) > max_len:\n            errors.append(\n                f\"line {line_no}: {name}={raw!r} exceeds max length {max_len}\"\n            )\n            continue\n        record[name] = raw.upper() if name in (\"TEPY\", \"LNCD\") else raw\n\n    # cross-field rule: month free of payment requires start day 99\n    if record.get(\"TEFM\", \"0\") not in (\"\", \"0\") and record.get(\"SDAY\") != \"99\":\n        errors.append(\n            f\"line {line_no}: TEFM={record.get('TEFM')} (month free of payment) \"\n            f\"requires SDAY=99 (last day of month), got SDAY={record.get('SDAY')!r}\"\n        )\n    return record, errors\n\n\ndef read_csv(path):\n    \"\"\"Read the CSV and return (records, all_errors, seen_keys).\"\"\"\n    records, errors = [], []\n    seen = set()\n    with open(path, newline=\"\", encoding=\"utf-8-sig\") as fh:\n        reader = csv.DictReader(fh)\n        if reader.fieldnames is None:\n            sys.exit(f\"ERROR: {path} is empty\")\n        unknown = [c for c in reader.fieldnames if c and c not in FIELD_NAMES]\n        if unknown:\n            print(f\"WARNING: ignoring unknown column(s): {', '.join(unknown)}\",\n                  file=sys.stderr)\n        if \"TEPY\" not in reader.fieldnames:\n            sys.exit(\"ERROR: CSV must have a TEPY column (payment terms key)\")\n        for line_no, row in enumerate(reader, start=2):\n            record, errs = validate_row(row, line_no)\n            key = (record.get(\"TEPY\", \"\"), record.get(\"LNCD\", \"\"))\n            if record.get(\"TEPY\") and key in seen:\n                errs.append(f\"line {line_no}: duplicate key TEPY={key[0]!r} \"\n                            f\"LNCD={key[1]!r} in input file\")\n            seen.add(key)\n            if errs:\n                errors.extend(errs)\n            elif record:\n                records.append(record)\n    return records, errors\n\n\n# ------------------------------------------------------------------ API I/O\n\nclass M3Client:\n    def __init__(self, base_url, token=None, user=None, password=None,\n                 cono=None, timeout=60):\n        self.execute_url = base_url.rstrip(\"/\") + \"/m3api-rest/v2/execute\"\n        self.cono = cono\n        self.timeout = timeout\n        self.headers = {\"Content-Type\": \"application/json\",\n                        \"Accept\": \"application/json\"}\n        if token:\n            self.headers[\"Authorization\"] = \"Bearer \" + token\n        elif user is not None:\n            cred = base64.b64encode(f\"{user}:{password or ''}\".encode()).decode()\n            self.headers[\"Authorization\"] = \"Basic \" + cred\n\n    def execute(self, program, transactions):\n        payload = {\"program\": program, \"transactions\": transactions}\n        url = self.execute_url\n        if self.cono:\n            url += \"?\" + urllib.parse.urlencode({\"cono\": self.cono})\n        req = urllib.request.Request(\n            url, data=json.dumps(payload).encode(\"utf-8\"),\n            headers=self.headers, method=\"POST\")\n        try:\n            with urllib.request.urlopen(req, timeout=self.timeout) as resp:\n                return json.loads(resp.read().decode(\"utf-8\"))\n        except urllib.error.HTTPError as exc:\n            body = exc.read().decode(\"utf-8\", \"replace\")\n            raise RuntimeError(f\"HTTP {exc.code} from {url}: {body[:500]}\") from exc\n\n\ndef transaction_results(response, batch):\n    \"\"\"Yield (record, ok, message) for each transaction in a v2 response.\"\"\"\n    results = response.get(\"results\") or response.get(\"transactions\") or []\n    for i, rec in enumerate(batch):\n        if i < len(results):\n            res = results[i]\n            err = (res.get(\"errorMessage\") or res.get(\"ErrorMessage\") or \"\").strip()\n            ok = not err\n            yield rec[\"record\"], ok, err\n        else:\n            yield rec[\"record\"], False, \"no result returned for transaction\"\n\n\n# --------------------------------------------------------------------- main\n\ndef write_template(path):\n    with open(path, \"w\", newline=\"\", encoding=\"utf-8\") as fh:\n        w = csv.writer(fh)\n        w.writerow(FIELD_NAMES)\n        w.writerow([\"N30\", \"\", \"Net 30 days\", \"Net 30 days\", \"\", \"\", \"\", \"30\",\n                    \"\", \"0\", \"0\", \"1\", \"0\", \"0\"])\n        w.writerow([\"M15\", \"\", \"EOM+1, pay 15th\", \"End of month + 1 month\",\n                    \"due on the 15th\", \"99\", \"1\", \"0\", \"15\", \"0\", \"0\", \"1\",\n                    \"0\", \"0\"])\n    print(f\"Template written to {path}\")\n\n\ndef main(argv=None):\n    ap = argparse.ArgumentParser(\n        description=f\"Load payment terms via {PROGRAM}/{TRANSACTION}\")\n    ap.add_argument(\"csv_file\", nargs=\"?\", help=\"input CSV (headers = M3 field names)\")\n    ap.add_argument(\"--base-url\",\n                    default=os.environ.get(\"M3_BASE_URL\", \"\"),\n                    help=\"M3/ION API base URL, e.g. \"\n                         \"https://mingle-ionapi.inforcloudsuite.com/TENANT/M3 \"\n                         \"(env M3_BASE_URL)\")\n    ap.add_argument(\"--token\", default=os.environ.get(\"ION_BEARER_TOKEN\"),\n                    help=\"OAuth2 bearer token (env ION_BEARER_TOKEN)\")\n    ap.add_argument(\"--user\", default=os.environ.get(\"M3_USER\"),\n                    help=\"basic-auth user (on-prem grids)\")\n    ap.add_argument(\"--password\", default=os.environ.get(\"M3_PASSWORD\"),\n                    help=\"basic-auth password\")\n    ap.add_argument(\"--cono\", default=None, help=\"company, sent as ?cono= if given\")\n    ap.add_argument(\"--batch-size\", type=int, default=100,\n                    help=\"transactions per POST (default 100)\")\n    ap.add_argument(\"--update-existing\", action=\"store_true\",\n                    help=\"retry 'already exists' failures with Update\")\n    ap.add_argument(\"--dry-run\", action=\"store_true\",\n                    help=\"validate and print payloads, do not call the API\")\n    ap.add_argument(\"--write-template\", metavar=\"PATH\",\n                    help=\"write a sample input CSV and exit\")\n    args = ap.parse_args(argv)\n\n    if args.write_template:\n        write_template(args.write_template)\n        return 0\n    if not args.csv_file:\n        ap.error(\"csv_file is required (or use --write-template)\")\n\n    records, errors = read_csv(args.csv_file)\n    if errors:\n        print(f\"VALIDATION FAILED \u2014 {len(errors)} error(s):\", file=sys.stderr)\n        for e in errors:\n            print(\"  \" + e, file=sys.stderr)\n        return 1\n    if not records:\n        print(\"Nothing to load (0 valid records).\")\n        return 0\n    print(f\"Validated {len(records)} record(s) from {args.csv_file}\")\n\n    batches = [records[i:i + args.batch_size]\n               for i in range(0, len(records), args.batch_size)]\n\n    if args.dry_run:\n        for n, chunk in enumerate(batches, 1):\n            payload = {\"program\": PROGRAM,\n                       \"transactions\": [{\"transaction\": TRANSACTION, \"record\": r}\n                                        for r in chunk]}\n            print(f\"--- dry-run batch {n}/{len(batches)} ---\")\n            print(json.dumps(payload, indent=2))\n        return 0\n\n    if not args.base_url:\n        ap.error(\"--base-url (or env M3_BASE_URL) is required unless --dry-run\")\n    if not args.token and args.user is None:\n        ap.error(\"provide --token / ION_BEARER_TOKEN or --user/--password\")\n\n    client = M3Client(args.base_url, token=args.token, user=args.user,\n                      password=args.password, cono=args.cono)\n\n    ok_count, fail_count, updated_count = 0, 0, 0\n    failures = []\n    for n, chunk in enumerate(batches, 1):\n        batch = [{\"transaction\": TRANSACTION, \"record\": r} for r in chunk]\n        print(f\"Batch {n}/{len(batches)}: sending {len(batch)} Add transaction(s)\")\n        response = client.execute(PROGRAM, batch)\n        retry = []\n        for record, ok, msg in transaction_results(response, batch):\n            key = f\"TEPY={record.get('TEPY')} LNCD={record.get('LNCD', '')}\"\n            if ok:\n                ok_count += 1\n            elif args.update_existing and \"exist\" in msg.lower():\n                retry.append(record)\n            else:\n                fail_count += 1\n                failures.append((key, msg))\n                print(f\"  FAIL {key}: {msg}\", file=sys.stderr)\n        if retry:\n            print(f\"  retrying {len(retry)} existing record(s) with \"\n                  f\"{TRANSACTION_UPDATE}\")\n            upd = [{\"transaction\": TRANSACTION_UPDATE, \"record\": r} for r in retry]\n            response = client.execute(PROGRAM, upd)\n            for record, ok, msg in transaction_results(response, upd):\n                key = f\"TEPY={record.get('TEPY')} LNCD={record.get('LNCD', '')}\"\n                if ok:\n                    updated_count += 1\n                else:\n                    fail_count += 1\n                    failures.append((key, msg))\n                    print(f\"  FAIL(update) {key}: {msg}\", file=sys.stderr)\n\n    print(f\"\\nDone. added={ok_count} updated={updated_count} failed={fail_count}\")\n    if failures:\n        print(\"Failed records:\", file=sys.stderr)\n        for key, msg in failures:\n            print(f\"  {key}: {msg}\", file=sys.stderr)\n        return 2\n    return 0\n\n\nif __name__ == \"__main__\":\n    sys.exit(main())\n"}], "grading": {"expectations": [{"text": "Produces an .xlsx workbook", "passed": false, "evidence": "no xlsx found"}, {"text": "Standard naming: Control sheet + API_CRS075MI_Add sheet", "passed": false, "evidence": "n/a"}, {"text": "Row 1 = MESSAGE + all 14 input fields in FRPO order", "passed": false, "evidence": "sheet missing"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": false, "evidence": "sheet missing"}, {"text": "Python loader builds {program, transactions:[{transaction, record}]} payloads", "passed": true, "evidence": "payload shape found"}, {"text": "Loader validates mandatory fields and lengths before posting", "passed": true, "evidence": "validation logic present"}], "summary": {"pass_rate": 0.3333, "passed": 2, "failed": 4, "total": 6}}}], "previous_feedback": {}, "previous_outputs": {}, "benchmark": {"metadata": {"skill_name": "m3-api-mapping-guide", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-07-01T23:30:07Z", "evals_run": [0, 1, 2], "runs_per_configuration": 3}, "runs": [{"eval_id": 0, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 4, "failed": 0, "total": 4, "time_seconds": 44.3, "tokens": 22011, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Produces an .xlsx workbook", "passed": true, "evidence": "API_CRS610MI_Add.xlsx"}, {"text": "Standard naming: Control sheet + API_CRS610MI_Add sheet", "passed": true, "evidence": "['Control', 'API_CRS610MI_Add']"}, {"text": "Row 1 = MESSAGE + all 42 input fields in FRPO order", "passed": true, "evidence": "42/42 fields, order match=True"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": true, "evidence": "mandatory row match=True"}], "notes": []}, {"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 2, "failed": 0, "total": 2, "time_seconds": 46.8, "tokens": 22433, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Names all 8 mandatory fields (STAT ITNO ITDS RESP UNMS ITTY MABU PRVG)", "passed": true, "evidence": "found 8/8: ['STAT', 'ITNO', 'ITDS', 'RESP', 'UNMS', 'ITTY', 'MABU', 'PRVG']"}, {"text": "Reports correct length for each mandatory field", "passed": true, "evidence": "all lengths present"}], "notes": []}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 257.9, "tokens": 37698, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Produces an .xlsx workbook", "passed": true, "evidence": "API_CRS075MI_Add.xlsx"}, {"text": "Standard naming: Control sheet + API_CRS075MI_Add sheet", "passed": true, "evidence": "['Control', 'API_CRS075MI_Add']"}, {"text": "Row 1 = MESSAGE + all 14 input fields in FRPO order", "passed": true, "evidence": "14/14 fields, order match=True"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": true, "evidence": "mandatory row match=True"}, {"text": "Python loader builds {program, transactions:[{transaction, record}]} payloads", "passed": true, "evidence": "payload shape found"}, {"text": "Loader validates mandatory fields and lengths before posting", "passed": true, "evidence": "validation logic present"}], "notes": []}, {"eval_id": 0, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.25, "passed": 1, "failed": 3, "total": 4, "time_seconds": 76.6, "tokens": 23094, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Produces an .xlsx workbook", "passed": true, "evidence": "CRS610MI_Add_template.xlsx"}, {"text": "Standard naming: Control sheet + API_CRS610MI_Add sheet", "passed": false, "evidence": "['Overview', 'Field Mapping', 'Data Entry', 'Output Fields']"}, {"text": "Row 1 = MESSAGE + all 42 input fields in FRPO order", "passed": false, "evidence": "sheet missing"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": false, "evidence": "sheet missing"}], "notes": []}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 2, "failed": 0, "total": 2, "time_seconds": 45.5, "tokens": 22846, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Names all 8 mandatory fields (STAT ITNO ITDS RESP UNMS ITTY MABU PRVG)", "passed": true, "evidence": "found 8/8: ['STAT', 'ITNO', 'ITDS', 'RESP', 'UNMS', 'ITTY', 'MABU', 'PRVG']"}, {"text": "Reports correct length for each mandatory field", "passed": true, "evidence": "all lengths present"}], "notes": []}, {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.3333, "passed": 2, "failed": 4, "total": 6, "time_seconds": 221.0, "tokens": 37678, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Produces an .xlsx workbook", "passed": false, "evidence": "no xlsx found"}, {"text": "Standard naming: Control sheet + API_CRS075MI_Add sheet", "passed": false, "evidence": "n/a"}, {"text": "Row 1 = MESSAGE + all 14 input fields in FRPO order", "passed": false, "evidence": "sheet missing"}, {"text": "Row 3 mandatory flags match cmifld MAND", "passed": false, "evidence": "sheet missing"}, {"text": "Python loader builds {program, transactions:[{transaction, record}]} payloads", "passed": true, "evidence": "payload shape found"}, {"text": "Loader validates mandatory fields and lengths before posting", "passed": true, "evidence": "validation logic present"}], "notes": []}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 116.3333, "stddev": 122.6067, "min": 44.3, "max": 257.9}, "tokens": {"mean": 27380.6667, "stddev": 8937.5638, "min": 22011, "max": 37698}}, "without_skill": {"pass_rate": {"mean": 0.5278, "stddev": 0.4111, "min": 0.25, "max": 1.0}, "time_seconds": {"mean": 114.3667, "stddev": 93.6472, "min": 45.5, "max": 221.0}, "tokens": {"mean": 27872.6667, "stddev": 8492.5731, "min": 22846, "max": 37678}}, "delta": {"pass_rate": "+0.47", "time_seconds": "+2.0", "tokens": "-492"}}, "notes": []}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

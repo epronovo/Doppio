@@ -90,8 +90,12 @@ Public Sub Process_Click()
         ClearEnvironmentTokens Config_SelectedEnvironment
     End If
 
-    ' Authenticate using OLD Doppio method to ensure correct environment
-    Tenant_Token
+    ' Authenticate using OLD Doppio method to ensure correct environment.
+    ' Reset the per-cycle guard so Tenant_Token always re-evaluates the
+    ' environment from this sheet ($I$2) rather than using a stale token
+    ' left over from a previous run or a different sheet.
+    m_b_TokenAttemptedThisCycle = False
+    Tenant_Token ws
 
     ' If the user had custom company/division before Process ran,
     ' restore them now (Tenant_Token may have overwritten the sheet
@@ -244,15 +248,15 @@ Private Sub ProcessMITransactions(ws As Worksheet, startTime As Single)
     Next i
     
     ws.Calculate
-    
+
     ' Ensure B9 has a value
     If IsEmpty(ws.Range("B9").value) Then
         ws.Range("B9").value = "?"
     End If
-    
+
     fullBody = ""
     counter = 0
-    
+
     ' Process each row
     While ws.Cells(m_CurrentRow, 2).value <> ""
         ' Get values from current row
@@ -466,7 +470,12 @@ Private Function BuildMITransactionBody(method As String, inputFields() As Strin
             fieldValue = Replace(fieldValue, """", "\""")
             fieldValue = Replace(fieldValue, vbCr, "")
             fieldValue = Replace(fieldValue, vbLf, "")
-            
+
+            ' Handle PAR1 numeric validation
+            If fieldName = "PAR1" Then
+                fieldValue = ReplaceAlphaWithZero(fieldValue)
+            End If
+
             If Not firstField Then
                 body = body & ","
             End If
@@ -536,13 +545,27 @@ Private Sub ProcessMIResults(response As apiResponse, ws As Worksheet, startRow 
         
         ' First check if there's an errorMessage at the result level
         errorMessage = ""
+        Dim errorField As String
+        Dim errorCode As String
+        Dim errorCfg As String
+        errorField = ""
+        errorCode = ""
+        errorCfg = ""
         On Error Resume Next
         errorMessage = resultItem.item("errorMessage")
+        errorField = resultItem.item("errorField")
+        errorCode = resultItem.item("errorCode")
+        errorCfg = resultItem.item("errorCfg")
         On Error GoTo ErrorHandler
-        
+
         If errorMessage <> "" Then
             ' Transaction failed - show error
-            statusCell.value = "NOK " & errorMessage
+            Dim errDetail As String
+            errDetail = "NOK " & errorMessage
+            If Trim(errorField) <> "" Then errDetail = errDetail & " [" & Trim(errorField) & "]"
+            If Trim(errorCode) <> "" Then errDetail = errDetail & " (" & Trim(errorCode) & ")"
+            If Trim(errorCfg) <> "" Then errDetail = errDetail & " {" & Trim(errorCfg) & "}"
+            statusCell.value = errDetail
             statusCell.Font.Color = COLOR_ERROR
             rowNum = rowNum + 1
         Else

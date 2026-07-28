@@ -2,7 +2,36 @@
   "permissions": {
     "allow": [
       "Bash(python3 -c \"import xlwings; print\\(xlwings.__version__\\)\")",
-      "Bash(pip install:*)"
+      "Bash(pip install:*)",
+      "Bash(sqlite3 /Users/ericpronovost/Doppio/doppio.db \"SELECT COUNT\\(*\\) FROM m3TableCols;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM m3TableCols;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM \\(SELECT DISTINCT tablename FROM m3TableCols WHERE TableName not IN \\(SELECT tablename FROM m3TableCols where ColumnName LIKE '%CONO'\\)\\);\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM \\(SELECT DISTINCT tablename FROM m3TableCols WHERE TableName not IN \\(SELECT tablename FROM m3TableCols where ColumnName LIKE '%DIVI'\\)\\);\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('Sql2Api.py'\\).read\\(\\)\\); print\\('syntax OK'\\)\")",
+      "Bash(sqlite3 /Users/ericpronovost/Doppio/claude.db \".tables\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db ' *)",
+      "Bash(echo \"Table created: $?\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \".schema SyndigoSalesOffices\")",
+      "Bash(python -c \"import ast; ast.parse\\(open\\('HJ_SKU.py'\\).read\\(\\)\\); print\\('Syntax OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('/Users/ericpronovost/Doppio/HJ_SKU.py'\\).read\\(\\)\\); print\\('Syntax OK'\\)\")",
+      "Bash(python3 -c \"import ast; ast.parse\\(open\\('/Users/ericpronovost/Doppio/HJ_SKU.py'\\).read\\(\\)\\); print\\('OK'\\)\")",
+      "Bash(sqlite3 /Users/ericpronovost/Doppio/doppio.db \".tables\")",
+      "Read(//Users/ericpronovost/sqlite/**)",
+      "Bash(sqlite3 ~/sqlite/doppio.db \".tables\")",
+      "Bash(python3 /Users/ericpronovost/Doppio/Sheet2Db.py --input-folder /Users/ericpronovost/Doppio/input --verbose)",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT * FROM OCUSMA WHERE variationNumber=13697470170;\" -header -column)",
+      "Bash(python3 CHC_SyncPanelViews.py)",
+      "Bash(python3 -c ' *)",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \".tables\")",
+      "Bash(sqlite3 -header -column /Users/ericpronovost/sqlite/doppio.db \"SELECT * FROM m3TableCols WHERE TableName='CMITRN' LIMIT 20;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \"SELECT DISTINCT DataType FROM m3TableCols LIMIT 30;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM cmitrn;\")",
+      "Bash(python3 -m py_compile m3_repacker_db.py)",
+      "Bash(sqlite3 ~/sqlite/doppio.db \"SELECT table_name FROM m3_unpacker_header ORDER BY table_name;\")",
+      "Bash(python3 m3_repacker_db.py --db ~/sqlite/doppio.db -t XITMAS -o ./repacked/)",
+      "Bash(python3 m3_repacker_db.py --db ~/sqlite/doppio.db -t xitmas -o ./repacked/)",
+      "Bash(xargs -I{} basename {})",
+      "Bash(sqlite3 ~/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM xitmas;\")"
     ]
   }
 }

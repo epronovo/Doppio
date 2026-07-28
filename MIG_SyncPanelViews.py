@@ -37,12 +37,18 @@ from UserDefaults import load_user_defaults, save_user_defaults
 # Constants
 # =============================================================================
 
-EXPORTMI_QUERY = (
-    "C9PAVR,C9PGNM,C9TX40,C9PARA,C9IBCA,C9RESP,C9PIC1,C9TX15,C9PVTP,C9UPDC,C9LUFN,C9LUVE,C9MCRT "
-    # "from CSYSPV where C9PGNM <> CMS100 and C9PGNM <> LISTMI and C9PAVR <> ''"
-    "from CSYSPV where C9PAVR <> ''"
+_EXPORTMI_FIELDS = (
+    "C9PAVR,C9PGNM,C9TX40,C9PARA,C9IBCA,C9RESP,C9PIC1,C9TX15,C9PVTP,C9UPDC,C9LUFN,C9LUVE,C9MCRT"
 )
-EXPORTMI_SEP   = "^"
+EXPORTMI_SEP = "^"
+
+
+def _build_exportmi_query(pgnm_filter: str) -> str:
+    base = f"{_EXPORTMI_FIELDS} from CSYSPV where C9PAVR <> ''"
+    if pgnm_filter:
+        return f"{base} and C9PGNM = {pgnm_filter}"
+    return base
+
 
 # Mapping from EXPORTMI C9xxx column names → CRS020MI.ImportView field names.
 # C9PARA is renamed to PAR1 in the API.
@@ -63,7 +69,8 @@ IMPORT_VIEW_MAP: dict[str, str] = {
 }
 
 IMPORT_VIEW_SELECTED = [
-    "PAVR","PGNM","TX40","PAR1","IBCA","RESP","PIC1","TX15","PVTP","UPDC","LUFN","LUVE","MCRT",
+    "PAVR", "PGNM", "TX40", "PAR1", "IBCA", "RESP", "PIC1",
+    "TX15", "PVTP", "UPDC", "LUFN", "LUVE", "MCRT",
 ]
 
 DEL_SHEET    = "API_CRS020MI_DelPanelVersion"
@@ -142,7 +149,7 @@ def setup_tenant(ionapi_dir: Path, label: str) -> dict:
 # Step 1 / 2 – EXPORTMI.Select → parse REPL rows
 # =============================================================================
 
-def fetch_panel_views(session: requests.Session, label: str) -> list[dict]:
+def fetch_panel_views(session: requests.Session, label: str, query: str) -> list[dict]:
     """
     Calls EXPORTMI.Select against CSYSPV and returns a list of dicts,
     one per panel-view row, keyed by the column names in the header row.
@@ -154,7 +161,7 @@ def fetch_panel_views(session: requests.Session, label: str) -> list[dict]:
         "transactions": [{
             "transaction": "Select",
             "record": {
-                "QERY": EXPORTMI_QUERY,
+                "QERY": query,
                 "SEPC": EXPORTMI_SEP,
                 "HDRS": "1",
             },
@@ -213,10 +220,76 @@ def fetch_panel_views(session: requests.Session, label: str) -> list[dict]:
 
 PARA_CMP_LEN = 1262   # only the first 1262 characters are meaningful for comparison
 
+# Characters that are valid anywhere in a C9PARA string.
+# C9PARA contains a mix of field names (A-Z, 0-9), single-char type/flag fields
+# (letters or digits), edit codes, decimal separators (. ,) and numeric padding
+# (spaces).  Anything outside this set is a binary/packed-decimal encoding
+# artifact that must be replaced before the string is passed to CRS020MI.
+_PARA_VALID = frozenset(
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "abcdefghijklmnopqrstuvwxyz"
+    "0123456789"
+    " .,_&"      # space (padding), decimal separators, underscore, & (virtual fields)
+)
+
+
+def sanitize_para(para: str, context: str = "") -> str:
+    """
+    Replace binary / packed-decimal encoding artifacts in a C9PARA value with
+    the digit '0' so that CRS020MI.ImportView can parse every numeric field.
+
+    Characters kept as-is
+    ---------------------
+    • A-Z, a-z          – field names, type flags, edit codes, field-info codes
+    • 0-9               – numeric field values (lengths, rules, QTTP, …)
+    • space             – padding in fixed-width character sections
+    • . ,               – decimal-format characters (ZFDF fields)
+    • _ &               – underscores in some field names; & prefix for virtual fields
+
+    Everything else (e.g. 0x27 = "'" from a packed-decimal sign nibble) → '0'.
+
+    Parameters
+    ----------
+    para    : raw C9PARA string
+    context : optional label for the warning message (e.g. "MWS410/B/D001")
+    """
+    if not para:
+        return para
+
+    result   = []
+    replaced = 0
+    last_bad = ""
+    for ch in para:
+        if ch in _PARA_VALID:
+            result.append(ch)
+        else:
+            result.append("0")
+            replaced += 1
+            last_bad = ch
+
+    if replaced:
+        label = f" [{context}]" if context else ""
+        print(
+            f"  ⚠️   sanitize_para{label}: replaced {replaced} artifact "
+            f"byte(s) (e.g. 0x{ord(last_bad):02X} = {repr(last_bad)}) with '0'"
+        )
+
+    return "".join(result)
+
 
 def cmp_para(c9para: str) -> str:
-    """Return the comparison slice of C9PARA (first 1262 characters)."""
+    """Return the raw comparison slice of C9PARA (first 1262 characters)."""
     return c9para[:PARA_CMP_LEN]
+
+
+def norm_para(c9para: str) -> str:
+    """
+    Normalise C9PARA for comparison: sanitize artifact bytes first, then
+    take the meaningful slice.  This ensures that a view already imported
+    (where artifacts were replaced with '0') compares equal to its SOURCE
+    original, preventing false positives on every subsequent sync run.
+    """
+    return sanitize_para(c9para)[:PARA_CMP_LEN]
 
 
 def para_diff_summary(src: str, dst: str) -> str:
@@ -229,7 +302,6 @@ def para_diff_summary(src: str, dst: str) -> str:
     s = s.ljust(max_len)
     d = d.ljust(max_len)
 
-    # Collect contiguous differing ranges
     ranges: list[tuple[int, int]] = []
     in_range = False
     start = 0
@@ -273,11 +345,20 @@ def build_import_record(source_row: dict) -> dict:
     """
     Build the record for CRS020MI.ImportView from an EXPORTMI source row.
     Maps C9xxx keys to API field names (C9PARA → PAR1).
+    C9PARA is sanitized to remove binary encoding artifacts before mapping.
     Skips any field whose value is blank.
     """
+    context = (
+        f"{source_row.get('C9PGNM', '')}/"
+        f"{source_row.get('C9PIC1', '')}/"
+        f"{source_row.get('C9PAVR', '')}"
+    )
+
     rec: dict = {}
     for c9_key, api_key in IMPORT_VIEW_MAP.items():
         val = source_row.get(c9_key, "")
+        if c9_key == "C9PARA":
+            val = sanitize_para(val, context=context)
         if val != "":
             rec[api_key] = val
     return rec
@@ -293,9 +374,6 @@ def upload_file_to_m3(
 ) -> bool:
     """
     Uploads file_path to the M3 FileImport area via the File Management REST API.
-
-    PUT {iu}/{ti}/M3/foundation-rest/file-management/v1/file/FileImport/{filename}
-
     Returns True on success, False on failure.
     """
     filename   = file_path.name
@@ -337,7 +415,6 @@ def process_file_in_m3(
     """
     Calls EVS100MI.ImportFile with FNAM=filename so M3 processes the uploaded
     spreadsheet through the EVS100 interface.
-
     Returns True on success, False on failure.
     """
     payload = {
@@ -446,12 +523,23 @@ def sync_panel_views() -> None:
     ionapi_dir = Path(__file__).parent / "ionapi"
 
     # ------------------------------------------------------------------ #
+    # PGNM filter (optional)                                              #
+    # ------------------------------------------------------------------ #
+    pgnm_input = input(
+        "\n  Filter by program [PGNM]? (leave blank to process ALL programs): "
+    ).strip().upper()
+    pgnm_filter = pgnm_input if pgnm_input else ""
+    query = _build_exportmi_query(pgnm_filter)
+    scope_label = f"PGNM={pgnm_filter}" if pgnm_filter else "ALL programs"
+    print(f"  ℹ️   Scope: {scope_label}")
+
+    # ------------------------------------------------------------------ #
     # Step 1 – SOURCE: EXPORTMI.Select                                    #
     # ------------------------------------------------------------------ #
     source_snap = setup_tenant(ionapi_dir, "SOURCE")
     print("\n🔍  Step 1 – EXPORTMI.Select CSYSPV (SOURCE) …")
     with requests.Session() as session:
-        source_views = fetch_panel_views(session, label="SOURCE")
+        source_views = fetch_panel_views(session, label="SOURCE", query=query)
 
     if not source_views:
         print("⚠️   No panel views found in SOURCE. Exiting.")
@@ -463,10 +551,13 @@ def sync_panel_views() -> None:
     dest_snap = setup_tenant(ionapi_dir, "DEST")
     print("\n🔍  Step 2 – EXPORTMI.Select CSYSPV (DEST) …")
     with requests.Session() as session:
-        dest_views = fetch_panel_views(session, label="DEST")
+        dest_views = fetch_panel_views(session, label="DEST", query=query)
 
     # ------------------------------------------------------------------ #
     # Step 3 – Diff: find views where C9PARA differs                      #
+    # Both sides are normalised before comparison so that artifact bytes  #
+    # already replaced with '0' on a previous import run do not cause     #
+    # false positives on subsequent syncs.                                #
     # ------------------------------------------------------------------ #
     dest_index: dict[tuple, dict] = {
         (r["C9PGNM"], r["C9PIC1"], r["C9PAVR"]): r
@@ -476,9 +567,9 @@ def sync_panel_views() -> None:
     differing: list[dict] = []
     for row in source_views:
         key = (row["C9PGNM"], row["C9PIC1"], row["C9PAVR"])
-        dest_row = dest_index.get(key)
-        dest_para = cmp_para(dest_row.get("C9PARA", "")) if dest_row else None
-        if dest_para is None or dest_para != cmp_para(row.get("C9PARA", "")):
+        dest_row  = dest_index.get(key)
+        dest_para = norm_para(dest_row.get("C9PARA", "")) if dest_row else None
+        if dest_para is None or dest_para != norm_para(row.get("C9PARA", "")):
             differing.append(row)
 
     if not differing:
@@ -493,15 +584,16 @@ def sync_panel_views() -> None:
         key = (row["C9PGNM"], row["C9PIC1"], row["C9PAVR"])
         dest_row = dest_index.get(key)
         if dest_row is None:
-            status = "NEW"
+            status    = "NEW"
             diff_info = "not in DEST"
         else:
-            status = "CHG"
+            status    = "CHG"
             diff_info = para_diff_summary(
-                cmp_para(row.get("C9PARA", "")),
-                cmp_para(dest_row.get("C9PARA", "")),
+                norm_para(row.get("C9PARA", "")),
+                norm_para(dest_row.get("C9PARA", "")),
             )
-        print(f"  [{status}]  PGNM={row['C9PGNM']:<8}  PIC1={row['C9PIC1']}  PAVR={row['C9PAVR']}  diff={diff_info}")
+        print(f"  [{status}]  PGNM={row['C9PGNM']:<8}  PIC1={row['C9PIC1']}  "
+              f"PAVR={row['C9PAVR']}  diff={diff_info}")
     if len(differing) > 10:
         print(f"  … and {len(differing) - 10} more")
     print(f"\n{'═' * 60}")
@@ -513,7 +605,7 @@ def sync_panel_views() -> None:
     print()
 
     # ------------------------------------------------------------------ #
-    # Step 4 – Export to EVS100 Excel file                               #
+    # Step 4 – Export to EVS100 Excel file                                #
     # ------------------------------------------------------------------ #
     print(f"▶   Step 4 – Exporting {len(differing)} view(s) to EVS100 Excel file …")
     xlsx_path = export_evs100_xlsx(differing, EVS100_TO_PROCESS)
@@ -531,7 +623,7 @@ def sync_panel_views() -> None:
     print(f"{'═' * 60}")
 
     # ------------------------------------------------------------------ #
-    # Step 5 – Optional: upload and process in DEST                      #
+    # Step 5 – Optional: upload and process in DEST                       #
     # ------------------------------------------------------------------ #
     restore_config(dest_snap)
     get_ion_token()

@@ -468,12 +468,28 @@ Private Sub ParseAndWriteResults(response As httpResponse, ws As Worksheet, star
     rowNum = startRow
     For Each resultItem In results
         statusMsg = ""
+        Dim errorField As String
+        Dim errorCode As String
+        Dim errorCfg As String
+        errorField = ""
+        errorCode = ""
+        errorCfg = ""
         If Not resultItem Is Nothing Then
             statusMsg = resultItem.item("errorMessage")
+            On Error Resume Next
+            errorField = resultItem.item("errorField")
+            errorCode = resultItem.item("errorCode")
+            errorCfg = resultItem.item("errorCfg")
+            On Error GoTo ErrorHandler
             If statusMsg = "" Then
                 ws.Cells(rowNum, 1).value = "OK"
             Else
-                ws.Cells(rowNum, 1).value = "NOK " & statusMsg
+                Dim errDetail As String
+                errDetail = "NOK " & statusMsg
+                If Trim(errorField) <> "" Then errDetail = errDetail & " [" & Trim(errorField) & "]"
+                If Trim(errorCode) <> "" Then errDetail = errDetail & " (" & Trim(errorCode) & ")"
+                If Trim(errorCfg) <> "" Then errDetail = errDetail & " {" & Trim(errorCfg) & "}"
+                ws.Cells(rowNum, 1).value = errDetail
                 ws.Cells(rowNum, 1).Font.Color = COLOR_ERROR
             End If
         End If

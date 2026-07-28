@@ -10,6 +10,38 @@ Attribute VB_Name = "Doppio_Auth"
 Option Explicit
 
 ' =============================================================================
+' MODULE-LEVEL STATE
+' =============================================================================
+
+' Tracks when the current access token expires.
+' Initialises to epoch (0) so any cached token loaded from the sheet is treated
+' as expired until a fresh token has been obtained this session.
+Private m_TokenExpiry As Date
+
+' =============================================================================
+' PRIVATE HELPERS
+' =============================================================================
+
+''
+' Returns True when the in-memory token has passed its expiry timestamp.
+' An uninitialised expiry (epoch) is always considered expired.
+''
+Private Function IsTokenExpired() As Boolean
+    IsTokenExpired = (Now >= m_TokenExpiry)
+End Function
+
+''
+' Set the token expiry from the expires_in value returned by the auth server.
+' @param expiresInSeconds - Lifetime of the token in seconds (0 = use default)
+''
+Private Sub SetTokenExpiry(expiresInSeconds As Long)
+    Dim ttl As Long
+    ttl = expiresInSeconds
+    If ttl <= 0 Then ttl = 3300  ' Default: 55 minutes (conservative for 1-hour tokens)
+    m_TokenExpiry = Now + (ttl / 86400#)  ' Convert seconds to fractional days
+End Sub
+
+' =============================================================================
 ' PUBLIC API
 ' =============================================================================
 
@@ -25,10 +57,22 @@ Public Function EnsureAuthenticated() As Boolean
         Exit Function
     End If
     
-    ' Check if we already have a valid token
+    ' Check if we already have a valid, unexpired token
     If Config_HasValidToken() Then
-        EnsureAuthenticated = True
-        Exit Function
+        If Config_IsMultitenant Then
+            ' Multi-tenant: honour the expiry clock
+            If Not IsTokenExpired() Then
+                EnsureAuthenticated = True
+                Exit Function
+            End If
+            ' Token string is present but expired – clear it so we fall through
+            ' to re-authentication below
+            Config_AccessToken = ""
+        Else
+            ' Single-tenant basic auth does not expire
+            EnsureAuthenticated = True
+            Exit Function
+        End If
     End If
     
     ' Try to get a new token
@@ -103,14 +147,23 @@ Public Function GetServiceAccountToken() As Boolean
     Config_AccessToken = SafeStr(json.item("access_token"))
     Config_RefreshToken = SafeStr(json.item("refresh_token"))
     Config_TokenType = SafeStr(json.item("token_type"))
-    
+
     If Config_TokenType = "" Then
         Config_TokenType = "Bearer"
     End If
-    
+
+    ' Record when this token expires so EnsureAuthenticated can auto-refresh
+    Dim expiresIn As Long
+    expiresIn = 0
+    On Error Resume Next
+    expiresIn = CLng(json.item("expires_in"))
+    On Error GoTo 0
+    SetTokenExpiry expiresIn
+
     GetServiceAccountToken = (Config_AccessToken <> "")
-    
+
     Debug.Print "GetServiceAccountToken: Got token = " & GetServiceAccountToken
+    Debug.Print "GetServiceAccountToken: Token expires at " & m_TokenExpiry
     
     Exit Function
     
@@ -184,18 +237,26 @@ Public Function RefreshAccessToken() As Boolean
     ' Extract tokens
     Config_AccessToken = SafeStr(json.item("access_token"))
     Config_TokenType = SafeStr(json.item("token_type"))
-    
+
     ' Update refresh token if a new one was provided
     Dim newRefresh As String
     newRefresh = SafeStr(json.item("refresh_token"))
     If newRefresh <> "" Then
         Config_RefreshToken = newRefresh
     End If
-    
+
     If Config_TokenType = "" Then
         Config_TokenType = "Bearer"
     End If
-    
+
+    ' Record expiry so future calls to EnsureAuthenticated can auto-refresh
+    Dim expiresIn As Long
+    expiresIn = 0
+    On Error Resume Next
+    expiresIn = CLng(json.item("expires_in"))
+    On Error GoTo 0
+    SetTokenExpiry expiresIn
+
     RefreshAccessToken = (Config_AccessToken <> "")
     
     Exit Function
@@ -213,6 +274,7 @@ Public Sub ClearAuthentication()
     Config_AccessToken = ""
     Config_RefreshToken = ""
     Config_TokenType = ""
+    m_TokenExpiry = 0  ' Reset expiry so the next EnsureAuthenticated forces a fresh login
 End Sub
 
 ''

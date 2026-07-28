@@ -28,6 +28,9 @@ import os
 import requests
 from pathlib import Path
 import xlsxwriter
+from tqdm import tqdm
+from openpyxl import Workbook as OWorkbook
+from openpyxl.styles import Font, PatternFill, Alignment
 
 from InforMI import (
     CONFIG,
@@ -42,18 +45,20 @@ from UserDefaults import load_user_defaults, save_user_defaults
 
 EXPORTMI_SEP = "^"
 
+DEFAULT_BATCH_SIZE = 100
+
 # MBMTRN – Translation header
 EXPORTMI_HDR_QUERY = (
     "TRIDTR,TRTRQF,TRMSTD,TRMVRS,TRBMSG,TRIBOB,TRELMP,TRELMD,TRELMC,TRMBMC from MBMTRN"
 )
 # MBMTRD – Translation details
 EXPORTMI_DTL_QUERY = (
-    "TDIDTR,TDTX15,TDMVXP,TDEXTP,TDMVXD,TDMBMD,TDTX40 from MBMTRD"
+    "TDDIVI,TDIDTR,TDTX15,TDMVXP,TDEXTP,TDMVXD,TDMBMD,TDTX40 from MBMTRD"
 )
 
 # Mapping from MBMTRN column names → CRS881MI API field names.
-# TRIDTR is the join key only; it is NOT passed to the API.
 HDR_FIELD_MAP: dict[str, str] = {
+    "TRIDTR": "IDTR",
     "TRTRQF": "TRQF",
     "TRMSTD": "MSTD",
     "TRMVRS": "MVRS",
@@ -68,6 +73,7 @@ HDR_FIELD_MAP: dict[str, str] = {
 # Mapping from MBMTRD column names → CRS881MI API field names.
 # TDIDTR is the join key only; it is NOT passed to the API.
 DTL_FIELD_MAP: dict[str, str] = {
+    "TDDIVI": "DIVI",
     "TDTX15": "TX15",
     "TDMVXP": "MVXP",
     "TDEXTP": "EXTP",
@@ -76,9 +82,10 @@ DTL_FIELD_MAP: dict[str, str] = {
     "TDTX40": "TX40",
 }
 
-# API field lists for the two data sheets
-ADD_TRANSLATION_FIELDS = list(HDR_FIELD_MAP.values())   # TRQF MSTD MVRS BMSG IBOB ELMP ELMD ELMC MBMC
-ADD_TRANSL_DATA_FIELDS  = ADD_TRANSLATION_FIELDS + list(DTL_FIELD_MAP.values())
+# API field lists for the two data sheets.
+# AddTranslData prepends CONO so EVS100 appends &cono=X&divi=Y to the URL.
+ADD_TRANSLATION_FIELDS = list(HDR_FIELD_MAP.values())   # IDTR TRQF MSTD MVRS BMSG IBOB ELMP ELMD ELMC MBMC
+ADD_TRANSL_DATA_FIELDS  = ["CONO"] + ADD_TRANSLATION_FIELDS + list(DTL_FIELD_MAP.values())
 
 EVS100_TO_PROCESS = Path(__file__).parent / "evs100" / "ToProcess"
 
@@ -281,7 +288,7 @@ def build_trn_record(hdr_row: dict) -> dict:
 
 def build_trd_record(combined_row: dict) -> dict:
     """Build the CRS881MI.AddTranslData record from a combined header + detail row."""
-    rec: dict = {}
+    rec: dict = {"CONO": CONFIG.get("company", "")}
     for src_key, api_key in {**HDR_FIELD_MAP, **DTL_FIELD_MAP}.items():
         val = combined_row.get(src_key, "")
         if val:
@@ -326,7 +333,7 @@ def export_evs100_xlsx(
     SHEET_TRD = "API_CRS881MI_AddTranslData"
 
     DESCS_TRN = [
-        None, "Qualifier", "Message standard", "Message version",
+        None, "Translation ID", "Qualifier", "Message standard", "Message version",
         "Business message", "In/Out", "Element path",
         "Element description", "Element container", "Message context",
     ]
@@ -334,10 +341,10 @@ def export_evs100_xlsx(
     COLS_TRN  = ["MESSAGE"] + ADD_TRANSLATION_FIELDS
 
     DESCS_TRD = [
-        None, "Qualifier", "Message standard", "Message version",
-        "Business message", "In/Out", "Element path",
-        "Text 15", "Element description", "Element container", "Message context",
-        "MVX path", "Extension type", "MVX description",
+        None, "Company", "Translation ID", "Qualifier", "Message standard",
+        "Message version", "Business message", "In/Out", "Element path",
+        "Element description", "Element container", "Message context",
+        "Division", "Text 15", "MVX path", "Extension type", "MVX description",
         "Message description", "Text 40",
     ]
     REQD_TRD = ["no"] + ["yes"] * len(ADD_TRANSL_DATA_FIELDS)
@@ -461,11 +468,232 @@ def process_file_in_m3(
 
 
 # =============================================================================
+# Direct API calls to DEST  (mirrors MIG_SyncPartnerRef pattern)
+# =============================================================================
+
+def run_add_translation_batched(
+    records: list[dict],
+    session: requests.Session,
+    batch_size: int,
+) -> tuple[list[dict], list[tuple[dict, str]]]:
+    """
+    Calls CRS881MI.AddTranslation on DEST for each record (batched).
+    Returns (successes, failures).
+    """
+    successes: list[dict] = []
+    failures:  list[tuple[dict, str]] = []
+
+    for i in tqdm(
+        range(0, len(records), batch_size),
+        desc="CRS881MI.AddTranslation",
+        unit="batch",
+        leave=False,
+    ):
+        batch = records[i : i + batch_size]
+        payload = {
+            "program": "CRS881MI",
+            "transactions": [
+                {
+                    "transaction": "AddTranslation",
+                    "record": rec,
+                    "selectedColumns": ADD_TRANSLATION_FIELDS,
+                }
+                for rec in batch
+            ],
+        }
+        try:
+            result = post_to_m3(payload, session)
+            api_results = result.get("results", [])
+            for j, res in enumerate(api_results):
+                err = res.get("errorMessage", "").strip() if isinstance(res, dict) else ""
+                rec = batch[j] if j < len(batch) else {}
+                if err:
+                    failures.append((rec, err))
+                else:
+                    successes.append(rec)
+            for k in range(len(api_results), len(batch)):
+                failures.append((batch[k], "No result returned"))
+        except Exception as exc:
+            for rec in batch:
+                failures.append((rec, str(exc)))
+
+    return successes, failures
+
+
+def run_add_transl_data_batched(
+    records: list[dict],
+    session: requests.Session,
+    batch_size: int,
+) -> tuple[list[dict], list[tuple[dict, str]]]:
+    """
+    Calls CRS881MI.AddTranslData on DEST for each record (batched).
+    Returns (successes, failures).
+    """
+    successes: list[dict] = []
+    failures:  list[tuple[dict, str]] = []
+
+    for i in tqdm(
+        range(0, len(records), batch_size),
+        desc="CRS881MI.AddTranslData",
+        unit="batch",
+        leave=False,
+    ):
+        batch = records[i : i + batch_size]
+        payload = {
+            "program": "CRS881MI",
+            "transactions": [
+                {
+                    "transaction": "AddTranslData",
+                    "record": rec,
+                    "selectedColumns": ADD_TRANSL_DATA_FIELDS,
+                }
+                for rec in batch
+            ],
+        }
+        try:
+            result = post_to_m3(payload, session)
+            api_results = result.get("results", [])
+            for j, res in enumerate(api_results):
+                err = res.get("errorMessage", "").strip() if isinstance(res, dict) else ""
+                rec = batch[j] if j < len(batch) else {}
+                if err:
+                    failures.append((rec, err))
+                else:
+                    successes.append(rec)
+            for k in range(len(api_results), len(batch)):
+                failures.append((batch[k], "No result returned"))
+        except Exception as exc:
+            for rec in batch:
+                failures.append((rec, str(exc)))
+
+    return successes, failures
+
+
+def print_summary(
+    label: str,
+    successes: list[dict],
+    failures: list[tuple[dict, str]],
+) -> None:
+    from collections import Counter
+    total = len(successes) + len(failures)
+    print(f"\n{'═' * 60}")
+    print(f"  {label}")
+    print(f"  ✅ Succeeded : {len(successes)}")
+    print(f"  ❌ Failed    : {len(failures)}")
+    print(f"  📋 Total     : {total}")
+    print(f"{'═' * 60}")
+
+    msg_counts: Counter = Counter()
+    msg_counts["OK"] = len(successes)
+    for _, err in failures:
+        msg_counts[err] += 1
+    print()
+    for msg, count in msg_counts.most_common():
+        print(f"  {msg} = {count}")
+
+
+def export_api_errors_xlsx(
+    trn_successes: list[dict],
+    trn_failures:  list[tuple[dict, str]],
+    trd_successes: list[dict],
+    trd_failures:  list[tuple[dict, str]],
+    out_dir: Path,
+) -> Path:
+    """
+    Writes three sheets to an xlsx file:
+      • Summary             – error-message totals for both steps
+      • AddTranslation Err  – one row per failed AddTranslation record
+      • AddTranslData Err   – one row per failed AddTranslData record
+    Returns the path of the written file.
+    """
+    from collections import Counter
+
+    ts       = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_path = out_dir / f"MIG_SyncTranslData_Errors_{ts}.xlsx"
+
+    wb = OWorkbook()
+
+    hdr_font = Font(name="Arial", bold=True, color="FFFFFF")
+    hdr_fill = PatternFill("solid", start_color="2F5496")
+    ok_fill  = PatternFill("solid", start_color="E2EFDA")
+    err_fill = PatternFill("solid", start_color="FCE4D6")
+    ctr      = Alignment(horizontal="center")
+
+    def _write_error_sheet(ws, fields, failures):
+        for col, f in enumerate(fields, start=1):
+            c = ws.cell(row=1, column=col, value=f)
+            c.font = hdr_font
+            c.fill = hdr_fill
+            c.alignment = ctr
+        for row_i, (rec, err) in enumerate(failures, start=2):
+            for col, f in enumerate(fields, start=1):
+                val = err if f == "ERROR" else rec.get(f, "")
+                c = ws.cell(row=row_i, column=col, value=val)
+                c.font = Font(name="Arial")
+        for col, f in enumerate(fields, start=1):
+            max_len = max(
+                len(f),
+                *(len(str(rec.get(f, "") if f != "ERROR" else err))
+                  for rec, err in failures),
+            )
+            ws.column_dimensions[
+                ws.cell(row=1, column=col).column_letter
+            ].width = min(max_len + 2, 60)
+
+    # ── Sheet 1: Summary ──────────────────────────────────────────────────
+    ws_sum = wb.active
+    ws_sum.title = "Summary"
+
+    for col, heading in enumerate(["Step", "Message", "Count"], start=1):
+        c = ws_sum.cell(row=1, column=col, value=heading)
+        c.font = hdr_font
+        c.fill = hdr_fill
+        c.alignment = ctr
+
+    row_i = 2
+    for step_label, successes, failures in [
+        ("AddTranslation", trn_successes, trn_failures),
+        ("AddTranslData",  trd_successes, trd_failures),
+    ]:
+        counts: Counter = Counter()
+        counts["OK"] = len(successes)
+        for _, err in failures:
+            counts[err] += 1
+        for msg, count in counts.most_common():
+            fill = ok_fill if msg == "OK" else err_fill
+            for col, val in enumerate([step_label, msg, count], start=1):
+                c = ws_sum.cell(row=row_i, column=col, value=val)
+                c.fill = fill
+                c.font = Font(name="Arial")
+                if col == 3:
+                    c.alignment = ctr
+            row_i += 1
+
+    ws_sum.column_dimensions["A"].width = 20
+    ws_sum.column_dimensions["B"].width = 80
+    ws_sum.column_dimensions["C"].width = 10
+
+    # ── Sheet 2: AddTranslation errors ────────────────────────────────────
+    if trn_failures:
+        ws_trn = wb.create_sheet("AddTranslation Err")
+        _write_error_sheet(ws_trn, ADD_TRANSLATION_FIELDS + ["ERROR"], trn_failures)
+
+    # ── Sheet 3: AddTranslData errors ─────────────────────────────────────
+    if trd_failures:
+        ws_trd = wb.create_sheet("AddTranslData Err")
+        _write_error_sheet(ws_trd, ADD_TRANSL_DATA_FIELDS + ["ERROR"], trd_failures)
+
+    wb.save(out_path)
+    return out_path
+
+
+# =============================================================================
 # Main
 # =============================================================================
 
 def sync_transl_data() -> None:
     ionapi_dir = Path(__file__).parent / "ionapi"
+    batch_size = DEFAULT_BATCH_SIZE
 
     print(f"\n{'═' * 60}")
     print(f"  MIG_SyncTranslData")
@@ -550,7 +778,58 @@ def sync_transl_data() -> None:
     print(f"  📄  Saved to: evs100/ToProcess/{xlsx_path.name}")
 
     # ------------------------------------------------------------------ #
-    # Step 5 – Summary                                                    #
+    # Step 5 – Configure DEST tenant                                      #
+    # ------------------------------------------------------------------ #
+    restore_config(source_snap)
+    dest_snap    = setup_tenant(ionapi_dir, "DEST")
+    dest_company = CONFIG.get("company", "")
+
+    # Build DEST-specific trd_records: identical to SOURCE set but with
+    # CONO overridden to the DEST company number.
+    trd_records_dest = [{**rec, "CONO": dest_company} for rec in trd_records]
+
+    # ------------------------------------------------------------------ #
+    # Step 6 – Direct API calls: CRS881MI.AddTranslation + AddTranslData  #
+    # ------------------------------------------------------------------ #
+    confirm = input(
+        "\n  Call CRS881MI APIs directly against DEST? [y/N]: "
+    ).strip().lower()
+
+    trn_successes: list[dict] = []
+    trn_failures:  list[tuple[dict, str]] = []
+    trd_successes: list[dict] = []
+    trd_failures:  list[tuple[dict, str]] = []
+
+    if confirm == "y":
+        restore_config(dest_snap)
+        get_ion_token()
+
+        with requests.Session() as session:
+            print(f"\n▶   Step 6a – CRS881MI.AddTranslation ({len(trn_records):,} records) …")
+            trn_successes, trn_failures = run_add_translation_batched(
+                trn_records, session, batch_size
+            )
+
+            print(f"\n▶   Step 6b – CRS881MI.AddTranslData ({len(trd_records_dest):,} records) …")
+            trd_successes, trd_failures = run_add_transl_data_batched(
+                trd_records_dest, session, batch_size
+            )
+
+        print_summary("AddTranslation [DEST]", trn_successes, trn_failures)
+        print_summary("AddTranslData  [DEST]", trd_successes, trd_failures)
+
+        if trn_failures or trd_failures:
+            err_path = export_api_errors_xlsx(
+                trn_successes, trn_failures,
+                trd_successes, trd_failures,
+                Path(__file__).parent,
+            )
+            print(f"\n  📄  Error report saved to: {err_path.name}")
+    else:
+        print("  ℹ️   API calls skipped.")
+
+    # ------------------------------------------------------------------ #
+    # Step 7 – Run Summary                                                 #
     # ------------------------------------------------------------------ #
     print(f"\n{'═' * 60}")
     print(f"  MIG_SyncTranslData – Run Summary")
@@ -560,25 +839,24 @@ def sync_transl_data() -> None:
     print(f"  📄  AddTranslation records  : {len(trn_records):,}")
     print(f"  📄  AddTranslData records   : {len(trd_records):,}")
     print(f"  📁  Output file             : {xlsx_path.name}")
+    if confirm == "y":
+        print(f"  ✅  AddTranslation  [API]   : {len(trn_successes):,} ok  /  {len(trn_failures):,} failed")
+        print(f"  ✅  AddTranslData   [API]   : {len(trd_successes):,} ok  /  {len(trd_failures):,} failed")
     print(f"{'═' * 60}")
 
     # ------------------------------------------------------------------ #
-    # Step 6 – Optional: upload and process in M3                        #
+    # Step 8 – Optional: upload and process in M3 via EVS100              #
     # ------------------------------------------------------------------ #
-
-    # Configure the DEST tenant for upload
-    restore_config(source_snap)
-    dest_snap = setup_tenant(ionapi_dir, "DEST")
     restore_config(dest_snap)
     get_ion_token()
 
-    send = input("\n  Upload this file to M3? [y/N]: ").strip().lower()
+    send = input("\n  Also upload this file to M3 via EVS100? [y/N]: ").strip().lower()
     if send != "y":
         print("  ℹ️   File not sent. Done.")
         return
 
     with requests.Session() as session:
-        print(f"\n▶   Step 6a – Uploading {xlsx_path.name} to M3 …")
+        print(f"\n▶   Step 8a – Uploading {xlsx_path.name} to M3 …")
         uploaded = upload_file_to_m3(xlsx_path, session)
 
         if uploaded:
@@ -586,7 +864,7 @@ def sync_transl_data() -> None:
                 "\n  Process file in M3 (EVS100MI.ImportFile)? [y/N]: "
             ).strip().lower()
             if trigger == "y":
-                print(f"\n▶   Step 6b – Triggering EVS100MI.ImportFile …")
+                print(f"\n▶   Step 8b – Triggering EVS100MI.ImportFile …")
                 process_file_in_m3(xlsx_path.name, session)
             else:
                 print("  ℹ️   File uploaded but not processed. Done.")

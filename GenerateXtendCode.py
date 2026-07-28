@@ -1,3 +1,32 @@
+"""
+Purpose
+-------
+Generates Infor M3 Xtend/CTOS extension artifacts (Groovy transaction source,
+MI transaction import JSON, and dynamic-table import JSON) from field
+metadata stored in the local SQLite "m3xtend" table.
+
+For every distinct MI program / transaction combination found in that table,
+this script produces the standard Get / Del / Add / Upd / Lst transaction
+set plus the underlying EXT dynamic table definition, and writes each as a
+JSON file ready to import into M3 (extension source is embedded base64 +
+SHA256-hashed inside the transaction JSON).
+
+Execution
+---------
+1. Ensure the SQLite DB configured via `config.get_sqlite_db_path()`
+   (`~/sqlite/<local_db_name>`, see UserDefaults) contains an "m3xtend"
+   table with columns: miname, trname, MainTable, DynamicTable, direction,
+   FieldName, MainPrefix, dataType, length, nrOfDecimals, description,
+   F2FLDI.
+2. Run from the repo root:
+       python GenerateXtendCode.py
+3. Output files are written to ~/Downloads:
+       DYNAMICDB_<extension_table>.json
+       TRANSACTION-<mi_name>-<action><transaction_name>.json
+   One dynamic-table file and five transaction files (Get/Del/Add/Upd/Lst)
+   are produced per distinct miname/trname row group.
+"""
+
 import base64
 import hashlib
 import json

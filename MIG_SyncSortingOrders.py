@@ -129,18 +129,25 @@ def build_payload_record(rec: dict) -> dict:
 # Step 1 / 2 – LstSortOrder
 # =============================================================================
 
-def list_all_sort_orders(session: requests.Session, label: str = "") -> list[dict]:
+def list_all_sort_orders(
+    session: requests.Session, label: str = "", pgnm_filter: str = ""
+) -> list[dict]:
     """
-    Calls CRS022MI.LstSortOrder with no filter and returns every record.
+    Calls CRS022MI.LstSortOrder and returns every record.
+    Pass pgnm_filter to restrict to a single program; leave blank for all.
     Uses maxrecs=10000 to retrieve the full set in one request.
     """
     list_url = CONFIG["api_url"].replace("maxrecs=0", "maxrecs=10000")
+
+    record: dict = {}
+    if pgnm_filter:
+        record["PGNM"] = pgnm_filter
 
     payload = {
         "program": "CRS022MI",
         "transactions": [{
             "transaction": "LstSortOrder",
-            "record": {},
+            "record": record,
             "selectedColumns": LST_SELECTED,
         }],
     }
@@ -332,6 +339,16 @@ def sync_sort_orders() -> None:
     ionapi_dir = Path(__file__).parent / "ionapi"
 
     # ------------------------------------------------------------------ #
+    # PGNM filter (optional)                                              #
+    # ------------------------------------------------------------------ #
+    pgnm_input = input(
+        "\n  Filter by program [PGNM]? (leave blank to process ALL programs): "
+    ).strip().upper()
+    pgnm_filter = pgnm_input if pgnm_input else ""
+    scope_label = f"PGNM={pgnm_filter}" if pgnm_filter else "ALL programs"
+    print(f"  ℹ️   Scope: {scope_label}")
+
+    # ------------------------------------------------------------------ #
     # Step 1 – SOURCE: LstSortOrder                                       #
     # ------------------------------------------------------------------ #
     save_user_defaults({})
@@ -339,7 +356,7 @@ def sync_sort_orders() -> None:
     source_snap = setup_tenant(ionapi_dir, "SOURCE")
     print("\n🔍  Step 1 – CRS022MI.LstSortOrder (SOURCE) …")
     with requests.Session() as session:
-        source_all = list_all_sort_orders(session, label="SOURCE")
+        source_all = list_all_sort_orders(session, label="SOURCE", pgnm_filter=pgnm_filter)
     source_all = [r for r in source_all if r.get("PGNM", "") not in SKIP_PGNM]
 
     if not source_all:
@@ -354,7 +371,7 @@ def sync_sort_orders() -> None:
     dest_snap = setup_tenant(ionapi_dir, "DEST")
     print("\n🔍  Step 2 – CRS022MI.LstSortOrder (DEST) …")
     with requests.Session() as session:
-        dest_all = list_all_sort_orders(session, label="DEST")
+        dest_all = list_all_sort_orders(session, label="DEST", pgnm_filter=pgnm_filter)
     dest_all = [r for r in dest_all if r.get("PGNM", "") not in SKIP_PGNM]
 
     # ------------------------------------------------------------------ #

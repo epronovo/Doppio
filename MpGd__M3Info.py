@@ -53,7 +53,10 @@ logger = logging.getLogger(__name__)
 #   Handle IonAPI configuration, tenant selection, and OAuth tokens
 # -------------------------------------------------------------------
 from MpGd_Build_m3Api2Table import build_m3Api2Table
-from MpGd_Extract_FieldHelp import fetch_fieldhelp_xml, parse_fieldhelp_xml, save_to_sqlite
+from MpGd_Extract_FieldHelp import fetch_fieldhelp_xml, parse_fieldhelp_xml, save_to_sqlite, process_all_missing_fieldhelp
+from MpGd_Extract_Metadata import main as extract_metadata
+from MpGd_Extract_Prompts import run as extract_prompts
+from MpGd_Extract_DataStructures import run as extract_data_structures
 from InforMI import CONFIG, select_ionapi_file, prompt_for_company_division, get_ion_token
 from config import get_sqlite_db_path
 
@@ -328,7 +331,23 @@ def finalize_mapping_guides():
     # Populate DoppioGuide for newly discovered tables
     # -------------------------------------------------------
     cur.executescript("""
-    INSERT INTO DoppioGuide
+    CREATE TABLE IF NOT EXISTS DoppioGuide (
+        Sequence    INTEGER PRIMARY KEY AUTOINCREMENT,
+        TableName   TEXT,
+        ColumnName  TEXT,
+        Program     TEXT,
+        Panel       TEXT,
+        API         TEXT,
+        TransactionName TEXT,
+        FieldName   TEXT,
+        MappingNotes TEXT,
+        Responsible TEXT,
+        Required    TEXT,
+        DefaultValue TEXT,
+        UNIQUE (TableName, ColumnName) ON CONFLICT IGNORE
+    );
+
+    INSERT INTO DoppioGuide (TableName,ColumnName,Program,Panel,API,TransactionName,FieldName,MappingNotes,Responsible,Required,DefaultValue)
     SELECT TableName,ColumnName,Program,Panel,API,TransactionName,FieldName,
            '' AS MappingNotes,
            '' AS Responsible,
@@ -344,9 +363,20 @@ def finalize_mapping_guides():
     # Populate HerffJonesMappingGuide for new API/transactions
     # -------------------------------------------------------
     cur.executescript("""
-    INSERT INTO HerffJonesMappingGuide
-    SELECT 
-        NULL AS Sequence,
+    CREATE TABLE IF NOT EXISTS HerffJonesMappingGuide (
+        Sequence        INTEGER PRIMARY KEY AUTOINCREMENT,
+        API             TEXT,
+        TransactionName TEXT,
+        FieldName       TEXT,
+        MappingNotes    TEXT,
+        Responsible     TEXT,
+        Required        TEXT,
+        DefaultValue    TEXT,
+        UNIQUE (API, TransactionName, FieldName) ON CONFLICT IGNORE
+    );
+
+    INSERT INTO HerffJonesMappingGuide (API,TransactionName,FieldName,MappingNotes,Responsible,Required,DefaultValue)
+    SELECT
         MINM AS API,
         TRNM AS TransactionName,
         FLNM AS FieldName,
@@ -403,4 +433,8 @@ if __name__ == "__main__":
 
     build_m3Api2Table()
     finalize_mapping_guides()
+    extract_metadata()
+    process_all_missing_fieldhelp()
+    extract_prompts()
+    extract_data_structures()
     logger.info("🎉 All done!")

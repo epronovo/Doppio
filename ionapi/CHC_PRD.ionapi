@@ -1,16 +1,1 @@
-{
-    "ti": "ZFQP353QZYV89ZHG_PRD",
-    "cn": "CHC_PRD",
-    "dt": "12",
-    "ci": "ZFQP353QZYV89ZHG_PRD~nahYXDHLK4QHhbyHHsy5XKgy4VirUp5CM73IGqX1ciw",
-    "cs": "Q8IgsSuzux1iGb4Bfde3Yn-zOb2___cZP7h9HUhjyxZJasidRNtBX7UyT7EwZpODqSKGSpEj84i4g6cTBhVRuw",
-    "iu": "https://mingle-ionapi.inforcloudsuite.com",
-    "pu": "https://mingle-sso.inforcloudsuite.com:443/ZFQP353QZYV89ZHG_PRD/as/",
-    "oa": "authorization.oauth2",
-    "ot": "token.oauth2",
-    "or": "revoke_token.oauth2",
-    "ev": "U1478358101",
-    "v": "1",
-    "saak": "ZFQP353QZYV89ZHG_PRD#vsNmI5zuVqh4slps7rYUUZECK0uEg1tKnUi94KWMMtnFLNK9FhoqzzLSJmfQyIKs-1AKywS01zoTzEWdoEtq2w",
-    "sask": "3PZ_6oBDtvet4PbS84vLq0vJ3AUKH-xNy5UFKeW4gXjMCK7uOAOd91M2qLAMxERuJDOmjFQoo0FXK-vHYjvg2g"
-}
+{"ti":"ZFQP353QZYV89ZHG_PRD","cn":"CHC_PRD","dt":"12","ci":"ZFQP353QZYV89ZHG_PRD~nahYXDHLK4QHhbyHHsy5XKgy4VirUp5CM73IGqX1ciw","cs":"Q8IgsSuzux1iGb4Bfde3Yn-zOb2___cZP7h9HUhjyxZJasidRNtBX7UyT7EwZpODqSKGSpEj84i4g6cTBhVRuw","iu":"https://mingle-ionapi.inforcloudsuite.com","pu":"https://mingle-sso.inforcloudsuite.com:443/ZFQP353QZYV89ZHG_PRD/as/","oa":"authorization.oauth2","ot":"token.oauth2","or":"revoke_token.oauth2","sc":[],"ev":"U1478358101","v":"1.1","saak":"ZFQP353QZYV89ZHG_PRD#cX1a-diUQgz9bdcX4mx0v3GhlZRlq5EVviDXbLtA_2MhE9g4QHSIAQpkfnXLCHXGtAx94nLYt1Q7YrNdn_otfw","sask":"-W_P6cbM_5jIBsNG4c45EKxiaEWWxxiv1BJ-uppysgUCpWdblnHwQn7G4jv7eAz1vJ8S3anc1TzCmPfNIY7dWQ"}

@@ -144,11 +144,12 @@ Sub Curl_Build(ByVal main_url As String, ByVal mi_path As String, ByVal mi_url A
     curlAuth = "--header 'Authorization: " & m_s_TokenType & " " & m_s_AccessToken & "' "
     curlData = ""
     If body <> "" Then
+        ' Body is already valid JSON. Embedded in AppleScript Do shell script "..."
+        ' so \ and " must be escaped for AppleScript; ' needs shell escaping.
         curlBody = body
-        curlBody = Replace(curlBody, "\", "\\\\")
-        curlBody = Replace(curlBody, """", "\""")
-        curlBody = Replace(curlBody, "'", "'\\''")
-        curlBody = Replace(curlBody, "!!", "\\\""")
+        curlBody = Replace(curlBody, "\", "\\")    ' AppleScript: \ → \\
+        curlBody = Replace(curlBody, """", "\""") ' AppleScript: " → \"
+        curlBody = Replace(curlBody, "'", "'\''") ' shell: ' → '\''
         curlData = curlDataType & " '" & curlBody & "'"
     End If
 
@@ -461,8 +462,8 @@ Sub AutoFit_ColumnsAndRows(reload As Boolean, mandatory As Boolean)
             m_b_AutoFitToggle = Not m_b_AutoFitToggle  ' flip for next call
 
             If m_b_AutoFitToggle Then
-                ' Second call: autofit all columns based on full content (equivalent to double-click column separator)
-                .UsedRange.Columns.AutoFit
+                ' Second call: autofit all columns based on content from row 7 downward
+                .Range(.Cells(7, 1), .Cells(.UsedRange.row + .UsedRange.Rows.count - 1, .UsedRange.Column + .UsedRange.Columns.count - 1)).Columns.AutoFit
             Else
                 ' First call: autofit based on row 7 descriptions (original behaviour)
                 .Rows(7).WrapText = False
@@ -624,8 +625,6 @@ Sub CheckAndUpdateValue()
     End If
 End Sub
 
-
-
 Sub CleanSheet_Click()
     Dim ws As Worksheet
     Dim lastRow As Long
@@ -648,45 +647,43 @@ Sub CleanSheet_Click()
     Next ws
 
     For Each ws In ThisWorkbook.Sheets
-        ws.Activate
-
-        ' Find the last used row
-        Set lastCell = ws.Cells.Find(What:="*", After:=ws.Cells(1, 1), LookIn:=xlFormulas, LookAt:=xlPart, _
-                                     SearchOrder:=xlByRows, SearchDirection:=xlPrevious, MatchCase:=False)
-        If Not lastCell Is Nothing Then
-            lastRow = lastCell.row
-        Else
-            lastRow = 1
-        End If
-
-        ' Exceptions
-        If ws.Range("F4").value = "Transaction:  " Then
-            lastRow = 8
-        End If
-        If ws.name = "Environments" Then
-            lastRow = 52
-        End If
-
-        ' Find the last used column
-        Set lastCell = ws.Cells.Find(What:="*", After:=ws.Cells(1, 1), LookIn:=xlFormulas, LookAt:=xlPart, _
-                                     SearchOrder:=xlByColumns, SearchDirection:=xlPrevious, MatchCase:=False)
-        If Not lastCell Is Nothing Then
-            lastCol = lastCell.Column
-        Else
-            lastCol = 1
-        End If
-
-        lastColLetter = Split(ws.Cells(1, lastCol).Address, "$")(1)
-
-        If lastRow < ws.Rows.count Then
-            ws.Rows(lastRow + 1 & ":" & ws.Rows.count).Delete
-        End If
-
-        ' Delete all columns to the right of the last used column
-        If lastCol < ws.Columns.count Then
-            ws.Columns(lastCol + 1 & ":" & ws.Columns.count).Delete
-        End If
-    Next ws
+            If ws.name = "Logos" Then GoTo NextSheet
+            
+            ws.Activate
+            ' Find the last used row
+            Set lastCell = ws.Cells.Find(What:="*", After:=ws.Cells(1, 1), LookIn:=xlFormulas, LookAt:=xlPart, _
+                                         SearchOrder:=xlByRows, SearchDirection:=xlPrevious, MatchCase:=False)
+            If Not lastCell Is Nothing Then
+                lastRow = lastCell.row
+            Else
+                lastRow = 1
+            End If
+            ' Exceptions
+            If ws.Range("F4").value = "Transaction:  " Then
+                lastRow = 8
+            End If
+            If ws.name = "Environments" Then
+                lastRow = 52
+            End If
+            ' Find the last used column
+            Set lastCell = ws.Cells.Find(What:="*", After:=ws.Cells(1, 1), LookIn:=xlFormulas, LookAt:=xlPart, _
+                                         SearchOrder:=xlByColumns, SearchDirection:=xlPrevious, MatchCase:=False)
+            If Not lastCell Is Nothing Then
+                lastCol = lastCell.Column
+            Else
+                lastCol = 1
+            End If
+            lastColLetter = Split(ws.Cells(1, lastCol).Address, "$")(1)
+            If lastRow < ws.Rows.count Then
+                ws.Rows(lastRow + 1 & ":" & ws.Rows.count).Delete
+            End If
+            ' Delete all columns to the right of the last used column
+            If lastCol < ws.Columns.count Then
+                ws.Columns(lastCol + 1 & ":" & ws.Columns.count).Delete
+            End If
+NextSheet:
+        Next ws
+    
     On Error GoTo 0
 
     Application.EnableEvents = prevEnableEvents
@@ -857,30 +854,62 @@ Sub Create_xlsx()
     Dim ws As Worksheet
     Dim btn As Button
 
+    ' Save before any changes so the original xlsm is preserved
+    ThisWorkbook.Save
+
     DeleteHiddenSheets
 
-    ' Loop through all worksheets
+    ' Switch away from the active sheet before the loop so that when the loop
+    ' reaches it, ws.Activate performs a real switch and window state refreshes correctly
+    Dim wsOriginal As Worksheet
+    Dim wsSwap As Worksheet
+    Set wsOriginal = ActiveSheet
+    For Each wsSwap In ThisWorkbook.Sheets
+        If wsSwap.Visible = xlSheetVisible And wsSwap.name <> wsOriginal.name Then
+            wsSwap.Activate
+            Exit For
+        End If
+    Next wsSwap
+
+    ' Loop through all visible worksheets
     For Each ws In ThisWorkbook.Sheets
 
+        If ws.Visible <> xlSheetVisible Then GoTo NextWs
+
         Debug.Print "Create_xlsx: " & ws.name
-        
+
         ' Remove buttons
         For Each btn In ws.Buttons
             btn.Delete
         Next btn
-        
+
+        ' Remove EnvSuffix image if present
+        On Error Resume Next
+        ws.Shapes("EnvSuffix").Delete
+        On Error GoTo 0
+
         ws.Activate
-        
+
         ' Remove rows
         ws.Rows("2:6").Delete
-        
-        ' Reset freeze panes
-        ws.Cells(1, 1).Select
+
+        ' Copy format from B2 to A2
+        ws.Range("B2").Copy
+        ws.Range("A2").PasteSpecial Paste:=xlPasteFormats
+        Application.CutCopyMode = False
+
+        ' Reset freeze panes — scroll to origin first to ensure C4 lands correctly
         ActiveWindow.FreezePanes = False
+        ActiveWindow.ScrollRow = 1
+        ActiveWindow.ScrollColumn = 1
         ws.Range("C4").Select
         ActiveWindow.FreezePanes = True
-    
+
+NextWs:
     Next ws
+
+    ' Return to the original sheet so it is the active tab in the saved file
+    wsOriginal.Activate
 
     Dim newFileName As String
     newFileName = Replace(ThisWorkbook.name, ".xlsm", ".xlsx")
@@ -961,20 +990,21 @@ End Sub
 
 ''
 ' Environments_GetUsers - Modernized
-' Loops through each row in column B of the active sheet, authenticates
-' against each tenant's SSO endpoint using ExecuteRequest, then calls
-' MRS001MI/GetUserInfo via ExecuteApiPost to retrieve the M3 user ID.
+' Two passes over the rows in column B of the active sheet:
+'   LOOP 1 authenticates against each tenant's SSO endpoint (ExecuteRequest)
+'          and writes the tenant ID (C) and bearer access token (E).
+'   LOOP 2 reuses the stored token to call MRS001MI/GetUserInfo
+'          (ExecuteApiPost) and writes the M3 user ID (D).
 '
 ' Column layout written per row:
-'   C = Tenant ID (ti)
-'   D = M3 User ID (ZZUSID) or Full Name (USFN) if ZZUSID is blank
-'   E = Base64-encoded tenant JSON (for downstream use)
+'   C = Tenant ID (ti)         -- loop 1
+'   E = Bearer access token    -- loop 1
+'   D = M3 User ID (ZZUSID) or Full Name (USFN) if ZZUSID is blank -- loop 2
 ''
 Sub Environments_GetUsers()
     Dim ws              As Worksheet
     Dim jsonString      As String
     Dim json            As Object
-    Dim encodedTenant   As String
     Dim lastRow         As Long
     Dim i               As Long
     Dim tenantId        As String
@@ -1000,24 +1030,32 @@ Sub Environments_GetUsers()
     Set ws = ActiveSheet
     lastRow = ws.Cells(ws.Rows.count, "B").End(xlUp).row
 
+    ' --- Clear previous results in columns C, D and E ---
+    If lastRow >= 1 Then ws.Range("C1:E" & lastRow).ClearContents
+
+    ' Suppress the 401 re-auth prompt for the whole routine; this batch handles
+    ' auth itself (a bad token just blanks that row's user).
+    g_b_SuppressAuthPrompt = True
+
+    ' =========================================================================
+    ' LOOP 1: Get the bearer token for every row and write tenant ID (C) + token (E)
+    ' =========================================================================
     For i = 1 To lastRow
         jsonString = ws.Cells(i, 2).value
         If jsonString = "" Then Exit For
 
         ' --- Parse tenant credentials from column B ---
         Set json = ParseJson(jsonString)
-        encodedTenant = jsonString
 
         tenantId = json.item("ti")
         clientId = json.item("ci")
         clientSecret = json.item("cs")
-        instanceUrl = json.item("iu")
         ssoBase = json.item("pu")
         tokenEndpoint = json.item("ot")
         saak = json.item("saak")
         sask = json.item("sask")
 
-        ' === STEP 1: Get Access Token ===
+        ' --- Get Access Token ---
         tokenUrl = ssoBase & tokenEndpoint
         tokenBody = "client_id=" & Core_UrlEncode(clientId) & _
                     "&client_secret=" & Core_UrlEncode(clientSecret) & _
@@ -1037,7 +1075,7 @@ Sub Environments_GetUsers()
 
         If Not httpResp.success Then
             Debug.Print "Environments_GetUsers: Token failed for row " & i & " - " & httpResp.errorMessage
-            GoTo NextRow
+            GoTo NextTokenRow
         End If
 
         Set json = ParseJson(httpResp.body)
@@ -1046,10 +1084,36 @@ Sub Environments_GetUsers()
 
         If m_s_AccessToken = "" Then
             Debug.Print "Environments_GetUsers: Empty token for row " & i
-            GoTo NextRow
+            GoTo NextTokenRow
         End If
 
-        ' === STEP 2: Call MRS001MI/GetUserInfo ===
+        ' --- Write tenant ID (C) and bearer token (E) ---
+        ws.Cells(i, 3).value = tenantId
+        ws.Cells(i, 5).value = m_s_AccessToken
+        ws.Cells(i, 5).WrapText = False
+
+NextTokenRow:
+    Next i
+
+    ' =========================================================================
+    ' LOOP 2: Use the stored token for each row to look up the M3 user ID (D)
+    ' =========================================================================
+    For i = 1 To lastRow
+        jsonString = ws.Cells(i, 2).value
+        If jsonString = "" Then Exit For
+
+        ' --- Default the user (D) to blank; overwritten only if one is returned ---
+        ws.Cells(i, 4).value = ""
+
+        ' --- Skip rows that have no token from loop 1 ---
+        m_s_AccessToken = ws.Cells(i, 5).value
+        If m_s_AccessToken = "" Then GoTo NextUserRow
+
+        Set json = ParseJson(jsonString)
+        tenantId = json.item("ti")
+        instanceUrl = json.item("iu")
+
+        ' --- Call MRS001MI/GetUserInfo ---
         m_s_MainUrl = instanceUrl & "/" & tenantId
         m_s_MiPath = "/M3/m3api-rest/v2/execute"
 
@@ -1059,15 +1123,28 @@ Sub Environments_GetUsers()
 
         If Not httpResp.success Then
             Debug.Print "Environments_GetUsers: MRS001MI call failed for row " & i & " - " & httpResp.errorMessage
-            GoTo NextRow
+            GoTo NextUserRow
         End If
 
-        ' === STEP 3: Parse results and write to sheet ===
+        ' --- Parse results and write user ID (D) ---
+        ' Response may be HTML (e.g. an error page) instead of JSON. If parsing
+        ' fails, blank out the user and move on rather than aborting the run.
+        Set json = Nothing
+        On Error Resume Next
         Set json = ParseJson(httpResp.body)
-        If json Is Nothing Then GoTo NextRow
+        On Error GoTo ErrorHandler
+
+        If json Is Nothing Then
+            Debug.Print "Environments_GetUsers: Non-JSON response for row " & i
+            ws.Cells(i, 4).value = ""
+            GoTo NextUserRow
+        End If
 
         Set results = json.item("results")
-        If results Is Nothing Then GoTo NextRow
+        If results Is Nothing Then
+            ws.Cells(i, 4).value = ""
+            GoTo NextUserRow
+        End If
 
         For Each resultItem In results
             On Error Resume Next
@@ -1076,26 +1153,25 @@ Sub Environments_GetUsers()
 
             If Not records Is Nothing Then
                 For Each record In records
-                    ws.Cells(i, 3).value = tenantId
                     If record.item("ZZUSID") = "" Then
                         ws.Cells(i, 4).value = record.item("USFN")
                     Else
                         ws.Cells(i, 4).value = record.item("ZZUSID")
                     End If
-                    ws.Cells(i, 5).value = Base64Encode(encodedTenant)
-                    ws.Cells(i, 5).WrapText = False
                 Next record
             End If
         Next resultItem
 
-NextRow:
+NextUserRow:
     Next i
 
+    g_b_SuppressAuthPrompt = False
     KillPleaseWait
     Debug.Print "Environments_GetUsers: Complete"
     Exit Sub
 
 ErrorHandler:
+    g_b_SuppressAuthPrompt = False
     Debug.Print "Environments_GetUsers: ERROR at row " & i & " - " & Err.description
     MsgBox "Error in Environments_GetUsers: " & Err.description, vbCritical
     KillPleaseWait
@@ -1242,7 +1318,7 @@ Sub Environments_Load()
     End If
     
     ' === STEP 3: Get user's authorized environments (EXAUTH = 1) ===
-    body = "{""program"":""EXPORTMI"",""transactions"":[{""transaction"":""Select"",""record"":{""SEPC"":""^"",""HDRS"":""0"",""QERY"":""EXTNNM,EXM3ID from EXTXSM where EXPCID = " & encodedUserName & " and EXAUTH = 1""},""selectedColumns"":[""REPL""]}]}"
+    body = "{""program"":""EXPORTMI"",""transactions"":[{""transaction"":""Select"",""record"":{""SEPC"":""^"",""HDRS"":""0"",""QERY"":""EXTNNM,EXM3ID from EXTXSM where EXPCID = '" & encodedUserName & "' and EXAUTH = 1""},""selectedColumns"":[""REPL""]}]}"
 
     Debug.Print "Environments_Load: Getting user environments..."
     httpResponse = ExecuteApiPost(mainUrl, miPath, body)
@@ -1305,6 +1381,7 @@ Private Sub GetUserAndMachineInfo(ByRef userName As String, ByRef fullUserName A
         userName = MacScript("do shell script ""whoami""")
         fullUserName = MacScript("do shell script ""id -F""")
         machineName = MacScript("do shell script ""scutil --get ComputerName""")
+        machineName = Split(machineName, " (")(0)
     #Else
         userName = Environ("USERNAME")
         fullUserName = Environ("USERDOMAIN")
@@ -2355,16 +2432,19 @@ Private Sub GetTransactionsAPI_New(api As String, ws As Worksheet)
     ' Check cache first
     response = TryGetFromCache(cacheKey)
     
-    If Not response.success Then
-        ' Make API call
+    ' Re-fetch if: no cache hit, records is Nothing, or cache returned 0 records
+    If Not response.success Or response.records Is Nothing Or response.recordCount = 0 Then
+        Debug.Print "GetTransactionsAPI_New: Cache records=" & response.recordCount & " - calling API"
         response = ExecuteTransactionCall("MRS001MI", "LstTransactions", "MINM=" & api & "&returncols=MINM,TRNM,SIMU")
-        
+
         ' Store in cache if successful
         If response.success Then
             Cache_StoreDataInCache cacheKey, response.data
         End If
+    Else
+        Debug.Print "GetTransactionsAPI_New: Cache hit - " & response.recordCount & " records"
     End If
-    
+
     ' Output results to Transactions sheet
     If response.success Then
         Output_LstTransactions response
@@ -3067,6 +3147,7 @@ Private Sub GetUserInfo(ByRef userName As String, ByRef fullUserName As String, 
         userName = MacScript("do shell script ""whoami""")
         fullUserName = MacScript("do shell script ""id -F""")
         machineName = MacScript("do shell script ""scutil --get ComputerName""")
+        machineName = Split(machineName, " (")(0)
     #Else
         userName = Environ("USERNAME")
         fullUserName = Environ("USERDOMAIN")
@@ -3583,7 +3664,10 @@ Public Sub Keywords(value As String)
             Set ws = Worksheets("Environments")
             On Error GoTo 0
             If Not ws Is Nothing Then
-                ws.Columns("A:H").ClearContents
+                Dim savedK2M2 As Variant
+                savedK2M2 = ws.Range("K2:M2").value
+                ws.Cells.ClearContents
+                ws.Range("K2:M2").value = savedK2M2
             End If
         End If
         
@@ -3591,6 +3675,7 @@ Public Sub Keywords(value As String)
         If value = "prep" Then
             FilterRow8BasedOnPopulatedColumns ws
             ws.Rows("7:8").ClearContents
+            ws.Range(ws.Cells(3, 11), ws.Cells(ws.Rows.count, ws.Columns.count)).ClearContents
         End If
         
         Application.Calculation = xlCalculationAutomatic
@@ -3821,6 +3906,9 @@ Sub Settings_CopyDefaults()
 
     settings.Range("D7:D15").value = settings.Range("E7:E15").value
 
+    ' Copy developer default explicitly in case its row falls outside D7:D15
+    settings.Range("developer").value = settings.Range("developer").Offset(0, 1).value
+
     maxRecs = settings.Range("maxrecs").value
     maxbulk = settings.Range("maxbulk").value
     refreshSeconds = settings.Range("refreshSeconds").value
@@ -3836,6 +3924,7 @@ Sub Settings_CopyDefaults()
     If wasHidden Then settings.Visible = xlSheetVeryHidden
 
     ws.Activate
+    UI_RefreshDeveloperButtons
 End Sub
 
 
@@ -3970,7 +4059,7 @@ Function SplitString(ByVal inputString As String, ByVal delimiter As String, ByV
     End If
 End Function
 
-Sub Tenant_Token()
+Sub Tenant_Token(Optional wsTarget As Worksheet = Nothing)
     Dim ws As Worksheet
     Dim env As Environment
     Dim tokenUrl As String
@@ -3994,7 +4083,13 @@ Sub Tenant_Token()
 
     On Error GoTo ErrorHandler
 
-    Set ws = ActiveSheet
+    ' Use the caller-supplied sheet when provided (e.g. from Process_Click),
+    ' otherwise fall back to the active sheet as before.
+    If wsTarget Is Nothing Then
+        Set ws = ActiveSheet
+    Else
+        Set ws = wsTarget
+    End If
     ws.Range("J3").value = 0
     m_s_stToken = ""
     bIsCached = False
@@ -4145,7 +4240,7 @@ Sub Tenant_Token()
         ws.Range("J3").value = 1
         
         body = "{""program"":""MRS001MI"",""transactions"":[{""transaction"":""GetUserInfo""}]}"
-        httpResponse = ExecuteApiPost(m_s_MainUrl, m_s_MiPath, body)
+        httpResponse = ExecuteApiPost(m_s_MainUrl, m_s_MiPath & "?m3user=" & m_s_M3user, body)
         
         If httpResponse.success Then
             Set json = ParseJson(httpResponse.body)
@@ -4580,7 +4675,12 @@ Sub Tenant_Information()
     Set SettingsSheet = ThisWorkbook.Sheets("Environments")
     Set environmentRange = SettingsSheet.Range("A:A")
 
-    m_s_SelectedEnvironment = ActiveSheet.Range("Environment").value
+    ' Only read from ActiveSheet when the caller hasn't already set
+    ' m_s_SelectedEnvironment (e.g. Tenant_Token sets it from the correct
+    ' ws reference before calling here, so we must not overwrite it).
+    If m_s_SelectedEnvironment = "" Then
+        m_s_SelectedEnvironment = ActiveSheet.Range("Environment").value
+    End If
     If m_s_SelectedEnvironment = "" Then
         ClearFields
     Else

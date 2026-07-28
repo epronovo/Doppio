@@ -122,10 +122,10 @@ def get_missing_fields():
 
     queries = [
         """
-        SELECT DISTINCT TableColumn
-        FROM HerffJones_Mapping_Guide 
-        LEFT JOIN m3FieldHelp on FieldHelpID = TableColumn
-        WHERE TableColumn <> '' AND FieldHelpID is null
+        SELECT DISTINCT ColumnName
+        FROM DoppioGuide 
+        LEFT JOIN m3FieldHelp on FieldHelpID = ColumnName
+        WHERE ColumnName <> '' AND FieldHelpID is null
         """,
         """
         SELECT DISTINCT fieldname
@@ -136,7 +136,7 @@ def get_missing_fields():
         """,
         """
         SELECT DISTINCT FieldName
-        FROM HerffJones_Mapping_Guide 
+        FROM DoppioGuide 
         LEFT JOIN m3FieldHelp on FieldHelpID = FieldName
         WHERE FieldName <> '' AND FieldHelpID is null
         """,
@@ -180,23 +180,10 @@ def process_all_missing_fieldhelp():
             if has_meaningful_content(parsed):
                 save_to_sqlite(parsed)
             else:
-                # Skip empty FieldHelp silently
-                continue
+                save_to_sqlite({"FieldHelpID": field_name, "HeadingID": "", "HeadingText": "", "Definition": "", "Alternatives": "", "ProgramReferences": "", "RawXML": ""})
 
         except Exception:
-            # Insert blank fallback entry
-            fallback = {
-                "FieldHelpID": field_name,
-                "HeadingID": "",
-                "HeadingText": "",
-                "Definition": "",
-                "Alternatives": "",
-                "ProgramReferences": "",
-                "RawXML": ""
-            }
-            # save_to_sqlite(fallback)
-            # tqdm.write(f"⚠️ Fallback inserted for {field_name}")
-            continue
+            save_to_sqlite({"FieldHelpID": field_name, "HeadingID": "", "HeadingText": "", "Definition": "", "Alternatives": "", "ProgramReferences": "", "RawXML": ""})
 
 # -------------------------------------------------------------------
 # Run as script

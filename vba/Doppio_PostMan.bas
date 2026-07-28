@@ -94,7 +94,8 @@ Private Function Postman_BuildBody(ws As Worksheet, program As String, transacti
         ' Add non-blank field-value pairs to record
         fieldValue = Trim(ws.Cells(9, i).value)
         If fieldValue <> "" Then
-            fieldValue = Replace(fieldValue, """", "!!")
+            fieldValue = Replace(fieldValue, "\", "\\")
+            fieldValue = Replace(fieldValue, """", "\""")
             ReDim Preserve recordPairs(pairCount)
             recordPairs(pairCount) = """" & fieldName & """: """ & fieldValue & """"
             pairCount = pairCount + 1

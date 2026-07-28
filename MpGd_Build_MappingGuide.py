@@ -245,4 +245,4 @@ if __name__ == "__main__":
         format="%(asctime)s  %(levelname)-8s  %(message)s",
         datefmt="%H:%M:%S"
     )
-    build_mapping_guide("MS200MI", "MappingGuide_MMS200MI_Items.xlsx")
+    build_mapping_guide("MMS200MI", "MappingGuide_MMS200MI_Items.xlsx")

@@ -15,6 +15,11 @@ Option Explicit
 ' trigger a second prompt.
 Private m_b_RetryInProgress As Boolean
 
+' When True, ExecuteRequest will NOT prompt the user to generate a new token
+' on a 401; the unauthorized response is simply returned to the caller.
+' Callers that handle auth themselves (e.g. Environments_GetUsers) set this.
+Public g_b_SuppressAuthPrompt As Boolean
+
 ' =============================================================================
 ' PUBLIC API
 ' =============================================================================
@@ -35,12 +40,19 @@ Public Function ExecuteRequest(config As httpConfig) As httpResponse
         response = ExecuteWindowsRequest(config)
     #End If
     
-    ' --- Retry with re-auth on failure (one attempt only) ---
-    If Not m_b_RetryInProgress And ShouldRetryWithReauth(response, config) Then
-        If PromptRetry() Then
+    ' --- Retry on 401 Unauthorized (one attempt only) ---
+    ' Authority errors prompt the user; other failures (timeouts etc.) are returned as-is.
+    If Not g_b_SuppressAuthPrompt And Not m_b_RetryInProgress And response.IsUnauthorized Then
+        Dim promptAnswer As Integer
+        promptAnswer = MsgBox( _
+            "The API returned an authorization error." & vbCrLf & vbCrLf & _
+            "Would you like to generate a new token and try again?", _
+            vbYesNo + vbQuestion, "Authorization Error")
+
+        If promptAnswer = vbYes Then
             m_b_RetryInProgress = True
 
-            ' 1. Clear the cached token from the Environments sheet so Tenant_Token
+            ' Clear the cached token from the Environments sheet so Tenant_Token
             ' is forced to retrieve a fresh one rather than reloading the expired one.
             On Error Resume Next
             Set wsEnv = ThisWorkbook.Sheets("Environments")
@@ -49,22 +61,17 @@ Public Function ExecuteRequest(config As httpConfig) As httpResponse
                                                        LookIn:=xlValues, _
                                                        LookAt:=xlWhole)
                 If Not rngFound Is Nothing Then
-                    wsEnv.Cells(rngFound.row, "E").value = "" ' Wipe the stored token
+                    wsEnv.Cells(rngFound.row, "E").value = ""  ' Wipe the stored token
                 End If
             End If
             On Error GoTo 0
-            
-            ' 2. Clear the global variable to be absolutely sure
+
+            ' Get a fresh token; Tenant_Token handles auth, user validation,
+            ' and writes the new token back to the Environments sheet (column E).
             m_s_AccessToken = ""
             Tenant_Token
-            
-            ' Lightweight re-auth: clears token + calls RefreshAccessToken silently.
-            ' Avoids Tenant_Token which reads from the sheet and shows its own
-            ' MsgBox on failure, causing duplicate "Unable to get token" messages.
-            HandleUnauthorized
 
-
-            ' If we got a new token, update the config and retry once
+            ' If we got a new token, update the request header and retry once.
             If m_s_AccessToken <> "" Then
                 config.authHeader = m_s_TokenType & " " & m_s_AccessToken
 
@@ -80,20 +87,6 @@ Public Function ExecuteRequest(config As httpConfig) As httpResponse
     End If
     
     ExecuteRequest = response
-End Function
-''' Determine if a failed response warrants a retry with fresh auth
-'
-Private Function ShouldRetryWithReauth(response As httpResponse, config As httpConfig) As Boolean
-    ' Retry on: 401 Unauthorized, timeout (status 0), or explicit unauthorized flag
-    If response.success Then
-        ShouldRetryWithReauth = False
-    ElseIf response.IsUnauthorized Then
-        ShouldRetryWithReauth = True
-    ElseIf response.statusCode = 0 Then
-        ShouldRetryWithReauth = True  ' Timeout or network error
-    Else
-        ShouldRetryWithReauth = False
-    End If
 End Function
 ''' Clear the cached token from memory and from the Environments sheet
 '
@@ -211,17 +204,6 @@ Public Function BuildFileUploadConfig(url As String, _
     BuildFileUploadConfig = config
 End Function
 
-''
-' Prompt user about retry
-' @param oldTimeout - Previous timeout
-' @param newTimeout - New timeout to try
-' @return Boolean - True if user wants to retry
-''
-Private Function PromptRetry() As Boolean
-    ' Return True to automatically attempt re-authentication and retry the API call
-    ' without showing a disruptive popup to the user.
-    PromptRetry = True
-End Function
 
 ' =============================================================================
 ' MAC IMPLEMENTATION (CURL)
@@ -237,37 +219,57 @@ End Function
 Private Function ExecuteMacRequest(config As httpConfig) As httpResponse
     Dim response As httpResponse
     Dim curlCommand As String
-    Dim script As String
     Dim tempFilePath As String
+    Dim scriptPath As String
     Dim resultText As String
-    
+    Dim f As Integer
+
     On Error GoTo ErrorHandler
-    
+
     curlCommand = BuildCurlCommand(config)
     tempFilePath = GetTempFilePath(OUTPUT_FILE_NAME)
-    script = "Do shell script """ & curlCommand & " > " & tempFilePath & """"
-    
+    scriptPath = GetTempFilePath("doppio_curl_" & Format(Now, "hhmmss") & ".sh")
+
     DeleteFileIfExists tempFilePath
-    
-    ' Single attempt - retries are handled at ExecuteRequest level
+
+    ' Write curl command to a temp shell script to avoid AppleScript quoting issues.
+    ' Embedding the command directly in Do shell script "..." breaks when the command
+    ' contains single quotes (e.g. SQL literals, JSON body). Writing to a file and
+    ' executing it sidesteps all AppleScript string-escaping entirely.
+    ' Note: no shebang line — we invoke /bin/bash directly to avoid CR line-ending
+    ' issues with Mac VBA's Print #f statement corrupting #!/bin/bash.
+    f = FreeFile
+    Open scriptPath For Output As #f
+    Print #f, curlCommand & " > """ & tempFilePath & """ 2>&1"
+    Close #f
+
+    ' Execute via /bin/bash directly (no chmod +x needed)
     On Error Resume Next
-    MacScript (script)
-    
+    MacScript "do shell script ""/bin/bash '" & scriptPath & "'"""
+
     If Err.Number <> 0 Then
         response.success = False
         response.errorMessage = Err.description
         response.statusCode = 0
+        On Error Resume Next
+        Kill scriptPath
+        On Error GoTo 0
         ExecuteMacRequest = response
         Exit Function
     End If
     On Error GoTo ErrorHandler
-    
+
+    ' Cleanup script file
+    On Error Resume Next
+    Kill scriptPath
+    On Error GoTo 0
+
     resultText = Core_ReadFileToString(tempFilePath)
-    
+
     response.body = resultText
     response.success = (Len(resultText) > 0)
     response.statusCode = 200
-    
+
     If Left(resultText, 9) = "{""error"":" Then
         response.IsUnauthorized = True
         response.success = False
@@ -280,11 +282,14 @@ Private Function ExecuteMacRequest(config As httpConfig) As httpResponse
 
     ExecuteMacRequest = response
     Exit Function
-    
+
 ErrorHandler:
     response.success = False
     response.errorMessage = Err.description
     response.statusCode = 0
+    On Error Resume Next
+    Kill scriptPath
+    On Error GoTo 0
     ExecuteMacRequest = response
 End Function
 
@@ -301,7 +306,7 @@ Private Function BuildCurlCommand(config As httpConfig) As String
     methodStr = HttpMethodToString(config.method)
     
     ' Start building command
-    cmd = "curl --request " & methodStr
+    cmd = "curl --silent --request " & methodStr
     cmd = cmd & " --max-time " & config.timeoutSeconds
     cmd = cmd & " --location '" & config.url & "'"
     
@@ -334,15 +339,11 @@ End Function
 ' @return String - Escaped text
 ''
 Private Function EscapeForCurl(text As String) As String
-    Dim result As String
-    
-    result = text
-    result = Replace(result, "\", "\\\\")
-    result = Replace(result, """", "\""")
-    result = Replace(result, "'", "'\\''")
-    result = Replace(result, "!!", "\\\""")
-    
-    EscapeForCurl = result
+    ' Body is wrapped in single quotes in the curl command: --data-raw 'BODY'
+    ' The command runs via a temp shell script file (not embedded in an AppleScript
+    ' string), so no AppleScript \ or " escaping is needed. Only shell single-quote
+    ' escaping is required: end the quoted string, emit a literal ', reopen it.
+    EscapeForCurl = Replace(text, "'", "'\''")
 End Function
 
 #Else
@@ -486,21 +487,30 @@ End Function
 ''
 Public Function ParseAndExecuteCurl(curlCommand As String) As Long
     #If Mac Then
-        ' On Mac, just execute the curl directly
-        Dim script As String
+        ' On Mac, write to a temp shell script and execute it (same approach as
+        ' ExecuteMacRequest) to avoid AppleScript quoting issues.
         Dim tempFilePath As String
-        
+        Dim scriptPath As String
+        Dim f As Integer
+
         tempFilePath = GetTempFilePath(OUTPUT_FILE_NAME)
-        script = "Do shell script """ & curlCommand & " > " & tempFilePath & """"
-        
+        scriptPath = GetTempFilePath("doppio_curl_pac_" & Format(Now, "hhmmss") & ".sh")
+
+        f = FreeFile
+        Open scriptPath For Output As #f
+        Print #f, curlCommand & " > """ & tempFilePath & """ 2>&1"
+        Close #f
+
         On Error Resume Next
-        MacScript (script)
-        
+        MacScript "do shell script ""/bin/bash '" & scriptPath & "'"""
+
         If Err.Number = 0 Then
             ParseAndExecuteCurl = 200
         Else
             ParseAndExecuteCurl = 0
         End If
+        On Error Resume Next
+        Kill scriptPath
         On Error GoTo 0
     #Else
         ' On Windows, parse the curl command and use WinHttp

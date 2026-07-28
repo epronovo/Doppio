@@ -115,6 +115,12 @@ End Function
 ' (Follows Doppio_Process pattern: Tenant_Token ? Sync ? Override)
 ' ============================================================================
 
+' Public wrapper so other modules (e.g. Xtra_ExportHelper) can reuse the
+' worksheet-aware authentication without name-clashing with Doppio_Auth.
+Public Function EXPORTMI_EnsureAuth(ws As Worksheet) As Boolean
+    EXPORTMI_EnsureAuth = EnsureAuthenticated(ws)
+End Function
+
 Private Function EnsureAuthenticated(ws As Worksheet) As Boolean
     Dim currentEnv As String
     
@@ -194,13 +200,25 @@ Sub EXPORTMI_BuildSQLQuery()
     
     Set ws = ThisWorkbook.ActiveSheet
     ws.Rows("7:" & ws.Rows.count).ClearContents
-    
-    If ws.Range("B4").value = "" Then
-        ws.Range("B4").value = "*"
-    End If
-    
+
     tableName = UCase(Trim(ws.Range("B3").value))
     ws.Range("B3").value = tableName
+
+    ' Xtra: for 8-char INDEX tables, auto-populate fields (B4) and where (B5)
+    Call Xtra_ExportHelper(ws)
+
+    If Trim(ws.Range("B4").value) = "" Then
+        ' Index tables (8 chars) can't be queried with "*" - they need explicit
+        ' key fields. If the helper couldn't build them yet (e.g. not signed in
+        ' on the very first Run), stop here instead of sending a doomed "select *".
+        If Len(tableName) = 8 Then
+            MsgBox "'" & tableName & "' is an index table and needs explicit fields." & vbNewLine & vbNewLine & _
+                   "Press Run again to auto-build them (make sure an environment is selected in I2).", _
+                   vbExclamation, "EXPORTMI"
+            Exit Sub
+        End If
+        ws.Range("B4").value = "*"
+    End If
     
     If InStr(1, LCase(ws.Range("B4").value), "count") = 0 Then
         fields = UCase(ws.Range("B4").value)
@@ -233,10 +251,12 @@ Sub EXPORTMI_BuildSQLQuery()
     
     Dim tableName1 As String
     tableName1 = Trim(ws.Range("B3").value)
-    If tableName1 Like "*[A-Za-z0-9]*" Then
-        Call UI_RenameSheet("EXPORTMI for " & tableName1)
-    Else
-        Call UI_RenameSheet("")
+    If ws.name Like "Sheet*" Then
+        If tableName1 Like "*[A-Za-z0-9]*" Then
+            Call UI_RenameSheet("EXPORTMI for " & tableName1)
+        Else
+            Call UI_RenameSheet("")
+        End If
     End If
     ValidateTransaction strServiceName
     EXPORTMI_ParseFieldsIntoColumns
@@ -391,10 +411,12 @@ Sub EXPORTMI_ParseSQLQuery()
     
     Dim tableName2 As String
     tableName2 = Trim(ws.Range("B3").value)
-    If tableName2 Like "*[A-Za-z0-9]*" Then
-        Call UI_RenameSheet("EXPORTMI for " & tableName2)
-    Else
-        Call UI_RenameSheet("")
+    If ws.name Like "Sheet*" Then
+        If tableName2 Like "*[A-Za-z0-9]*" Then
+            Call UI_RenameSheet("EXPORTMI for " & tableName2)
+        Else
+            Call UI_RenameSheet("")
+        End If
     End If
     Call EXPORTMI_ParseFieldsIntoColumns
     Call EXPORTMI_GetTableColumns(ws)
@@ -579,10 +601,24 @@ Private Sub EXPORTMI_ProcessResults(response As apiResponse, ws As Worksheet)
         ' Check for error message
         On Error Resume Next
         Dim errMsg As String
+        Dim errField As String
+        Dim errCode As String
+        Dim errCfg As String
         For Each resultItem In results
             errMsg = resultItem.item("errorMessage")
+            errField = ""
+            errCode = ""
+            errCfg = ""
+            errField = resultItem.item("errorField")
+            errCode = resultItem.item("errorCode")
+            errCfg = resultItem.item("errorCfg")
             If errMsg <> "" Then
-                ws.Range("A9").value = "NOK " & errMsg
+                Dim errDetail As String
+                errDetail = "NOK " & errMsg
+                If Trim(errField) <> "" Then errDetail = errDetail & " [" & Trim(errField) & "]"
+                If Trim(errCode) <> "" Then errDetail = errDetail & " (" & Trim(errCode) & ")"
+                If Trim(errCfg) <> "" Then errDetail = errDetail & " {" & Trim(errCfg) & "}"
+                ws.Range("A9").value = errDetail
                 ws.Range("A9").Font.Color = COLOR_ERROR
                 Exit For
             End If
@@ -636,7 +672,8 @@ Private Sub EXPORTMI_ProcessResults(response As apiResponse, ws As Worksheet)
     ' Write to sheet (Row 9, Column B onwards)
     ws.Range(ws.Cells(9, 2), ws.Cells(9 + recordCount - 1, 1 + fieldCount)).value = dataArray
     
-    AutoFit_Click
+'    AutoFit_Click
+    KillPleaseWait
     
     Exit Sub
     

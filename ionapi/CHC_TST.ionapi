@@ -1,0 +1,16 @@
+{
+    "ti": "ZFQP353QZYV89ZHG_TST",
+    "cn": "CHC_TST",
+    "dt": "12",
+    "ci": "ZFQP353QZYV89ZHG_TST~spoMBub6ocub8xYrxtxFj9yLJZ5UAe7JChASB1zoKZc",
+    "cs": "b1pCfjjkWJ6VeirtNx67JuHf424WPOWoV01qeAPxU_GU-kZWIyh52sj0IAcHUaiLsaOP106-LbF0m30p5-m_xA",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/ZFQP353QZYV89ZHG_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1",
+    "saak": "ZFQP353QZYV89ZHG_TST#TXkvo_9PhkqcW8MKFsc-o_HDQB12QS6_1hLygFzXiVaHQAgxs_TklFy01zcp29Pj2uW4UkJqEdULP6sZQgh7XA",
+    "sask": "0cUE0OQVqEBgogc1O8nR_AwEN-aIzh8imsEbNQI0ZWf8s0KbjKZg5vhO5I8Fx-hs6Qzb2DIOYF2V3w9HiZSeXg"
+}

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m py_compile /Users/ericpronovost/Doppio/etl_datalake.py)",
+      "Bash(lsof -ti:8787)",
+      "Bash(xargs -r kill -9)",
+      "Bash(rm -f /tmp/does_not_exist 2>/dev/null; lsof -ti:8787 | xargs -r kill -9 2>/dev/null; echo ok)",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \".tables\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT sql FROM sqlite_master WHERE name='CSYTAB00';\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT 'CSYTAB', COUNT\\(*\\) FROM CSYTAB UNION ALL SELECT 'CSYTAB00', COUNT\\(*\\) FROM CSYTAB00;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"PRAGMA table_info\\(CSYTAB\\);\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT COUNT\\(DISTINCT CTCONO||'|'||CTDIVI||'|'||CTSTCO||'|'||CTSTKY||'|'||CTLNCD\\) FROM CSYTAB;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT CTCONO, CTDIVI, CTSTCO, CTSTKY, CTLNCD, variationNumber FROM CSYTAB LIMIT 10;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT DISTINCT CONO, DIVI, STCO, STKY, LNCD FROM CSYTAB LIMIT 5;\")",
+      "Bash(sqlite3 /Users/ericpronovost/sqlite/etl.db \"SELECT \\\\\"CTCONO\\\\\" FROM CSYTAB LIMIT 1;\")",
+      "Bash(xxd CHC_PRD_XITMAS/TABLE_INFO)",
+      "Bash(python3 -c ' *)",
+      "Bash(xxd CMP200_Tables/TABLE_INFO)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}

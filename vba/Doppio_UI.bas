@@ -918,6 +918,10 @@ Public Sub UI_HandleWorksheetChange(ByVal Target As Range)
             Case "help", "settings", "ver", "npi", "itemload"
                 ' handled inside Keywords()
 
+            Case "xlsx", "xls", "report"
+                ' Return to the original sheet
+                wsKeyword.Activate
+
             Case "ns", "new sheet", "jrn", "journal"
                 ' Keywords() activated the new sheet; land on the API cell
                 Set finalTarget = ActiveSheet.Range("A2")
@@ -937,8 +941,11 @@ Public Sub UI_HandleWorksheetChange(ByVal Target As Range)
 
         ' If Company or Division is blank after the keyword ran, the token process
         ' didn't populate defaults yet — force a refresh now to get them
-        ' (skip for prep/reset since wsKeyword may point to a deleted sheet)
-        If LCase(keyword) <> "prep" And LCase(keyword) <> "reset" Then
+        ' (skip for prep/reset/prc/pricelist since wsKeyword may point to a deleted sheet)
+        If LCase(keyword) <> "prep" And LCase(keyword) <> "reset" _
+           And LCase(keyword) <> "prc" And LCase(keyword) <> "pricelist" _
+           And LCase(keyword) <> "xlsx" And LCase(keyword) <> "xls" _
+           And LCase(keyword) <> "report" Then
             If wsKeyword.Range("Environment").value <> "" Then
                 If wsKeyword.Range("Company").value = "" Or wsKeyword.Range("Division").value = "" Then
                     Tenant_Token
@@ -1150,7 +1157,7 @@ End Sub
 
 
 Public Sub UI_DefaultButtons()
-    Dim btn1, btn2, btn3, btn4, btn5 As Button
+    Dim btn1, btn2, btn3, btn4, btn5, btn6 As Button
     Dim ws As Worksheet
     Set ws = ActiveSheet
 
@@ -1159,17 +1166,19 @@ Public Sub UI_DefaultButtons()
 
     ' Add buttons
     #If Mac Then
-        Set btn1 = ws.Buttons.Add(8, 80, 69, 29)
-        Set btn2 = ws.Buttons.Add(8, 113, 69, 29)
-        Set btn3 = ws.Buttons.Add(80, 80, 69, 19)
-        Set btn4 = ws.Buttons.Add(80, 102, 69, 18)
-        Set btn5 = ws.Buttons.Add(80, 123, 69, 19)
+        Set btn1 = ws.Buttons.Add(8, 82, 69, 29)
+        Set btn2 = ws.Buttons.Add(8, 115, 69, 29)
+        Set btn3 = ws.Buttons.Add(80, 82, 69, 19)
+        Set btn4 = ws.Buttons.Add(80, 104, 69, 18)
+        Set btn5 = ws.Buttons.Add(80, 125, 69, 19)
+        Set btn6 = ws.Buttons.Add(151, 82, 12, 62)
     #Else
         Set btn1 = ws.Buttons.Add(8, 78, 69, 27)
         Set btn2 = ws.Buttons.Add(8, 107, 69, 27)
         Set btn3 = ws.Buttons.Add(80, 78, 69, 17)
         Set btn4 = ws.Buttons.Add(80, 98, 69, 17)
         Set btn5 = ws.Buttons.Add(80, 117, 69, 17)
+        Set btn6 = ws.Buttons.Add(151, 78, 12, 61)
     #End If
 
     btn1.Caption = "Transactions"
@@ -1182,6 +1191,9 @@ Public Sub UI_DefaultButtons()
     btn4.OnAction = "GetLayoutMan_Click"
     btn5.Caption = "Autofit"
     btn5.OnAction = "AutoFit_Click"
+    btn6.Caption = "Rep"
+    btn6.OnAction = "Xtra_ReplaceValues.Xtra_ReplaceValues"
+    btn6.Visible = Config_Developer
 
     ' Add labels
     ws.Range("B6").NumberFormat = "General"
@@ -1211,7 +1223,22 @@ Public Sub UI_DefaultButtons()
     ws.Range("B4:B6").Font.Color = RGB(0, 0, 0)
 
     ws.Range("i6").NumberFormat = "General"
-    ws.Range("I6").Formula = "=MAX(COUNTA(B9:B1048576), COUNTA(C9:C1048576), COUNTA(D9:D1048576), COUNTA(E9:E1048576), COUNTA(F9:F1048576), COUNTA(G9:G1048576), COUNTA(H9:H1048576), COUNTA(I9:I1048576), COUNTA(J9:J1048576))"
+    ws.Range("I6").Formula = "=MAX(COUNTA(B9:B1048576),COUNTA(C9:C1048576),COUNTA(D9:D1048576),COUNTA(E9:E1048576),COUNTA(F9:F1048576),COUNTA(G9:G1048576),COUNTA(H9:H1048576),COUNTA(I9:I1048576),COUNTA(J9:J1048576),COUNTA(K9:K1048576),COUNTA(L9:L1048576),COUNTA(M9:M1048576),COUNTA(N9:N1048576),COUNTA(O9:O1048576),COUNTA(P9:P1048576),COUNTA(Q9:Q1048576),COUNTA(R9:R1048576),COUNTA(S9:S1048576),COUNTA(T9:T1048576),COUNTA(U9:U1048576),COUNTA(V9:V1048576),COUNTA(W9:W1048576),COUNTA(X9:X1048576),COUNTA(Y9:Y1048576),COUNTA(Z9:Z1048576),COUNTA(AA9:AA1048576),COUNTA(AB9:AB1048576),COUNTA(AC9:AC1048576),COUNTA(AD9:AD1048576),COUNTA(AE9:AE1048576))"
+End Sub
+
+''
+' Refresh developer-only button visibility on the active sheet.
+' Call this after settings are loaded (e.g. from Settings_CopyDefaults).
+''
+Public Sub UI_RefreshDeveloperButtons()
+    Dim ws As Worksheet
+    Dim btn As Button
+    Set ws = ActiveSheet
+    For Each btn In ws.Buttons
+        If btn.OnAction = "Xtra_ReplaceValues.Xtra_ReplaceValues" Then
+            btn.Visible = Config_Developer
+        End If
+    Next btn
 End Sub
 
 

@@ -64,10 +64,17 @@ def prompt_for_company_division():
     default_division = defaults.get("division", "088")
 
     company = input(f"Enter company code (default: {default_company}): ").strip()
-    division = input(f"Enter division code (default: {default_division}): ").strip()
+    division_input = input(f"Enter division code (default: {default_division}, enter a single space for blank): ")
+
+    if division_input == "":
+        division = default_division
+    elif division_input.strip() == "":
+        division = ""  # explicit blank division
+    else:
+        division = division_input.strip()
 
     CONFIG["company"] = company if company else default_company
-    CONFIG["division"] = division if division else default_division
+    CONFIG["division"] = division
 
     defaults["company"] = CONFIG["company"]
     defaults["division"] = CONFIG["division"]

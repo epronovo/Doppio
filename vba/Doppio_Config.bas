@@ -142,6 +142,15 @@ Public Property Let Config_MaxTimeout(value As Integer)
     m_ApiSettings.MaxTimeout = value
 End Property
 
+Public Property Get Config_Developer() As Boolean
+    If Not m_Initialized Then InitializeConfig
+    Config_Developer = m_ApiSettings.developer
+End Property
+
+Public Property Let Config_Developer(value As Boolean)
+    m_ApiSettings.developer = value
+End Property
+
 Public Property Get Config_AccessToken() As String
     Config_AccessToken = m_SessionState.AccessToken
 End Property
@@ -406,9 +415,18 @@ Public Sub Config_LoadSettingsFromSheet()
         If .splitChar = "" Then .splitChar = DEFAULT_SPLIT_CHAR
         .conoDivi = SafeLong(ws.Range("conoDivi").value, 0)
         .sheetNaming = CInt(SafeLong(ws.Range("naming").value, DEFAULT_SHEET_NAMING))
+        .developer = CBool(ws.Range("developer").value)
     End With
 
     ' Keep legacy globals in sync so SettingsSheet() doesn't overwrite with stale values
+    maxRecs = m_ApiSettings.MaxRecords
+    maxbulk = m_ApiSettings.maxbulk
+    refreshSeconds = m_ApiSettings.refreshSeconds
+    righttrim = m_ApiSettings.righttrim
+    formatting = m_ApiSettings.formatting
+    splitChar = m_ApiSettings.splitChar
+    maxtime = m_ApiSettings.MaxTimeout
+    conoDivi = m_ApiSettings.conoDivi
     sheetNaming = m_ApiSettings.sheetNaming
 
     On Error GoTo 0
@@ -438,6 +456,7 @@ Public Sub Config_SaveSettingsToSheet()
         ws.Range("splitChar").value = .splitChar
         ws.Range("conoDivi").value = .conoDivi
         ws.Range("naming").value = .sheetNaming
+        ws.Range("developer").value = .developer
     End With
     
     If wasHidden Then ws.Visible = xlSheetVeryHidden

@@ -638,12 +638,26 @@ Private Sub ProcessNpiResults(response As apiResponse, ws As Worksheet, startRow
 
         ' Check for transaction-level error
         errorMessage = ""
+        Dim errorField As String
+        Dim errorCode As String
+        Dim errorCfg As String
+        errorField = ""
+        errorCode = ""
+        errorCfg = ""
         On Error Resume Next
         errorMessage = resultItem.item("errorMessage")
+        errorField = resultItem.item("errorField")
+        errorCode = resultItem.item("errorCode")
+        errorCfg = resultItem.item("errorCfg")
         On Error GoTo ErrorHandler
 
         If errorMessage <> "" Then
-            statusCell.value = "NOK " & errorMessage
+            Dim errDetail As String
+            errDetail = "NOK " & errorMessage
+            If Trim(errorField) <> "" Then errDetail = errDetail & " [" & Trim(errorField) & "]"
+            If Trim(errorCode) <> "" Then errDetail = errDetail & " (" & Trim(errorCode) & ")"
+            If Trim(errorCfg) <> "" Then errDetail = errDetail & " {" & Trim(errorCfg) & "}"
+            statusCell.value = errDetail
             statusCell.Font.Color = COLOR_ERROR
             rowNum = rowNum + 1
         Else

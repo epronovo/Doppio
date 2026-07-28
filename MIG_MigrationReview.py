@@ -179,6 +179,8 @@ def _fetch_counts_parallel(data_rows: list[tuple[int, str]],
 
 _SUMMARY_FILL = PatternFill(start_color="D9D9D9", end_color="D9D9D9", fill_type="solid")
 _SUMMARY_FONT = Font(bold=True, color="000000")
+_OK_DIFF_FILL = PatternFill(start_color="00B050", end_color="00B050", fill_type="solid")
+_OK_DIFF_FONT = Font(bold=True, color="FFFFFF")
 
 
 def _write_summary(ws, header_row: int, last_data_row: int) -> None:
@@ -205,13 +207,16 @@ def _write_summary(ws, header_row: int, last_data_row: int) -> None:
         lbl = ws.cell(row=row_num, column=11)   # col K
         val = ws.cell(row=row_num, column=12)   # col L
 
+        font = _OK_DIFF_FONT if row_num == 7 else _SUMMARY_FONT
+        fill = _OK_DIFF_FILL if row_num == 7 else _SUMMARY_FILL
+
         lbl.value = label
-        lbl.font  = _SUMMARY_FONT
-        lbl.fill  = _SUMMARY_FILL
+        lbl.font  = font
+        lbl.fill  = fill
 
         val.value = formula
-        val.font  = _SUMMARY_FONT
-        val.fill  = _SUMMARY_FILL
+        val.font  = font
+        val.fill  = fill
 
 
 def _reset_autofilter(ws, header_row: int, last_data_row: int, last_col: int) -> None:

@@ -123,11 +123,18 @@ def prompt_for_company_division():
 
     db_name = input(f"Enter local database name (default: {default_db_name}): ").strip()
     company = input(f"Enter company code (default: {default_company}): ").strip()
-    division = input(f"Enter division code (default: {default_division}): ").strip()
+    division_input = input(f"Enter division code (default: {default_division}, enter a single space for blank): ")
     batch_size = input(f"Enter batch size (default: {default_batch}): ").strip()
 
+    if division_input == "":
+        division = default_division
+    elif division_input.strip() == "":
+        division = ""  # explicit blank division
+    else:
+        division = division_input.strip()
+
     CONFIG["company"] = company if company else default_company
-    CONFIG["division"] = division if division else default_division
+    CONFIG["division"] = division
     CONFIG["local_db_name"] = db_name if db_name else default_db_name
     CONFIG["batch_size"] = int(batch_size) if batch_size else int(default_batch)
 

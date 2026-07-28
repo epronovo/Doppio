@@ -43,12 +43,22 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
     ' =====================================================================
     ' 2. PREPARE DESTINATION SHEETS (USE EXISTING)
     ' =====================================================================
+    Dim wsPriceList As Worksheet
     Dim wsBase As Worksheet
     Dim wsTiered As Worksheet
     Dim lastRow As Long
-    
+
     lastRow = wsSource.Cells(wsSource.Rows.count, "A").End(xlUp).row
-    
+
+    ' Try to link to the existing AddPriceList sheet, create if it doesn't exist
+    On Error Resume Next
+    Set wsPriceList = wbTarget.Worksheets("OIS017MI AddPriceList")
+    On Error GoTo 0
+    If wsPriceList Is Nothing Then
+        Set wsPriceList = wbTarget.Worksheets.Add(After:=wbTarget.Sheets(wbTarget.Sheets.count))
+        wsPriceList.name = "OIS017MI AddPriceList"
+    End If
+
     ' Try to link to the existing Base Price sheet, create if it doesn't exist
     On Error Resume Next
     Set wsBase = wbTarget.Worksheets("OIS017MI AddBasePrice")
@@ -57,7 +67,7 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
         Set wsBase = wbTarget.Worksheets.Add(After:=wbTarget.Sheets(wbTarget.Sheets.count))
         wsBase.name = "OIS017MI AddBasePrice"
     End If
-    
+
     ' Try to link to the existing Tiered Price sheet, create if it doesn't exist
     On Error Resume Next
     Set wsTiered = wbTarget.Worksheets("OIS017MI AddGradSlsPrc")
@@ -66,12 +76,14 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
         Set wsTiered = wbTarget.Worksheets.Add(After:=wbTarget.Sheets(wbTarget.Sheets.count))
         wsTiered.name = "OIS017MI AddGradSlsPrc"
     End If
-    
+
     ' Clear out any old data from row 8 downwards so leftover rows don't mix with new data
+    wsPriceList.Rows(outStartRow & ":" & wsPriceList.Rows.count).ClearContents
     wsBase.Rows(outStartRow & ":" & wsBase.Rows.count).ClearContents
     wsTiered.Rows(outStartRow & ":" & wsTiered.Rows.count).ClearContents
-    
+
     ' Set up headers at the hardcoded locations (Row 8, Column B)
+    wsPriceList.Cells(outStartRow, outStartCol).Resize(1, 11).value = Array("PRRF", "CUCD", "FVDT", "LVDT", "TX40", "TX15", "SCMO", "SCMU", "CRTP", "WHLO", "PCTP")
     wsBase.Cells(outStartRow, outStartCol).Resize(1, 6).value = Array("PRRF", "CUCD", "FVDT", "ITNO", "SAPR", "VFDT")
     wsTiered.Cells(outStartRow, outStartCol).Resize(1, 7).value = Array("PRRF", "CUCD", "FVDT", "ITNO", "QTYL", "SAPR", "VFDT")
     
@@ -118,14 +130,19 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
     ' =====================================================================
     ' 4. PROCESS DATA ARRAYS
     ' =====================================================================
+    Dim arrPriceList() As Variant
+    ReDim arrPriceList(1 To lastRow, 1 To 11)
+    Dim priceListCount As Long: priceListCount = 0
+    Dim seenPriceLists As New Collection   ' tracks unique PRRF|FVDT combos
+
     Dim arrBase() As Variant
     ReDim arrBase(1 To lastRow, 1 To 6)
     Dim baseCount As Long: baseCount = 0
-    
+
     Dim arrTiered() As Variant
     ReDim arrTiered(1 To lastRow * 15, 1 To 7)
     Dim tieredCount As Long: tieredCount = 0
-    
+
     Dim prrf As String, itno As String, validFromDate As String
     Dim ql As String, dr As String
     Dim i As Long, j As Long
@@ -144,12 +161,35 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
         ' Read the date from the column and format to YYYYMMDD
         validFromDate = Format(srcData(i, colValidFrom), "yyyymmdd")
 
+        ' AddPriceList Logic — one row per unique (PRRF, FVDT) combination
+        Dim plKey As String
+        plKey = prrf & "|" & validFromDate
+        On Error Resume Next
+        seenPriceLists.Add plKey, plKey   ' errors if key already exists
+        If Err.Number = 0 Then
+            Dim lvdt As String
+            lvdt = Left(validFromDate, 4) & "1231"
+            priceListCount = priceListCount + 1
+            arrPriceList(priceListCount, 1) = prrf
+            arrPriceList(priceListCount, 2) = "USD"
+            arrPriceList(priceListCount, 3) = validFromDate
+            arrPriceList(priceListCount, 4) = lvdt
+            arrPriceList(priceListCount, 5) = prrf & " Price List"
+            arrPriceList(priceListCount, 6) = prrf & " Price List"
+            arrPriceList(priceListCount, 7) = "COST"
+            arrPriceList(priceListCount, 8) = "1"
+            arrPriceList(priceListCount, 9) = "1"
+            arrPriceList(priceListCount, 10) = "US1"
+            arrPriceList(priceListCount, 11) = "3"
+        End If
+        On Error GoTo 0
+
         ' AddBasePrice Logic
         If qlCols(1) > 0 And drCols(1) > 0 Then
             ql = Trim(CStr(srcData(i, qlCols(1))))
             dr = Trim(CStr(srcData(i, drCols(1))))
 
-            If ql = "1" Then
+            If ql <> "" Then
                 baseCount = baseCount + 1
                 arrBase(baseCount, 1) = prrf
                 arrBase(baseCount, 2) = "USD"
@@ -192,6 +232,10 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
     ' =====================================================================
     ' 5. OUTPUT AND SORT DATA
     ' =====================================================================
+    If priceListCount > 0 Then
+        wsPriceList.Cells(outStartRow + 1, outStartCol).Resize(priceListCount, 11).value = arrPriceList
+    End If
+
     If baseCount > 0 Then
         wsBase.Cells(outStartRow + 1, outStartCol).Resize(baseCount, 6).value = arrBase
     End If
@@ -213,20 +257,23 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
     ' =====================================================================
     ' 6. FINAL CLEANUP & FORMATTING
     ' =====================================================================
-    ' Clear row 7 on both sheets
+    ' Clear row 7 on all three sheets
+    wsPriceList.Rows(7).ClearContents
     wsBase.Rows(7).ClearContents
     wsTiered.Rows(7).ClearContents
-    
-    ' Activate Base sheet and run autofit
+
+    ' Autofit all three sheets (activate each in turn so AutoFit_Click works)
+    wsPriceList.Activate
+    Call AutoFit_Click
+
     wsBase.Activate
     Call AutoFit_Click
-    
-    ' Activate Tiered sheet and run autofit
+
     wsTiered.Activate
     Call AutoFit_Click
-    
-    ' Optional: return user to the Base sheet so they aren't stuck on the 2nd one
-    wsBase.Activate
+
+    ' Return user to AddPriceList — it's first in the API call sequence
+    wsPriceList.Activate
     
     MsgBox "Price lists updated successfully based on the source dates.", vbInformation, "Done"
     
@@ -234,41 +281,100 @@ Public Function GeneratePriceUploadSheetsInteractive() As Boolean
 End Function
 
 ''
-' Creates the two standard OIS017MI sheets (AddBasePrice and AddGradSlsPrc),
-' then launches GeneratePriceUploadSheetsInteractive. Deletes the original
-' sheet only if the user completed the interactive prompt successfully.
+' Ensures the three standard OIS017MI sheets exist (AddPriceList,
+' AddBasePrice, AddGradSlsPrc), then launches
+' GeneratePriceUploadSheetsInteractive to populate them.
+'
+' Sheet creation: only creates sheets that are missing — existing sheets
+' keep their layout and just have their data replaced.
+'
+' Deletion: the original sheet is deleted only when (a) the user completed
+' the interactive prompt AND (b) the active sheet is NOT one of the three
+' price list sheets (so re-running from an existing price list tab is safe).
 ''
 Public Sub SetupPriceListSheets()
     Dim wsOriginal As Worksheet
     Dim isSuccess As Boolean
+    Dim wbThis As Workbook
 
+    Set wbThis = ThisWorkbook
     Set wsOriginal = ActiveSheet
 
-    ' Sheet 1: AddBasePrice
-    Settings_NewSheet
-    With ActiveSheet
-        .Range("A2").value = "OIS017MI"
-        .Range("B2").value = "API"
-        .Range("G4").value = "AddBasePrice"
-    End With
-    GetLayoutAll_Click
+    Const SHEET_PL As String = "OIS017MI AddPriceList"
+    Const SHEET_BP As String = "OIS017MI AddBasePrice"
+    Const SHEET_GS As String = "OIS017MI AddGradSlsPrc"
 
-    ' Sheet 2: AddGradSlsPrc
-    Settings_NewSheet
-    With ActiveSheet
-        .Range("A2").value = "OIS017MI"
-        .Range("B2").value = "API"
-        .Range("G4").value = "AddGradSlsPrc"
-    End With
-    GetLayoutAll_Click
+    ' ----------------------------------------------------------------
+    ' Detect which sheets are already present
+    ' ----------------------------------------------------------------
+    Dim wsPL As Worksheet, wsBP As Worksheet, wsGS As Worksheet
+    On Error Resume Next
+    Set wsPL = wbThis.Worksheets(SHEET_PL)
+    Set wsBP = wbThis.Worksheets(SHEET_BP)
+    Set wsGS = wbThis.Worksheets(SHEET_GS)
+    On Error GoTo 0
 
+    ' ----------------------------------------------------------------
+    ' Force naming = 0 (API + Transaction) so sheets get the correct
+    ' names regardless of the user's current Settings naming value
+    ' ----------------------------------------------------------------
+    Dim savedNaming As Integer
+    savedNaming = sheetNaming
+    sheetNaming = 0
+
+    ' ----------------------------------------------------------------
+    ' Create any that are missing (preserve existing ones as-is)
+    ' ----------------------------------------------------------------
+    If wsPL Is Nothing Then
+        Settings_NewSheet
+        With ActiveSheet
+            .Range("A2").value = "OIS017MI"
+            .Range("B2").value = "API"
+            .Range("G4").value = "AddPriceList"
+        End With
+        GetLayoutAll_Click
+    End If
+
+    If wsBP Is Nothing Then
+        Settings_NewSheet
+        With ActiveSheet
+            .Range("A2").value = "OIS017MI"
+            .Range("B2").value = "API"
+            .Range("G4").value = "AddBasePrice"
+        End With
+        GetLayoutAll_Click
+    End If
+
+    If wsGS Is Nothing Then
+        Settings_NewSheet
+        With ActiveSheet
+            .Range("A2").value = "OIS017MI"
+            .Range("B2").value = "API"
+            .Range("G4").value = "AddGradSlsPrc"
+        End With
+        GetLayoutAll_Click
+    End If
+
+    ' Restore original naming setting
+    sheetNaming = savedNaming
+
+    ' ----------------------------------------------------------------
+    ' Populate data
+    ' ----------------------------------------------------------------
     isSuccess = GeneratePriceUploadSheetsInteractive
 
-    ' Only delete the original sheet if the user completed the prompt
+    ' ----------------------------------------------------------------
+    ' Delete the originating sheet only when the user finished the
+    ' prompt AND it isn't one of the three price list sheets itself
+    ' ----------------------------------------------------------------
     If isSuccess Then
-        Application.DisplayAlerts = False
-        wsOriginal.Delete
-        Application.DisplayAlerts = True
+        Dim origName As String
+        origName = wsOriginal.name
+        If origName <> SHEET_PL And origName <> SHEET_BP And origName <> SHEET_GS Then
+            Application.DisplayAlerts = False
+            wsOriginal.Delete
+            Application.DisplayAlerts = True
+        End If
     End If
 End Sub
 

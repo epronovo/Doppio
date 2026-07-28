@@ -1,11 +1,9 @@
 {
-  "sync_batch_size": 100,
-  "ionapi_file": "HERFF_JONES_TST.ionapi",
-  "company": "300",
-  "division": "AAA",
+  "ionapi_file": "NUTRACORP_TRN.ionapi",
+  "last_ionapi_prompt_time": "2026-07-15T08:28:03.105413",
+  "company": "100",
+  "division": "",
   "local_db_name": "doppio.db",
   "batch_size": 100,
-  "operator_pcid": "ericpronovost",
-  "last_ionapi_prompt_time": "2026-04-08T11:21:19.257354",
-  "last_prompt_time": "2026-04-08T11:21:25.666439"
+  "last_prompt_time": "2026-07-15T08:29:37.735253"
 }

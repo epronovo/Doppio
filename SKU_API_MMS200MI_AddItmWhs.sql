@@ -1,0 +1,36 @@
+SELECT 'MMS200MI'[minm],'AddItmWhs'[trnm],* FROM (
+	SELECT '100'[WHLO],
+	thgskuid[ITNO],
+	'2'[ALMT],
+	'2'[STMT],
+	'1'[SPMT],
+	'HJDATALOAD'[RESP],
+	'M1'[PLCD],
+	'A'[ABCD],
+	'A'[ABFC],
+	'A'[ACOC],
+	'1'[PUIT],
+	'G10'[ORTY],
+	'RI1'[FACI],
+	'1'[STRL],
+	'20'[STAT],
+	'E01'[CPCD],
+	'Y40001'[SUNO],
+	'A1'[WHTY],
+	'L'[WHSY],
+	'1'[INSC],
+	'APPROVED'[WHSL],
+	'A'[MABC],
+	'1'[ABCM],
+	'2'[DPID],
+	'DP'[PRCD],
+	'01'[FCCM],
+	'30'[PFTM],
+	'2'[SVEI],
+	'100'[PLHZ],
+	'1'[OPLC],
+	'1'[MSCH]
+	FROM SyndigoSKU
+) as temp
+WHERE 1=1
+AND ITNO <> ''

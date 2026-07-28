@@ -1,0 +1,229 @@
+2026-05-21 20:45:34  INFO      ============================================================
+2026-05-21 20:45:34  INFO      HJ_SalesOffices  —  CRS610MI.Add
+2026-05-21 20:45:34  INFO      ============================================================
+2026-05-21 20:45:34  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 20:45:34  INFO        Read 142 rows, 246 columns
+2026-05-21 20:45:34  INFO        Mapped 142 records to CRS610MI.Add fields
+2026-05-21 20:45:34  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_204534.xlsx
+2026-05-21 20:45:34  INFO      Done.
+2026-05-21 13:48:49  INFO      ============================================================
+2026-05-21 13:48:49  INFO      HJ_SalesOffices  —  CRS610MI.Add
+2026-05-21 13:48:49  INFO      ============================================================
+2026-05-21 13:48:49  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 13:48:49  INFO        Read 142 rows, 246 columns
+2026-05-21 13:48:49  INFO        Mapped 142 records to CRS610MI.Add fields
+2026-05-21 13:48:49  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260521_134849.xlsx
+2026-05-21 13:48:49  INFO      Done.
+2026-05-21 14:03:49  INFO      ============================================================
+2026-05-21 14:03:49  INFO      HJ_SalesOffices  —  CRS610MI.Add
+2026-05-21 14:03:49  INFO      ============================================================
+2026-05-21 14:03:49  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 14:03:49  INFO        Read 142 rows, 246 columns
+2026-05-21 14:03:49  INFO        Mapped 142 records to CRS610MI.Add fields
+2026-05-21 14:03:49  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260521_140349.xlsx
+2026-05-21 14:03:49  INFO      Done.
+2026-05-21 21:17:55  INFO      ============================================================
+2026-05-21 21:17:55  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:17:55  INFO      ============================================================
+2026-05-21 21:17:55  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:17:56  INFO        Read 142 rows, 246 columns
+2026-05-21 21:17:56  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:17:56  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:17:56  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_211756.xlsx
+2026-05-21 21:17:56  INFO      Done.
+2026-05-21 21:18:09  INFO      ============================================================
+2026-05-21 21:18:09  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:18:09  INFO      ============================================================
+2026-05-21 21:18:09  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:18:09  INFO        Read 142 rows, 246 columns
+2026-05-21 21:18:09  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:18:09  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:18:09  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_211809.xlsx
+2026-05-21 21:18:09  INFO      Done.
+2026-05-21 21:25:09  INFO      ============================================================
+2026-05-21 21:25:09  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:25:09  INFO      ============================================================
+2026-05-21 21:25:09  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:25:09  INFO        Read 142 rows, 246 columns
+2026-05-21 21:25:09  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:25:09  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:25:09  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_212509.xlsx
+2026-05-21 21:25:09  INFO      Done.
+2026-05-21 21:34:03  INFO      ============================================================
+2026-05-21 21:34:03  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:34:03  INFO      ============================================================
+2026-05-21 21:34:03  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:34:03  INFO        Read 142 rows, 246 columns
+2026-05-21 21:34:03  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:34:03  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:34:03  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-21 21:34:03  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_213403.xlsx
+2026-05-21 21:34:03  INFO      Done.
+2026-05-21 21:43:53  INFO      ============================================================
+2026-05-21 21:43:53  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:43:53  INFO      ============================================================
+2026-05-21 21:43:53  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:43:53  INFO        Read 142 rows, 246 columns
+2026-05-21 21:43:53  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:43:53  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:43:53  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-21 21:43:53  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_214353.xlsx
+2026-05-21 21:43:53  INFO      Done.
+2026-05-21 21:47:29  INFO      ============================================================
+2026-05-21 21:47:29  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:47:29  INFO      ============================================================
+2026-05-21 21:47:29  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:47:29  INFO        Read 142 rows, 246 columns
+2026-05-21 21:47:29  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:47:29  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:47:29  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-21 21:47:29  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_214729.xlsx
+2026-05-21 21:47:29  INFO      Done.
+2026-05-21 21:54:04  INFO      ============================================================
+2026-05-21 21:54:04  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:54:04  INFO      ============================================================
+2026-05-21 21:54:04  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 21:54:04  INFO        Read 142 rows, 246 columns
+2026-05-21 21:54:04  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 21:54:04  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 21:54:04  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-21 21:54:04  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-21 21:54:04  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-21 21:54:04  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-21 21:54:05  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_215405.xlsx
+2026-05-21 21:54:05  INFO      Done.
+2026-05-21 21:59:59  INFO      ============================================================
+2026-05-21 21:59:59  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 21:59:59  INFO      ============================================================
+2026-05-21 21:59:59  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 22:00:00  INFO        Read 142 rows, 246 columns
+2026-05-21 22:00:00  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 22:00:00  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 22:00:00  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-21 22:00:00  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-21 22:00:00  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-21 22:00:00  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-21 22:00:00  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_220000.xlsx
+2026-05-21 22:00:00  INFO      Done.
+2026-05-21 22:12:04  INFO      ============================================================
+2026-05-21 22:12:04  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-21 22:12:04  INFO      ============================================================
+2026-05-21 22:12:04  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-21 22:12:04  INFO        Read 142 rows, 246 columns
+2026-05-21 22:12:04  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-21 22:12:04  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-21 22:12:04  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-21 22:12:04  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-21 22:12:04  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-21 22:12:04  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-21 22:12:04  INFO        Saved: /sessions/zen-wizardly-ritchie/mnt/Doppio/output/HJ_SalesOffices_20260521_221204.xlsx
+2026-05-21 22:12:04  INFO      Done.
+2026-05-22 08:07:20  INFO      ============================================================
+2026-05-22 08:07:20  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-22 08:07:20  INFO      ============================================================
+2026-05-22 08:07:20  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-22 08:07:20  INFO        Read 142 rows, 246 columns
+2026-05-22 08:07:20  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-22 08:07:20  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-22 08:07:20  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-22 08:07:20  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-22 08:07:20  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-22 08:07:20  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-22 08:07:21  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260522_080721.xlsx
+2026-05-22 08:07:21  INFO      Done.
+2026-05-22 08:11:26  INFO      ============================================================
+2026-05-22 08:11:26  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-22 08:11:26  INFO      ============================================================
+2026-05-22 08:11:26  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-22 08:11:26  INFO        Read 142 rows, 246 columns
+2026-05-22 08:11:26  INFO        Loaded 142 raw records into SyndigoSalesOffices
+2026-05-22 08:11:26  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-22 08:11:26  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-22 08:11:26  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-22 08:11:26  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-22 08:11:26  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-22 08:11:26  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-22 08:11:26  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260522_081126.xlsx
+2026-05-22 08:11:26  INFO      Done.
+2026-05-22 08:17:45  INFO      ============================================================
+2026-05-22 08:17:45  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-22 08:17:45  INFO      ============================================================
+2026-05-22 08:17:45  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-22 08:17:45  INFO        Read 142 rows, 246 columns
+2026-05-22 08:17:45  INFO        Loaded 142 raw records into SyndigoSalesOffices
+2026-05-22 08:17:45  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-22 08:17:45  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-22 08:17:45  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-22 08:17:45  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-22 08:17:45  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-22 08:17:45  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-22 08:17:46  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260522_081746.xlsx
+2026-05-22 08:17:46  INFO        Upserted 142 rows → SyndigoSalesOffices (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-22 08:17:46  INFO        Wrote: SalesOffices_API_CRS610MI_Add.sql
+2026-05-22 08:17:46  INFO        Wrote: SalesOffices_API_CRS620MI_AddSupplier.sql
+2026-05-22 08:17:46  INFO        Wrote: SalesOffices_API_CRS620MI_AddAddress.sql
+2026-05-22 08:17:46  INFO        Wrote: SalesOffices_API_CRS335MI_AddCtrlObj.sql
+2026-05-22 08:17:46  INFO        Wrote: SalesOffices_API_MNS150MI_Add.sql
+2026-05-22 08:17:46  INFO        Wrote: SalesOffices_API_CRS100MI_Add.sql
+2026-05-22 08:17:46  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-22 08:17:46  INFO      Done.
+2026-05-22 12:17:51  INFO      ============================================================
+2026-05-22 12:17:51  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-22 12:17:51  INFO      ============================================================
+2026-05-22 12:17:51  INFO      Found 11 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_Organization.csv
+2026-05-22 12:17:52  INFO        Read 50,000 rows, 216 columns
+2026-05-22 12:17:54  INFO        Loaded 50,000 raw records into SyndigoSalesOffices
+2026-05-22 12:17:55  INFO        Mapped 50,000 records → CRS610MI.Add
+2026-05-22 12:17:56  INFO        Mapped 50,000 records → CRS620MI.Add  (SUNO 200001–250000)
+2026-05-22 12:17:57  INFO        Mapped 50,000 records → CRS622MI.AddAddress
+2026-05-22 12:17:57  INFO        Mapped 50,000 records → CRS335MI.AddCtrlObj
+2026-05-22 12:17:58  INFO        Mapped 50,000 records → MNS150MI.Add
+2026-05-22 12:17:58  INFO        Mapped 50,000 records → CRS100MI.Add
+2026-05-22 12:19:47  INFO      ============================================================
+2026-05-22 12:19:47  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-05-22 12:19:47  INFO      ============================================================
+2026-05-22 12:19:47  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-05-22 12:19:47  INFO        Read 142 rows, 246 columns
+2026-05-22 12:19:47  INFO        Loaded 142 raw records into SyndigoSalesOffices
+2026-05-22 12:19:47  INFO        Mapped 142 records → CRS610MI.Add
+2026-05-22 12:19:47  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-05-22 12:19:47  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-05-22 12:19:47  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-05-22 12:19:47  INFO        Mapped 142 records → MNS150MI.Add
+2026-05-22 12:19:47  INFO        Mapped 142 records → CRS100MI.Add
+2026-05-22 12:19:48  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260522_121948.xlsx
+2026-05-22 12:19:48  INFO        Upserted 142 rows → SyndigoSalesOffices (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-22 12:19:48  INFO        Wrote: SalesOffices_API_CRS610MI_Add.sql
+2026-05-22 12:19:48  INFO        Wrote: SalesOffices_API_CRS620MI_AddSupplier.sql
+2026-05-22 12:19:48  INFO        Wrote: SalesOffices_API_CRS620MI_AddAddress.sql
+2026-05-22 12:19:48  INFO        Wrote: SalesOffices_API_CRS335MI_AddCtrlObj.sql
+2026-05-22 12:19:48  INFO        Wrote: SalesOffices_API_MNS150MI_Add.sql
+2026-05-22 12:19:48  INFO        Wrote: SalesOffices_API_CRS100MI_Add.sql
+2026-05-22 12:19:48  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-22 12:19:48  INFO      Done.
+2026-06-22 10:25:38  INFO      ============================================================
+2026-06-22 10:25:38  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-06-22 10:25:38  INFO      ============================================================
+2026-06-22 10:25:38  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-06-22 10:25:38  INFO        Read 4,925 rows, 183 columns
+2026-06-22 10:25:38  INFO        Loaded 4,925 raw records into SyndigoSalesOffices
+2026-06-22 10:25:38  INFO        Mapped 4,925 records → CRS610MI.Add
+2026-06-22 10:25:38  INFO        Mapped 4,925 records → CRS620MI.Add  (SUNO 200001–204925)
+2026-06-22 10:25:39  INFO        Mapped 4,925 records → CRS622MI.AddAddress
+2026-06-22 10:25:39  INFO        Mapped 4,925 records → CRS335MI.AddCtrlObj
+2026-06-22 10:25:39  INFO        Mapped 4,925 records → MNS150MI.Add
+2026-06-22 10:25:39  INFO        Mapped 4,925 records → CRS100MI.Add
+2026-06-22 10:25:46  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260622_102545.xlsx
+2026-06-22 10:26:58  INFO      ============================================================
+2026-06-22 10:26:58  INFO      HJ_SalesOffices  —  CRS610MI.Add + CRS620MI.Add
+2026-06-22 10:26:58  INFO      ============================================================
+2026-06-22 10:26:58  INFO      Found 1 CSV file(s) → using: Syndigo_Data_Migration_SalesOffice.csv
+2026-06-22 10:26:58  INFO        Read 142 rows, 246 columns
+2026-06-22 10:26:58  INFO        Loaded 142 raw records into SyndigoSalesOffices
+2026-06-22 10:26:58  INFO        Mapped 142 records → CRS610MI.Add
+2026-06-22 10:26:58  INFO        Mapped 142 records → CRS620MI.Add  (SUNO 200001–200142)
+2026-06-22 10:26:58  INFO        Mapped 142 records → CRS622MI.AddAddress
+2026-06-22 10:26:58  INFO        Mapped 142 records → CRS335MI.AddCtrlObj
+2026-06-22 10:26:58  INFO        Mapped 142 records → MNS150MI.Add
+2026-06-22 10:26:58  INFO        Mapped 142 records → CRS100MI.Add
+2026-06-22 10:26:58  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SalesOffices_20260622_102658.xlsx

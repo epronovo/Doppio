@@ -1,0 +1,97 @@
+2026-05-29 12:03:10  INFO      ============================================================
+2026-05-29 12:03:10  INFO      HJ_SKU  —  MMS200MI.AddItmBasic
+2026-05-29 12:03:10  INFO      ============================================================
+2026-05-29 12:03:10  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-05-29 12:03:10  INFO        Read 4,925 rows, 183 columns
+2026-05-29 12:03:10  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-05-29 12:03:12  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260529_120311.xlsx
+2026-05-29 12:03:12  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-29 12:03:12  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-05-29 12:03:12  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-29 12:03:12  INFO      Done.
+2026-05-29 13:12:16  INFO      ============================================================
+2026-05-29 13:12:16  INFO      HJ_SKU  —  MMS200MI.AddItmBasic
+2026-05-29 13:12:16  INFO      ============================================================
+2026-05-29 13:12:16  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-05-29 13:12:16  INFO        Read 4,925 rows, 183 columns
+2026-05-29 13:12:16  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-05-29 13:12:18  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260529_131218.xlsx
+2026-05-29 13:12:18  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-29 13:12:18  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-05-29 13:12:18  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-29 13:12:18  INFO      Done.
+2026-05-29 13:55:42  INFO      ============================================================
+2026-05-29 13:55:42  INFO      HJ_SKU  —  MMS200MI.AddItmBasic / AddItmWhs / UpdItmFac
+2026-05-29 13:55:42  INFO      ============================================================
+2026-05-29 13:55:42  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-05-29 13:55:42  INFO        Read 4,925 rows, 183 columns
+2026-05-29 13:55:42  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-05-29 13:55:42  INFO        Mapped 4,925 records → MMS200MI.AddItmWhs
+2026-05-29 13:55:42  INFO        Mapped 4,925 records → MMS200MI.UpdItmFac
+2026-05-29 13:55:50  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260529_135549.xlsx
+2026-05-29 13:55:50  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-29 13:55:50  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-05-29 13:55:50  INFO        Wrote: SKU_API_MMS200MI_AddItmWhs.sql
+2026-05-29 13:55:50  INFO        Wrote: SKU_API_MMS200MI_UpdItmFac.sql
+2026-05-29 13:55:50  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-29 13:55:50  INFO      Done.
+2026-05-29 13:58:37  INFO      ============================================================
+2026-05-29 13:58:37  INFO      HJ_SKU  —  MMS200MI.AddItmBasic / AddItmWhs / UpdItmFac
+2026-05-29 13:58:37  INFO      ============================================================
+2026-05-29 13:58:37  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-05-29 13:58:38  INFO        Read 4,925 rows, 183 columns
+2026-05-29 13:58:38  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-05-29 13:58:38  INFO        Mapped 4,925 records → MMS200MI.AddItmWhs
+2026-05-29 13:58:38  INFO        Mapped 4,925 records → MMS200MI.UpdItmFac
+2026-05-29 13:58:45  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260529_135844.xlsx
+2026-05-29 13:58:45  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-29 13:58:45  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-05-29 13:58:45  INFO        Wrote: SKU_API_MMS200MI_AddItmWhs.sql
+2026-05-29 13:58:45  INFO        Wrote: SKU_API_MMS200MI_UpdItmFac.sql
+2026-05-29 13:58:45  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-29 13:58:45  INFO      Done.
+2026-05-29 14:04:24  INFO      ============================================================
+2026-05-29 14:04:24  INFO      HJ_SKU  —  MMS200MI.AddItmBasic / AddItmWhs / UpdItmFac
+2026-05-29 14:04:24  INFO      ============================================================
+2026-05-29 14:04:24  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-05-29 14:04:24  INFO        Read 4,925 rows, 183 columns
+2026-05-29 14:04:25  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-05-29 14:04:25  INFO        Mapped 4,925 records → MMS200MI.AddItmWhs
+2026-05-29 14:04:25  INFO        Mapped 4,925 records → MMS200MI.UpdItmFac
+2026-05-29 14:04:32  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260529_140431.xlsx
+2026-05-29 14:04:32  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-29 14:04:32  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-05-29 14:04:32  INFO        Wrote: SKU_API_MMS200MI_AddItmWhs.sql
+2026-05-29 14:04:32  INFO        Wrote: SKU_API_MMS200MI_UpdItmFac.sql
+2026-05-29 14:04:32  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-29 14:04:32  INFO      Done.
+2026-05-29 15:54:19  INFO      ============================================================
+2026-05-29 15:54:19  INFO      HJ_SKU  —  MMS200MI.AddItmBasic / AddItmWhs / UpdItmFac
+2026-05-29 15:54:19  INFO      ============================================================
+2026-05-29 15:54:19  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-05-29 15:54:19  INFO        Read 4,925 rows, 183 columns
+2026-05-29 15:54:19  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-05-29 15:54:19  INFO        Mapped 4,925 records → MMS200MI.AddItmWhs
+2026-05-29 15:54:19  INFO        Mapped 4,925 records → MMS200MI.UpdItmFac
+2026-05-29 15:54:27  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260529_155426.xlsx
+2026-05-29 15:54:27  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-05-29 15:54:27  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-05-29 15:54:27  INFO        Wrote: SKU_API_MMS200MI_AddItmWhs.sql
+2026-05-29 15:54:27  INFO        Wrote: SKU_API_MMS200MI_UpdItmFac.sql
+2026-05-29 15:54:27  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-05-29 15:54:27  INFO      Done.
+2026-06-15 13:26:43  INFO      ============================================================
+2026-06-15 13:26:43  INFO      HJ_SKU  —  MMS200MI.AddItmBasic / AddItmWhs / UpdItmFac
+2026-06-15 13:26:43  INFO      ============================================================
+2026-06-15 13:26:43  INFO      Found 1 CSV file(s) → using: 0 to 50000_Syndigo_Data_Migration_SKU.csv
+2026-06-15 13:26:43  INFO        Read 4,925 rows, 183 columns
+2026-06-15 13:26:43  INFO        Mapped 4,925 records → MMS200MI.AddItmBasic
+2026-06-15 13:26:43  INFO        Mapped 4,925 records → MMS200MI.AddItmWhs
+2026-06-15 13:26:43  INFO        Mapped 4,925 records → MMS200MI.UpdItmFac
+2026-06-15 13:26:51  INFO        Saved: /Users/ericpronovost/Doppio/output/HJ_SKU_20260615_132650.xlsx
+2026-06-15 13:26:51  INFO        Upserted 4,925 rows → SyndigoSKU (/Users/ericpronovost/sqlite/doppio.db)
+2026-06-15 13:26:51  INFO        Wrote: SKU_API_MMS200MI_AddItmBasic.sql
+2026-06-15 13:26:51  INFO        Wrote: SKU_API_MMS200MI_AddItmWhs.sql
+2026-06-15 13:26:51  INFO        Wrote: SKU_API_MMS200MI_UpdItmFac.sql
+2026-06-15 13:26:51  INFO        SQL files written to: /Users/ericpronovost/Doppio
+2026-06-15 13:26:51  INFO      Done.

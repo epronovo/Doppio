@@ -1,0 +1,19 @@
+{
+    "ti": "U1SOURCE_TRN",
+    "cn": "IONWorkFlow-U1SOURCE_TRN",
+    "dt": "12",
+    "ci": "U1SOURCE_TRN~kA_rOLb8koAG-r5wXkD87wPsOwaHMgNwRhky1wAPCyA",
+    "cs": "hlBkBRWJEmgVnWYHMWrCifoMn1GvQQ316VftyCvHKbqw_gDjdajZQK1mfZ0u5tlxWVNwQFsLwJd41vdiIOFn4w",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/U1SOURCE_TRN/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "U1SOURCE_TRN#1aXbPsaHu6-FjY7SsZTQWLA4rBjDJmtU9mRjX5nQ2JbgTFBzRwDBPevH2uMHO9wXe8VR2QHkuO3CG_y2JcdnAw",
+    "sask": "jEUEo3k7apfQ-SoycVAA-2UUu1vRxsSa3tuUOS0KBsOvViStVCH9biXYhO8lN9ylRHSfjh_86HrccycmM3AuHg",
+    "company": "100",
+    "division": "USA",
+    "database": "ctos.db"
+}

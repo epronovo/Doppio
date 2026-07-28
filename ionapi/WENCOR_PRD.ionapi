@@ -1,0 +1,18 @@
+{
+    "ti": "WENCORGROUP_PRD",
+    "cn": "API Gateway WENCOR_PRD",
+    "dt": "12",
+    "ci": "WENCORGROUP_PRD~vY9tIG-VAhdGz6c0L9_CTkcBm0LSZ3Xv89Y_92GN0v4",
+    "cs": "BgZzXID53kcEVC5144CKNhz3cMHhPEv87Xcd0APP_4u1mdlEymXf36wt0kz_fNOXPNv5piOe_62mmh2kXQfX4Q",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/WENCORGROUP_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc":
+    [],
+    "ev": "U1478358101",
+    "v": "1.1",
+    "saak": "WENCORGROUP_PRD#hQnkRzE_05Nfh8UHJMJCY12tMczVBqOKEJ9XT5_wFDly5H_WZAII_-j7mJ_eDM5pEoY-dc7jlUMud5PaGUmJmw",
+    "sask": "FAS1r_YhP5VbVF3J5GHXZBPxbC-BNFoiDsqXfUG5NMZQztDDZzcgVTeZQEgISaoIS8M_Hq1zUk9swuvBNqFaxw"
+}

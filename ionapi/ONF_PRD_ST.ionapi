@@ -1,0 +1,7 @@
+{
+    "atype": "basic",  
+    "api_url": "https://192.168.103.101:20108/m3api-rest/execute",
+    "username": "onf\\epronovost",
+    "password": "D@ppio#22",
+    "basic_auth": "b25mXGVwcm9ub3Zvc3Q6REBwcGlvIzIy"
+}

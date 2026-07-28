@@ -146,7 +146,7 @@ Private Type json_Options
     ' See: http://support.microsoft.com/kb/269370
     '
     ' By default, VBA-JSON will use String for numbers longer than 15 characters that contain only digits
-    ' to override set `JsonConverter.JsonOptions.UseDoubleForLargeNumbers = True`
+    ' to override set `JsonOptions.UseDoubleForLargeNumbers = True`
     UseDoubleForLargeNumbers As Boolean
 
     ' The JSON standard requires object keys to be quoted (" or '), use this option to allow unquoted keys

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /Users/ericpronovost/Doppio/vba diff vba/Doppio.bas)",
+      "Bash(git -C /Users/ericpronovost/Doppio diff HEAD -- vba/Doppio.bas)"
+    ]
+  }
+}

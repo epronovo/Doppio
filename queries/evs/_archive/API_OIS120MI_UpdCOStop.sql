@@ -1,0 +1,6 @@
+SELECT DISTINCT  
+	''[MESSAGE],
+	OAORNO [ORNO], 
+	'9' [OBLC] 
+FROM OCOU_Suspended
+JOIN oohead on OAYREF = ORDN55 

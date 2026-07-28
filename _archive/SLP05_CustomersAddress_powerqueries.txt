@@ -1,0 +1,33 @@
+Query Name: SLP05_Filtered
+let
+    K�lla = Excel.Workbook(Web.Contents("https://inforonline.sharepoint.com/sites/PWA-Barnes/Shared Documents/030 WIP Docs/250 Migration/S21 Extracts/SLP05.xlsx"), null, true),
+    SLP05_Filtered_Table = K�lla{[Item="SLP05_Filtered",Kind="Table"]}[Data],
+    #"�ndrad typ" = Table.TransformColumnTypes(SLP05_Filtered_Table,{{"CUNO", type text}, {"CUSN05", type text}, {"DSEQ05", type text}}),
+    #"Trimmad text" = Table.TransformColumns(#"�ndrad typ",{{"CUSN05", Text.Trim, type text}, {"DSEQ05", Text.Trim, type text}}),
+    #"Ihopslagna fr�gor" = Table.NestedJoin(#"Trimmad text", {"CUSN05", "DSEQ05"}, CustomerAddressMaster2, {"CUSN05", "DSEQ05"},CAML_CustomerAddressMasterer", JoinKind.LeftOuter),
+    #"Expanderad CAML_CustomerAddressMaster" = Table.ExpandTableColumn(#"Ihopslagna fr�gor",CAML_CustomerAddressMasterer", {"ADID"}, {"ADID"}),
+    #"Omsorterade kolumner" = Table.ReorderColumns(#"Expanderad CAML_CustomerAddressMaster",{"CUNO", "CUSN05", "ADID", "DSEQ05", "CONO05", "CNAM05", "CAD105", "CAD205", "CAD405", "CAD505", "PCD105", "CGP105", "CGP205", "CGP305", "CGP405", "SLMN05", "CRLM05", "CNTN05", "PHON05", "CURN05", "VCOD05", "COCD05", "PHN205", "FAX205"}),
+    #"Sorterade rader" = Table.Sort(#"Omsorterade kolumner",{{"CUNO", Order.Ascending}, {"ADID", Order.Ascending}})
+in
+    #"Sorterade rader"
+--------------------------------------------------------------------------------
+Query Name: SLP05_CustomerAdress
+let
+    K�lla = SLP05_Filtered,
+    #"Omsorterade kolumner" = Table.ReorderColumns(K�lla,{"CUNO", "CUSN05", "ADID", "DSEQ05", "CONO05", "CNAM05", "CAD105", "CAD205", "CAD305", "CAD405", "CAD505", "PCD105", "CGP105", "CGP205", "CGP305", "CGP405", "SLMN05", "CRLM05", "CNTN05", "PHON05", "CURN05", "PTTD05", "TLXN05", "VCOD05", "COCD05", "PHN205", "FAX205"}),
+    #"Ersatt v�rde" = Table.ReplaceValue(#"Omsorterade kolumner"," ","",Replacer.ReplaceText,{"CUSN05", "PHON05", "PHN205", "FAX205"}),
+    #"Sorterade rader" = Table.Sort(#"Ersatt v�rde",{{"CUNO", Order.Ascending}, {"ADID", Order.Ascending}}),
+    #"Filtrerade rader" = Table.SelectRows(#"Sorterade rader", each ([ADID] <> null)),
+    #"Trimmad text" = Table.TransformColumns(#"Filtrerade rader",{{"ADID", Text.Trim, type text}, {"FAX205", Text.Trim, type text}, {"PHN205", Text.Trim, type text}, {"COCD05", Text.Trim, type text}, {"VCOD05", Text.Trim, type text}, {"CURN05", Text.Trim, type text}, {"PHON05", Text.Trim, type text}, {"CNTN05", Text.Trim, type text}, {"SLMN05", Text.Trim, type text}, {"CGP405", Text.Trim, type text}, {"CGP305", Text.Trim, type text}, {"CGP205", Text.Trim, type text}, {"CGP105", Text.Trim, type text}, {"PCD105", Text.Trim, type text}, {"CAD505", Text.Trim, type text}, {"CAD405", Text.Trim, type text}, {"CAD205", Text.Trim, type text}, {"CAD105", Text.Trim, type text}, {"CNAM05", Text.Trim, type text}, {"CONO05", Text.Trim, type text}, {"DSEQ05", Text.Trim, type text}, {"CUSN05", Text.Trim, type text}})
+in
+    #"Trimmad text"
+--------------------------------------------------------------------------------
+Query Name: CustomerAddressMaster2
+let
+    K�lla = Excel.Workbook(Web.Contents("https://inforonline.sharepoint.com/sites/PWA-Barnes/Shared Documents/030 WIP Docs/250 Migration/S21 Extracts/Customers/CustomerAddressMasterList with index.xlsx"), null, true),
+    CustomerAddressMaster_Table = K�lla{[Item="CustomerAddressMaster_",Kind="Table"]}[Data],
+    #"�ndrad typ" = Table.TransformColumnTypes(CustomerAddressMaster_Table,{{"CUNO", type text}, {"CUSN05", type text}, {"DSEQ05", type text}, {"ADID", type text}}),
+    #"Trimmad text" = Table.TransformColumns(#"�ndrad typ",{{"CUNO", Text.Trim, type text}, {"CUSN05", Text.Trim, type text}, {"DSEQ05", Text.Trim, type text}, {"ADID", Text.Trim, type text}})
+in
+    #"Trimmad text"
+--------------------------------------------------------------------------------

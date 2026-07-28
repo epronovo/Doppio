@@ -1,0 +1,19 @@
+{
+    "ti": "WARCK89PZ9V6G3KK_TST",
+    "cn": "Excel",
+    "dt": "12",
+    "ci": "WARCK89PZ9V6G3KK_TST~ARWFkA1lMHcSUtB_0CU41Bwz6erPqG6p5inuC-OUAY8",
+    "cs": "Rx6rNhHsLQ2NYMvaVY6fudyyEc8g9_n6yKwVy1dzrXtFLi078isMfTgyPqA7i5IOzESxWdG5mQW-QKkujUHlRA",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/WARCK89PZ9V6G3KK_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "WARCK89PZ9V6G3KK_TST#ZLU0P0-4M8TfLaCfYyTBeAUWPlYLaQQeS4iDbEYks2yAB1Nl-3X_B_OcIw8yB-ij-nU9Ky6uQq_Te3x-6v0ZNQ",
+    "sask": "vO3XHITnUvdr4z2x3lNegcp5YTup54SNHxsofWUZ5Ruq3jyX6rJbTr25pJ7-8qPd7uLy8ngNIyhctvX8gwvuVw",
+    "company": "300",
+    "division": "AAA",
+    "database": "asr.db"
+}

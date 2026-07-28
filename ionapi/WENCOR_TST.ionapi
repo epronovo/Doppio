@@ -1,0 +1,16 @@
+{
+    "ti": "WENCORGROUP_TST",
+    "cn": "IONWorkFlow-WENCORGROUP_TST",
+    "dt": "12",
+    "ci": "WENCORGROUP_TST~awIfHkZBNpMWEqWUzqU5f-wVVSTIBvAHZ3kXbWdEa7s",
+    "cs": "fokfQhIij3TSTGJ8WY28Got14sQOKbYItca8xnllR-V2_XbfLILAmttofZsthXRGXSWUY1NRB_AtuPFTo6b8bw",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/WENCORGROUP_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "WENCORGROUP_TST#-D1wxHqw5DXd0V3S_kzHpzNaV73bEfwqMEGy8d24FspHR1TTCRZ1tE2GUOUgPSvba0kkpLOJmVElGkqQgj4YNA",
+    "sask": "N3kmJJ7GHE7L5IWSGEzBNjiGHvU9HnTGgAdf9d8S87R7ar480x0ZvJ0Gb9m82lffgY_51uIHO1WswDQ6PcoTZg"
+}

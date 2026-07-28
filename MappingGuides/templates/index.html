@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mapping Guide Tools</title>
+</head>
+<body>
+    <h2>Mapping Guide Utilities</h2>
+
+    <!-- Update DB -->
+    <button onclick="runUpdates()">Run Mapping Updates</button>
+
+    <hr>
+
+    <!-- Build Templates -->
+    <h3>Build Templates</h3>
+    <input type="text" id="guideTable" placeholder="e.g. DoppioGuide">
+    <button onclick="buildTemplates()">Build Templates</button>
+
+    <pre id="output"></pre>
+
+    <script>
+        const output = document.getElementById("output");
+
+        function runUpdates() {
+            output.textContent = "Running mapping updates...\n";
+
+            fetch("/run-updates", { method: "POST" })
+                .then(r => r.json())
+                .then(d => output.textContent += "✅ " + d.message)
+                .catch(() => output.textContent += "❌ Update failed");
+        }
+
+        function buildTemplates() {
+            const guide = document.getElementById("guideTable").value;
+            if (!guide) {
+                alert("Please enter a mapping guide table");
+                return;
+            }
+
+            output.textContent = `Building templates for ${guide}...\n`;
+
+            fetch("/build-templates", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ guide_table: guide })
+            })
+            .then(r => r.json())
+            .then(d => {
+                if (d.status === "success") {
+                    output.textContent += "✅ " + d.message;
+                } else {
+                    output.textContent += "❌ " + d.message;
+                }
+            })
+            .catch(() => output.textContent += "❌ Build failed");
+        }
+    </script>
+</body>
+</html>

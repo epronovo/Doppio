@@ -1,0 +1,19 @@
+{
+    "ti": "U1SOURCE_PRD",
+    "cn": "M3 Backend Service",
+    "dt": "12",
+    "ci": "U1SOURCE_PRD~dkx31ixpQMEWXL97FaZ9omSS6xti8OwjNEvNLdHA4Tg",
+    "cs": "mfXoggDiRhwRfwSDfkXkLcdJQP3GqruXdYyHoquClHsbPwK4PqrfsxTv9FNiPP1qHFrtofPqakJLFQYWdd27wA",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/U1SOURCE_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "U1SOURCE_PRD#9fT_y5whvBltuuWgu26a5LA3uLi6moWZLR-at-BpgnAT34bHz50hrKYoP0A7jvPUoD7h9f9im14I_XCPMVt2kg",
+    "sask": "UOL8RH4ivfaIYGGBTTx3lUEogyq-YWitMGvXssVb92cYDpyz4OXXKKkM-vd4_Oc6SGE66FaY4-lwBfed5PCrfA",
+    "company": "100",
+    "division": "USA",
+    "database": "ctos.db"
+}

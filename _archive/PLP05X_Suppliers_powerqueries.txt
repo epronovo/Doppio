@@ -1,0 +1,25 @@
+Query Name: _PLP05
+let
+    Källa = Excel.Workbook(Web.Contents("https://inforonline.sharepoint.com/sites/PWA-Barnes/Shared Documents/030 WIP Docs/250 Migration/S21 Extracts/PLP05X.xlsx"), null, true),
+    PLP05X_Sheet = Källa{[Item="PLP05X",Kind="Sheet"]}[Data],
+    #"Upphöjda rubriker" = Table.PromoteHeaders(PLP05X_Sheet, [PromoteAllScalars=true]),
+    #"Filtrerade rader" = Table.SelectRows(#"Upphöjda rubriker", each ([DSEQ05] = "000")),
+    #"Borttagna övriga kolumner" = Table.SelectColumns(#"Filtrerade rader",{"SUPN05", "POST05"}),
+    #"Ändrad typ" = Table.TransformColumnTypes(#"Borttagna övriga kolumner",{{"SUPN05", type text}}),
+    #"Trimmad text" = Table.TransformColumns(#"Ändrad typ",{{"SUPN05", Text.Trim, type text}}),
+    #"Ihopslagna frågor" = Table.NestedJoin(#"Trimmad text", {"SUPN05"}, Sheet1, {"SUPN05"}, "Sheet1", JoinKind.Inner),
+    #"Expanderad Sheet1" = Table.ExpandTableColumn(#"Ihopslagna frågor", "Sheet1", {"SUNO"}, {"SUNO"}),
+    #"Omdöpta kolumner" = Table.RenameColumns(#"Expanderad Sheet1",{{"POST05", "CFI5"}})
+in
+    #"Omdöpta kolumner"
+--------------------------------------------------------------------------------
+Query Name: Sheet1
+let
+    Källa = Excel.Workbook(Web.Contents("https://inforonline.sharepoint.com/sites/PWA-Barnes/Shared Documents/030 WIP Docs/250 Migration/S21 Extracts/Suppliers/SupplierMasterList.xlsx"), null, true),
+    Sheet1_Sheet = Källa{[Item="Sheet1",Kind="Sheet"]}[Data],
+    #"Upphöjda rubriker" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true]),
+    #"Ändrad typ" = Table.TransformColumnTypes(#"Upphöjda rubriker",{{"SUPN05", type text}, {"SUNO", Int64.Type}, {"SUCL", type text}, {"ORTY", type text}, {"TEDL", type text}, {"MODL", Int64.Type}, {"CFI1", type text}, {"MAIL", type any}}),
+    #"Borttagna övriga kolumner" = Table.SelectColumns(#"Ändrad typ",{"SUPN05", "SUNO"})
+in
+    #"Borttagna övriga kolumner"
+--------------------------------------------------------------------------------

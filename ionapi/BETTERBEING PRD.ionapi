@@ -1,0 +1,16 @@
+{
+    "ti": "infor",
+    "cn": "IONService",
+    "dt": "12",
+    "ci": "infor~RqDFV81_2cAIFFkqrDyiAUypAtX3Pz0Ll64tBmTzenc",
+    "cs": "CUJdZEeuFFfYnbAntihPovrTyTB66mPV45tMCUWuIylfwOIN3FitxXNQCd7IuqKmpPrkzeRkfXX9VtAQIG-eRg",
+    "iu": "https://ios.nutracorp.com:7443",
+    "pu": "https://ios.nutracorp.com/InforIntSTS/",
+    "oa": "connect/authorize",
+    "ot": "connect/token",
+    "or": "connect/revocation",
+    "ev": "E1531437751",
+    "v": "1.0",
+    "saak": "infor#ydxmp4AuJO9OIlTPbOMT6aUmOanypIepFARhQE7uDF15SXf35Cs4gQW_BHivavGzG1IfioYZoh7ohWsiMKKyVA",
+    "sask": "YazCHbOyaCGxhD14pPcBZPv-fSiGtrmXtuNei87PDlEKZw1C36B9P8S1dhASHDe0QbZsjMUgg1vQXlvjrnjuxw"
+}

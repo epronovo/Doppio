@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import xlwings; print\\(xlwings.__version__\\)\")",
+      "Bash(pip install:*)"
+    ]
+  }
+}

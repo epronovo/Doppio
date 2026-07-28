@@ -1,0 +1,19 @@
+{
+    "ti": "W8DY5WFWZLXDHJPA_TST",
+    "cn": "IONWorkFlow-W8DY5WFWZLXDHJPA_TST",
+    "dt": "12",
+    "ci": "W8DY5WFWZLXDHJPA_TST~tyF7QXbsmcrpW6vyvaZTWX1YcQGLp40oevMcLSHyg1s",
+    "cs": "AiAKPQMuBGECnzmOjoKGLcFWCHo0UehiirShjYMrecCP0bcnf9OyJIz0dwpftB_9Fjmo1-ERn9xeSfIceoGzLg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/W8DY5WFWZLXDHJPA_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "W8DY5WFWZLXDHJPA_TST#0lyGuZ5MubPeddSz3wxlLckwZBy707w327P2LhKeMN5fR_-x0dXb_gKYuZNGY_a-_X5QFNJyEb9o1GNcQ_1HnQ",
+    "sask": "Ro-oiny8WCAeo1mjPIHuYC2wGc3_5a2OmGTKLSA99KmNKJLAEEmGXSe3qsZzmFId9KcUUmUFvJyWIdZOFZMWdQ",
+    "company": "910",
+    "division": "088",
+    "database": "asr.db"
+}

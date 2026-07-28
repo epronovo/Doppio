@@ -1,0 +1,29 @@
+Query Name: Customers
+let
+    Source = Odbc.DataSource("dsn=Raymond DB", [HierarchicalNavigation=true]),
+    S781CCD0_Database = Source{[Name="S781CCD0",Kind="Database"]}[Data],
+    PRDMODF35_Schema = S781CCD0_Database{[Name="PRDMODF35",Kind="Schema"]}[Data],
+    AUXADR01_View = PRDMODF35_Schema{[Name="AUXADR01",Kind="View"]}[Data],
+    #"Filtered Rows" = Table.SelectRows(AUXADR01_View, each ([TYPEAU] = "C") and ([CONOAU] = "88")),
+    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"CUSNAU", "GRPCAU", "DSEQAU", "CNAMAU", "EMAIAU"}),
+    #"Filtered Rows1" = Table.SelectRows(#"Removed Other Columns", each ([EMAIAU] <> "                                                  ") and ([GRPCAU] = "CONT1")),
+    #"Lowercased Text" = Table.TransformColumns(#"Filtered Rows1",{{"EMAIAU", Text.Lower, type text}}),
+    #"Lowercased Text1" = Table.TransformColumns(#"Lowercased Text",{{"EMAIAU", Text.Lower, type text}}),
+    #"Filtered Rows2" = Table.SelectRows(#"Lowercased Text1", each Text.Contains([EMAIAU], "@"))
+in
+    #"Filtered Rows2"
+--------------------------------------------------------------------------------
+Query Name: Vendors
+let
+    Source = Odbc.DataSource("dsn=Raymond DB", [HierarchicalNavigation=true]),
+    S781CCD0_Database = Source{[Name="S781CCD0",Kind="Database"]}[Data],
+    PRDMODF35_Schema = S781CCD0_Database{[Name="PRDMODF35",Kind="Schema"]}[Data],
+    AUXADR01_View = PRDMODF35_Schema{[Name="AUXADR01",Kind="View"]}[Data],
+    #"Filtered Rows" = Table.SelectRows(AUXADR01_View, each ([TYPEAU] = "V") and ([CONOAU] = "88")),
+    #"Removed Other Columns" = Table.SelectColumns(#"Filtered Rows",{"CUSNAU", "GRPCAU", "DSEQAU", "CNAMAU", "EMAIAU"}),
+    #"Filtered Rows1" = Table.SelectRows(#"Removed Other Columns", each ([EMAIAU] <> "                                                  ") and ([GRPCAU] = "CONT1")),
+    #"Lowercased Text" = Table.TransformColumns(#"Filtered Rows1",{{"EMAIAU", Text.Lower, type text}}),
+    #"Filtered Rows2" = Table.SelectRows(#"Lowercased Text", each Text.Contains([EMAIAU], "@"))
+in
+    #"Filtered Rows2"
+--------------------------------------------------------------------------------

@@ -1,0 +1,16 @@
+{
+    "ti": "DOPPIO_DEM",
+    "cn": "M3 Data Loader",
+    "dt": "12",
+    "ci": "DOPPIO_DEM~Zm-m6DLe9BXpnX34IU_CtChgX_dvoyBQqSChNGbRRmM",
+    "cs": "Zpst1xilSGLBktarzcVdWRnA2okMlsBMGc9mpQ7hdMQemvd7XGTnpQbqeWMZM0pTopWpOEBb0PYZ2uLmLQR67g",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/DOPPIO_DEM/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "DOPPIO_DEM#zOebB4xl1diEy21ikMQsIK1_imlf7rpPnDa2a6q8KdtQ5W-ad8Gcj64Gw9UH-JeIOflgVzrnfTJ-WIH1YbU82Q",
+    "sask": "38JpIkq5HYHDlhpqEnON4p22Cj64Ed5WplNsiSc1taEGx4UwhfQnTF2vXP8akTyF-vKyeIahr9p_Ts3snnbHSg"
+}

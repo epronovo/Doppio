@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ws="http://schemas.infor.com/ips/MPD_PPS044_Upd/Upd" xmlns:cred="http://lawson.com/ws/credentials">
+  <SOAP-ENV:Header>
+    <cred:lws>
+      <cred:company>decimal(3,0)</cred:company>
+      <cred:division>string(3)</cred:division>
+    </cred:lws>
+  </SOAP-ENV:Header>
+  <SOAP-ENV:Body>
+    <ws:Upd>
+      <ws:PPS040>
+        <ws:ItemNumber>string(15)</ws:ItemNumber>
+        <ws:Supplier>string(10)</ws:Supplier>
+        <ws:PPS044>
+          <ws:Warehouse>string(3)</ws:Warehouse>
+          <ws:SupplyLeadTime>decimal(3,0)</ws:SupplyLeadTime>
+        </ws:PPS044>
+      </ws:PPS040>
+    </ws:Upd>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

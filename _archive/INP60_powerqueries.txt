@@ -1,0 +1,10 @@
+Query Name: INP60
+let
+    Source = Odbc.DataSource("dsn=Raymond DB", [HierarchicalNavigation=true]),
+    S781CCD0_Database = Source{[Name="S781CCD0",Kind="Database"]}[Data],
+    #"OSL@@F3_Schema" = S781CCD0_Database{[Name="OSL@@F3",Kind="Schema"]}[Data],
+    INP60_Table = #"OSL@@F3_Schema"{[Name="INP60",Kind="Table"]}[Data],
+    #"Filtered Rows" = Table.SelectRows(INP60_Table, each [CONO60] = "88" and [STRC60] = "01" or [STRC60] = "10")
+in
+    #"Filtered Rows"
+--------------------------------------------------------------------------------

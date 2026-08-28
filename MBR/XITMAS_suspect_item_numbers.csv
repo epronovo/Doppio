@@ -1,0 +1,233 @@
+sheet_row,issue,value_in_sheet,correct_or_as_loaded
+9,leading zeros lost,450530,0000450530
+19,leading zeros lost,51312,00051312
+42,leading zeros lost,10094,010094
+45,leading zeros lost,10141,010141
+46,leading zeros lost,10621,010621
+47,leading zeros lost,10692,010692
+52,leading zeros lost,10930,010930
+53,leading zeros lost,10953,010953
+59,leading zeros lost,11074,011074
+64,leading zeros lost,11225,011225
+66,leading zeros lost,11603,011603
+69,leading zeros lost,11952,011952
+76,leading zeros lost,12242,012242
+78,leading zeros lost,12340,012340
+79,leading zeros lost,12382,012382
+81,leading zeros lost,12486,012486
+84,leading zeros lost,12540,012540
+85,leading zeros lost,12702,012702
+92,leading zeros lost,13025,013025
+93,leading zeros lost,13035,013035
+103,leading zeros lost,177987120,0177987120
+111,leading zeros lost,205160620,0205160620
+117,leading zeros lost,292005310,0292005310
+118,leading zeros lost,292005450,0292005450
+127,leading zeros lost,292861370,0292861370
+134,leading zeros lost,298182530,0298182530
+136,leading zeros lost,298307500,0298307500
+142,leading zeros lost,298750050,0298750050
+153,leading zeros lost,301540710,0301540710
+157,leading zeros lost,30245,030245
+160,leading zeros lost,31283,031283
+183,leading zeros lost,401287650,0401287650
+186,leading zeros lost,4358009,04358009
+414,float / scientific notation,1.945e+184,1.945e+184
+415,float / scientific notation,1.945e+185,1.945e+185
+416,float / scientific notation,1.945e+29,1.945e+29
+417,float / scientific notation,1.945e+31,1.945e+31
+418,float / scientific notation,1.945e+38,1.945e+38
+419,float / scientific notation,1.945e+40,1.945e+40
+420,float / scientific notation,1.945e+42,1.945e+42
+421,float / scientific notation,1.945e+62,1.945e+62
+423,float / scientific notation,1.945e+84,1.945e+84
+424,float / scientific notation,1.945e+87,1.945e+87
+721,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+1259,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+1864,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+4286,float / scientific notation,0.898052,0.898052
+4356,leading zeros lost,462,00462
+4368,leading zeros lost,7923,007923
+4369,leading zeros lost,90002574,0090002574
+4394,leading zeros lost,10032,010032
+4397,leading zeros lost,10101,010101
+4399,leading zeros lost,10155,010155
+4400,leading zeros lost,10197,010197
+4402,leading zeros lost,10200,010200
+4403,leading zeros lost,10207,010207
+4404,leading zeros lost,10208,010208
+4405,leading zeros lost,10209,010209
+4406,leading zeros lost,10210,010210
+4407,leading zeros lost,10212,010212
+4429,leading zeros lost,10235,010235
+4437,leading zeros lost,10250,010250
+4438,leading zeros lost,10272,010272
+4442,leading zeros lost,10287,010287
+4444,leading zeros lost,10289,010289
+4453,leading zeros lost,10304,010304
+4456,leading zeros lost,10390,010390
+4460,leading zeros lost,10436,010436
+4480,leading zeros lost,11072,011072
+4499,leading zeros lost,12031,012031
+4508,leading zeros lost,12342,012342
+4517,leading zeros lost,12881,012881
+4526,leading zeros lost,12906,012906
+4534,leading zeros lost,13070,013070
+4537,leading zeros lost,1388346,01388346
+4556,leading zeros lost,177807670,0177807670
+4558,leading zeros lost,177987030,0177987030
+4601,leading zeros lost,2891009,02891009
+4613,leading zeros lost,292510030,0292510030
+4618,leading zeros lost,292680460,0292680460
+4622,leading zeros lost,292687290,0292687290
+4625,leading zeros lost,292697540,0292697540
+4631,leading zeros lost,292697900,0292697900
+4635,leading zeros lost,292720920,0292720920
+4636,leading zeros lost,292720930,0292720930
+4640,leading zeros lost,292737280,0292737280
+4643,leading zeros lost,292810870,0292810870
+4649,leading zeros lost,292860520,0292860520
+4662,leading zeros lost,292868320,0292868320
+4670,leading zeros lost,292917240,0292917240
+4677,leading zeros lost,298005200,0298005200
+4678,leading zeros lost,298117090,0298117090
+4683,leading zeros lost,298561370,0298561370
+4684,leading zeros lost,298561690,0298561690
+4689,leading zeros lost,298700440,0298700440
+4697,leading zeros lost,298737650,0298737650
+4706,leading zeros lost,298910020,0298910020
+4723,leading zeros lost,301510020,0301510020
+4736,leading zeros lost,301530040,0301530040
+4759,leading zeros lost,333767010,0333767010
+4761,leading zeros lost,390757360,0390757360
+4768,leading zeros lost,401272420,0401272420
+4795,leading zeros lost,401277530,0401277530
+4807,leading zeros lost,401287460,0401287460
+4812,leading zeros lost,4299082,04299082
+4817,leading zeros lost,443700010,0443700010
+4823,leading zeros lost,52597870,052597870
+4887,leading zeros lost,7100,07100
+4890,leading zeros lost,7102,07102
+5645,float / scientific notation,1.944e+27,1.944e+27
+5646,float / scientific notation,1.944e+37,1.944e+37
+5663,float / scientific notation,1.945e+182,1.945e+182
+5664,float / scientific notation,1.945e+184,1.945e+184
+5665,float / scientific notation,1.945e+185,1.945e+185
+5666,float / scientific notation,1.945e+186,1.945e+186
+5667,float / scientific notation,1.945e+29,1.945e+29
+5668,float / scientific notation,1.945e+31,1.945e+31
+5669,float / scientific notation,1.945e+38,1.945e+38
+5670,float / scientific notation,1.945e+40,1.945e+40
+5671,float / scientific notation,1.945e+42,1.945e+42
+5672,float / scientific notation,1.945e+58,1.945e+58
+5673,float / scientific notation,1.945e+62,1.945e+62
+5674,float / scientific notation,1.945e+72,1.945e+72
+5678,float / scientific notation,1.945e+81,1.945e+81
+5679,float / scientific notation,1.945e+84,1.945e+84
+5680,float / scientific notation,1.945e+87,1.945e+87
+6634,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+8787,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+9328,parsed as date,"datetime.datetime(3133, 7, 1, 0, 0)",3133-07-01 00:00:00
+10824,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+11326,parsed as date,"datetime.datetime(9059, 3, 2, 0, 0)",9059-03-02 00:00:00
+20968,float / scientific notation,1.944e+27,1.944e+27
+20969,float / scientific notation,1.944e+37,1.944e+37
+20981,float / scientific notation,1.945e+182,1.945e+182
+20982,float / scientific notation,1.945e+184,1.945e+184
+20983,float / scientific notation,1.945e+185,1.945e+185
+20984,float / scientific notation,1.945e+29,1.945e+29
+20985,float / scientific notation,1.945e+31,1.945e+31
+20986,float / scientific notation,1.945e+38,1.945e+38
+20987,float / scientific notation,1.945e+40,1.945e+40
+20988,float / scientific notation,1.945e+42,1.945e+42
+20989,float / scientific notation,1.945e+58,1.945e+58
+20990,float / scientific notation,1.945e+62,1.945e+62
+20991,float / scientific notation,1.945e+72,1.945e+72
+20994,float / scientific notation,1.945e+81,1.945e+81
+20995,float / scientific notation,1.945e+84,1.945e+84
+20996,float / scientific notation,1.945e+87,1.945e+87
+21732,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+22957,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+23347,parsed as date,"datetime.datetime(3133, 7, 1, 0, 0)",3133-07-01 00:00:00
+24438,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+32293,float / scientific notation,1.944e+27,1.944e+27
+32294,float / scientific notation,1.944e+37,1.944e+37
+32306,float / scientific notation,1.945e+182,1.945e+182
+32307,float / scientific notation,1.945e+184,1.945e+184
+32308,float / scientific notation,1.945e+185,1.945e+185
+32309,float / scientific notation,1.945e+29,1.945e+29
+32310,float / scientific notation,1.945e+31,1.945e+31
+32311,float / scientific notation,1.945e+38,1.945e+38
+32312,float / scientific notation,1.945e+40,1.945e+40
+32313,float / scientific notation,1.945e+42,1.945e+42
+32314,float / scientific notation,1.945e+58,1.945e+58
+32315,float / scientific notation,1.945e+62,1.945e+62
+32316,float / scientific notation,1.945e+72,1.945e+72
+32319,float / scientific notation,1.945e+81,1.945e+81
+32320,float / scientific notation,1.945e+84,1.945e+84
+32321,float / scientific notation,1.945e+87,1.945e+87
+33051,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+34262,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+34635,parsed as date,"datetime.datetime(3133, 7, 1, 0, 0)",3133-07-01 00:00:00
+35724,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+42611,leading zeros lost,31042,00031042
+43577,float / scientific notation,1.944e+27,1.944e+27
+43578,float / scientific notation,1.944e+37,1.944e+37
+43591,float / scientific notation,1.945e+182,1.945e+182
+43592,float / scientific notation,1.945e+184,1.945e+184
+43593,float / scientific notation,1.945e+185,1.945e+185
+43594,float / scientific notation,1.945e+29,1.945e+29
+43595,float / scientific notation,1.945e+31,1.945e+31
+43596,float / scientific notation,1.945e+38,1.945e+38
+43597,float / scientific notation,1.945e+40,1.945e+40
+43598,float / scientific notation,1.945e+42,1.945e+42
+43599,float / scientific notation,1.945e+58,1.945e+58
+43600,float / scientific notation,1.945e+62,1.945e+62
+43601,float / scientific notation,1.945e+72,1.945e+72
+43604,float / scientific notation,1.945e+81,1.945e+81
+43605,float / scientific notation,1.945e+84,1.945e+84
+43606,float / scientific notation,1.945e+87,1.945e+87
+44352,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+45701,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+46084,parsed as date,"datetime.datetime(3133, 7, 1, 0, 0)",3133-07-01 00:00:00
+47197,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+54631,float / scientific notation,1.945e+184,1.945e+184
+54632,float / scientific notation,1.945e+185,1.945e+185
+54633,float / scientific notation,1.945e+29,1.945e+29
+54634,float / scientific notation,1.945e+31,1.945e+31
+54635,float / scientific notation,1.945e+38,1.945e+38
+54636,float / scientific notation,1.945e+40,1.945e+40
+54637,float / scientific notation,1.945e+42,1.945e+42
+54638,float / scientific notation,1.945e+62,1.945e+62
+54640,float / scientific notation,1.945e+84,1.945e+84
+54641,float / scientific notation,1.945e+87,1.945e+87
+54940,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+55482,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+56100,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+59143,float / scientific notation,1.945e+184,1.945e+184
+59144,float / scientific notation,1.945e+185,1.945e+185
+59145,float / scientific notation,1.945e+29,1.945e+29
+59146,float / scientific notation,1.945e+31,1.945e+31
+59147,float / scientific notation,1.945e+38,1.945e+38
+59148,float / scientific notation,1.945e+40,1.945e+40
+59149,float / scientific notation,1.945e+42,1.945e+42
+59150,float / scientific notation,1.945e+62,1.945e+62
+59152,float / scientific notation,1.945e+84,1.945e+84
+59153,float / scientific notation,1.945e+87,1.945e+87
+59452,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+59994,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+60612,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00
+63676,float / scientific notation,1.945e+184,1.945e+184
+63677,float / scientific notation,1.945e+185,1.945e+185
+63678,float / scientific notation,1.945e+29,1.945e+29
+63679,float / scientific notation,1.945e+31,1.945e+31
+63680,float / scientific notation,1.945e+38,1.945e+38
+63681,float / scientific notation,1.945e+40,1.945e+40
+63682,float / scientific notation,1.945e+42,1.945e+42
+63683,float / scientific notation,1.945e+58,1.945e+58
+63684,float / scientific notation,1.945e+62,1.945e+62
+63686,float / scientific notation,1.945e+84,1.945e+84
+63687,float / scientific notation,1.945e+87,1.945e+87
+64003,parsed as date,"datetime.datetime(2026, 3, 8, 0, 0)",2026-03-08 00:00:00
+64579,parsed as date,"datetime.datetime(2607, 5, 1, 0, 0)",2607-05-01 00:00:00
+65231,parsed as date,"datetime.datetime(2125, 8, 1, 0, 0)",2125-08-01 00:00:00

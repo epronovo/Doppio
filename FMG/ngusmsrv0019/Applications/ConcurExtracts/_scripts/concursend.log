@@ -1,0 +1,66 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260826231048
+Username: RA\AUGYH
+RunAs User: RA\AUGYH
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 13400
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\ConcurExtracts\_scripts\concursend.log
+Sending smoketest.pgp to Concur
+Connecting to Concur
+Connected to Concur, uploading E:\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\smoketest.pgp to /in/smoketest.pgp
+Sent Successfully
+Sent and archived smoketest.pgp
+**********************
+Windows PowerShell transcript end
+End time: 20260826231052
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260826231244
+Username: RA\AUGYH
+RunAs User: RA\AUGYH
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 13400
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\ConcurExtracts\_scripts\concursend.log
+Sending payment_vendor_import_t1209783x4lw2_20260826220003.txt to Concur
+Connecting to Concur
+Connected to Concur, uploading E:\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\payment_vendor_import_t1209783x4lw2_20260826220003.txt to /in/payment_vendor_import_t1209783x4lw2_20260826220003.txt
+Sent Successfully
+Sent and archived payment_vendor_import_t1209783x4lw2_20260826220003.txt
+Sending purchase_order_import_t1209783x4lw2_20260826215951.txt to Concur
+Connecting to Concur
+Connected to Concur, uploading E:\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\purchase_order_import_t1209783x4lw2_20260826215951.txt to /in/purchase_order_import_t1209783x4lw2_20260826215951.txt
+Sent Successfully
+Sent and archived purchase_order_import_t1209783x4lw2_20260826215951.txt
+Sending purchase_order_receipt_import_t1209783x4lw2_20260826220003.txt to Concur
+Connecting to Concur
+Connected to Concur, uploading E:\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\purchase_order_receipt_import_t1209783x4lw2_20260826220003.txt to /in/purchase_order_receipt_import_t1209783x4lw2_20260826220003.txt
+Sent Successfully
+Sent and archived purchase_order_receipt_import_t1209783x4lw2_20260826220003.txt
+**********************
+Windows PowerShell transcript end
+End time: 20260826231259
+**********************

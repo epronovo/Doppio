@@ -1,0 +1,7 @@
+{
+	"App_Environment":"stage",
+	"App_DataDirectory":"E:\\Applications\\ConcurExtracts\\stage\\ConcurPurchaseOrder",
+	"App_ProcessedPath":"E:\\Applications\\ConcurExtracts\\stage\\ConcurPurchaseOrder\\processed",
+	"App_PgpRecipient":"2584FD81F647ECBFAA1EE1DDBAA83C168C51C89E",
+	"App_SendRemotePath":"/in/"
+}

@@ -272,3 +272,59 @@ True
 Windows PowerShell transcript end
 End time: 20260817185540
 **********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260824183639
+Username: RA\AUGYH
+RunAs User: RA\AUGYH
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+Process ID: 11872
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\ConcurImport\_scripts\concurget.log
+Get files from /out/ saving the files to E:\Applications\ConcurImport\stage
+Connecting to Concur
+PS>TerminatingError(): "Exception calling "Open" with "1" argument(s): "Error occurred during logging. It's been turned off.
+Can't open log file 'E:\Scripts\WinScpFTP\Concur\concur-get.log'.
+System Error.  Code: 5.
+Access is denied""
+>> TerminatingError(GetFiles): "Exception calling "Open" with "1" argument(s): "Error occurred during logging. It's been turned off.
+Can't open log file 'E:\Scripts\WinScpFTP\Concur\concur-get.log'.
+System Error.  Code: 5.
+Access is denied""
+>> TerminatingError(GetFiles): "Exception calling "Open" with "1" argument(s): "Error occurred during logging. It's been turned off.
+Can't open log file 'E:\Scripts\WinScpFTP\Concur\concur-get.log'.
+System Error.  Code: 5.
+Access is denied""
+main : Exception calling "Open" with "1" argument(s): "Error occurred during logging. It's been turned off.
+Can't open log file 'E:\Scripts\WinScpFTP\Concur\concur-get.log'.
+System Error.  Code: 5.
+Access is denied"
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:40 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+main : Exception calling "Open" with "1" argument(s): "Error occurred during logging. It's been turned off.
+Can't open log file 'E:\Scripts\WinScpFTP\Concur\concur-get.log'.
+System Error.  Code: 5.
+Access is denied"
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:40 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+
+**********************
+Windows PowerShell transcript end
+End time: 20260824183742
+**********************

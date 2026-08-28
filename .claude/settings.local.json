@@ -31,7 +31,13 @@
       "Bash(python3 m3_repacker_db.py --db ~/sqlite/doppio.db -t XITMAS -o ./repacked/)",
       "Bash(python3 m3_repacker_db.py --db ~/sqlite/doppio.db -t xitmas -o ./repacked/)",
       "Bash(xargs -I{} basename {})",
-      "Bash(sqlite3 ~/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM xitmas;\")"
+      "Bash(sqlite3 ~/sqlite/doppio.db \"SELECT COUNT\\(*\\) FROM xitmas;\")",
+      "Bash(unzip -o -q \"CHC Security.xlsm\" -d /private/tmp/claude-501/-Users-ericpronovost-Doppio-vba/e4423f4d-4a4d-43b9-bc01-85a20171c5cf/scratchpad/chc_extract)",
+      "Bash(python3 -c \"import oletools\")",
+      "Bash(pip3 show *)",
+      "Bash(pip3 install *)",
+      "Bash(/Users/ericpronovost/Library/Python/3.12/bin/olevba \"/Users/ericpronovost/Doppio/vba/CHC Security.xlsm\")",
+      "Bash(python3 -c \"import openpyxl; print\\('ok'\\)\")"
     ]
   }
 }

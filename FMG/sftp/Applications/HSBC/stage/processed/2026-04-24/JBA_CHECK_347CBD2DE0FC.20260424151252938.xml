@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>JBA_CHECK_347CBD2DE0FC</MsgId>
+      <CreDtTm>2026-04-24T15:12:52</CreDtTm>
+      <Authstn>
+        <Cd>AUTH</Cd>
+      </Authstn>
+      <NbOfTxs>1</NbOfTxs>
+      <CtrlSum>506.40</CtrlSum>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>8F9E5E5A</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>A12743738A81</PmtInfId>
+      <PmtMtd>CHK</PmtMtd>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>NURG</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2026-04-24</ReqdExctnDt>
+      <Dbtr>
+        <Nm>INDUSTRIAL MC FMC</Nm>
+        <PstlAdr>
+          <StrtNm>123 Main St</StrtNm>
+          <PstCd>06010</PstCd>
+          <TwnNm>Bristol</TwnNm>
+          <CtrySubDvsn>CT</CtrySubDvsn>
+          <Ctry>US</Ctry>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <Othr>
+            <Id>797025162</Id>
+          </Othr>
+        </Id>
+        <Ccy>USD</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <ClrSysMmbId>
+            <MmbId>022000020</MmbId>
+          </ClrSysMmbId>
+          <PstlAdr>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </FinInstnId>
+      </DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76090150A</InstrId>
+          <EndToEndId>76090150A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">506.40</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>1000000018</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>SUPERIOR SALES  SERVICE</Nm>
+          <PstlAdr>
+            <StrtNm>861 NORTH BRANCH RD</StrtNm>
+            <PstCd>08807</PstCd>
+            <TwnNm>BRIDGEWATER</TwnNm>
+            <CtrySubDvsn>NJ</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76090150A</Nb>
+              <RltdDt>2026-04-24</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">506.40</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">506.40</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76090150A</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

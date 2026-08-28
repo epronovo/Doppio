@@ -1,0 +1,3266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>M3 Security Capture</title>
+<style>
+  :root{
+    --bg:#0f1216; --panel:#161b22; --panel2:#1c232c; --line:#2a3340;
+    --ink:#e6edf3; --dim:#8b98a5; --accent:#4c9aff; --accent2:#2ea043;
+    --warn:#d29922; --bad:#f85149; --chip:#233043;
+  }
+  *{box-sizing:border-box}
+  /* The whole app is one viewport-high column: only the table body scrolls,
+     so the pager under it is always on screen no matter how tall the list is. */
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;
+       font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel);
+         display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:0 0 auto}
+  h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px}
+  .sub{color:var(--dim);font-size:12px}
+  select,input,button,textarea{font:inherit;color:var(--ink);background:var(--panel2);
+         border:1px solid var(--line);border-radius:6px;padding:6px 9px;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  button{cursor:pointer;background:var(--panel2)}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#04101f;font-weight:600}
+  button.good{background:var(--accent2);border-color:var(--accent2);color:#03150a;font-weight:600}
+  button.danger{border-color:#5b2a2a;color:#ff9c93}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .grow{flex:1}
+  main{padding:0 20px 12px;flex:1;min-height:0;display:flex;flex-direction:column}
+  #drop{margin:10px 0 8px;border:2px dashed var(--line);border-radius:8px;padding:9px 14px;
+        text-align:center;color:var(--dim);transition:.15s;background:var(--panel);
+        flex:0 0 auto;font-size:12px}
+  #drop summary{cursor:pointer;list-style:none;color:var(--dim)}
+  #drop summary::-webkit-details-marker{display:none}
+  #drop[open]{padding:14px}
+  #stats,#conobar,.tabs{flex:0 0 auto}
+  #drop.hot{border-color:var(--accent);background:#132033;color:var(--ink)}
+  #drop b{color:var(--ink)}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-top:6px}
+  .tab{padding:9px 16px;border:1px solid transparent;border-bottom:none;cursor:pointer;
+       border-radius:8px 8px 0 0;color:var(--dim)}
+  .tab.on{background:var(--panel);border-color:var(--line);color:var(--ink);font-weight:600}
+  .pane{display:none}
+  .pane.on{display:flex;flex-direction:column;flex:1;min-height:0;padding-top:10px}
+  .pane > .toolbar,.pane > .selbar,.pane > .stats,
+  .pane > #ubulkout,.pane > #bulkout,.pane > #fbulkout,
+  .pane > #dbulkout,.pane > #pbulkout,.pane > #sbulkout,.pane > #bodbar{flex:0 0 auto}
+  .pane > #ubulkout,.pane > #bulkout,.pane > #fbulkout,
+  .pane > #dbulkout,.pane > #pbulkout,.pane > #sbulkout{max-height:46vh;overflow:auto}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+  th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;
+     letter-spacing:.4px;position:sticky;top:0;background:var(--bg)}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--panel)}
+  tbody tr.sel{background:#16283f}
+  /* fills whatever is left over, so the pager below it stays put */
+  .wrap{flex:1;min-height:90px;overflow:auto;border:1px solid var(--line);
+        border-radius:8px;background:var(--panel)}
+  .pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;
+        background:var(--chip);color:var(--dim)}
+  .pill.active{background:#12331f;color:#7ee2a8}
+  .pill.disabled{background:#3a2f12;color:#e3c07b}
+  .pill.removed{background:#3a1a1a;color:#ff9c93}
+  .pill.new{background:#132f4c;color:#7cc4ff}
+  .pill.modified{background:#3a2f12;color:#e3c07b}
+  .pill.m3yes{background:#0f3a2a;color:#5fe3ad;font-weight:600}
+  .pill.m3no{background:#2a2f36;color:#8b98a5}
+  tbody tr.m3row{box-shadow:inset 3px 0 0 #2ea043}
+  .inm3{color:#5fe3ad;font-weight:600}
+  .m3panel{border:1px solid #1f4030;background:#101c17;border-radius:8px;padding:12px;margin-top:6px}
+  .m3panel.cold{border-color:var(--line);background:var(--panel2)}
+  .danger-zone{border:1px solid #5b2a2a;background:#1b1214;border-radius:8px;
+               padding:12px;margin-top:16px}
+  .danger-zone h4{margin:0 0 6px;font-size:12px;text-transform:uppercase;
+                  letter-spacing:.5px;color:#ff9c93}
+  .memlist{max-height:180px;overflow:auto;font-size:12px;font-family:ui-monospace,Menlo,monospace;
+           background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:8px;margin:6px 0}
+  .memlist div{padding:1px 0}
+  .warnrow{color:#e3c07b}
+  .selbar{display:flex;gap:8px;align-items:center;padding:8px 12px;margin-bottom:8px;
+          border:1px solid var(--line);border-radius:8px;background:var(--panel);
+          font-size:13px}
+  .selbar.hot{border-color:#5b2a2a;background:#1b1214}
+  #selcount{font-weight:600;min-width:92px}
+  tbody tr.picked{background:#20262e}
+  tbody tr.picked td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+  .bulkpanel{border:1px solid #5b2a2a;background:#1b1214;border-radius:8px;
+             padding:12px;margin-bottom:10px}
+  .bulkpanel.create{border-color:#1f4030;background:#101c17}
+  .bulkpanel table{font-size:12px}
+  .bulkpanel details{margin-top:8px}
+  .bulkpanel summary{cursor:pointer}
+  .bulkpanel .wrapsm{max-height:220px;overflow:auto;border:1px solid var(--line);
+                     border-radius:6px;margin:8px 0;background:var(--panel2)}
+  #progress{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120px);
+            background:var(--panel);border:1px solid var(--accent);border-radius:10px;
+            padding:12px 16px;min-width:380px;max-width:80vw;z-index:70;transition:.2s;
+            box-shadow:0 12px 32px rgba(0,0,0,.5)}
+  #progress.on{transform:translateX(-50%)}
+  #progress .lbl{display:flex;justify-content:space-between;gap:16px;
+                 font-size:13px;margin-bottom:7px}
+  #progress .lbl b{font-weight:600}
+  #progress .lbl span{color:var(--dim);font-variant-numeric:tabular-nums}
+  .bar{height:7px;border-radius:4px;background:var(--panel2);overflow:hidden}
+  .bar > i{display:block;height:100%;width:0;border-radius:4px;background:var(--accent);
+           transition:width .25s}
+  .bar.indet > i{width:35%;animation:slide 1.1s ease-in-out infinite}
+  @keyframes slide{0%{margin-left:-35%}100%{margin-left:100%}}
+  #progress .phase{font-size:12px;color:var(--dim);margin-top:6px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{border:none;border-radius:0;background:var(--panel2);color:var(--dim);
+              padding:6px 14px}
+  .seg button.on{background:var(--accent);color:#04101f;font-weight:600}
+  .split{display:grid;grid-template-columns:1.25fr 1fr;gap:12px;align-items:stretch;
+         flex:1;min-height:0}
+  .split > div{display:flex;flex-direction:column;min-height:0}
+  @media (max-width:1100px){.split{grid-template-columns:1fr}}
+  #fdetail{min-height:0;overflow:auto;padding:0}
+  #fdetail .empty{padding:22px;color:var(--dim);text-align:center}
+  #fdetail .head{position:sticky;top:0;background:var(--panel);padding:11px 14px;
+                 border-bottom:1px solid var(--line);z-index:1}
+  #fdetail .head b{font-size:14px}
+  .pill.mns405no{background:#3a1a1a;color:#ff9c93}
+  .pill.mns405yes{background:#0f3a2a;color:#5fe3ad}
+  tbody tr.miss{box-shadow:inset 3px 0 0 var(--bad)}
+  .drawer{position:fixed;top:0;right:0;width:min(560px,94vw);height:100vh;background:var(--panel);
+          border-left:1px solid var(--line);box-shadow:-16px 0 40px rgba(0,0,0,.5);
+          transform:translateX(102%);transition:.18s;z-index:40;display:flex;flex-direction:column}
+  .drawer.on{transform:none}
+  .drawer header{background:var(--panel);border-bottom:1px solid var(--line);
+                 display:flex;justify-content:space-between;align-items:center}
+  .drawer .body{padding:16px 20px;overflow:auto;flex:1}
+  .drawer .foot{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px}
+  .fld{margin-bottom:10px}
+  .fld label{display:block;font-size:11px;color:var(--dim);text-transform:uppercase;
+             letter-spacing:.4px;margin-bottom:3px}
+  .fld input,.fld select,.fld textarea{width:100%}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px;
+         max-height:220px;overflow:auto;padding:8px;border:1px solid var(--line);
+         border-radius:6px;background:var(--panel2)}
+  .chip{background:var(--chip);border-radius:6px;padding:3px 6px 3px 9px;font-size:12px;
+        display:flex;align-items:center;gap:6px}
+  .chip button{background:none;border:none;color:var(--dim);padding:0 2px;font-size:14px;line-height:1}
+  .chip button:hover{color:var(--bad)}
+  .addrow{display:flex;gap:6px}
+  .addrow input{flex:1}
+  h3{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);
+     margin:18px 0 4px;border-top:1px solid var(--line);padding-top:14px}
+  h3:first-child{border-top:none;margin-top:0;padding-top:0}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);
+         background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+         padding:10px 18px;transition:.2s;z-index:60;max-width:70vw}
+  #toast.on{transform:translateX(-50%)}
+  #toast.err{border-color:var(--bad);color:#ffb4ad}
+  .muted{color:var(--dim)}
+  .stats{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+  .stats b{color:var(--ink);font-weight:600}
+  .pager{display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12px;
+         color:var(--dim);flex:0 0 auto}
+  .pager select{padding:3px 6px;font-size:12px}
+  /* sortable column headings */
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--ink)}
+  th.sortable .arrow{opacity:.35;margin-left:4px;font-size:10px}
+  th.sorted{color:var(--accent)}
+  th.sorted .arrow{opacity:1}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>M3 Security Capture</h1>
+    <div class="sub" id="dbpath">—</div>
+  </div>
+  <div class="grow"></div>
+  <div class="fld" style="margin:0">
+    <label for="tenant">Tenant</label>
+    <select id="tenant"></select>
+  </div>
+  <div class="fld" style="margin:0;min-width:150px">
+    <label for="cono">Company / division</label>
+    <button id="cono" title="Which CONO and DIVI the M3 calls send for this tenant">—</button>
+  </div>
+  <button id="refresh">Refresh</button>
+</header>
+
+<main>
+  <details id="drop">
+    <summary>
+      <b>Drop the M3 security exports here</b> — or <label style="color:var(--accent);cursor:pointer;text-decoration:underline">browse<input type="file" id="file" multiple accept=".csv" hidden></label>
+      &nbsp;·&nbsp; <span class="muted">file names ▾</span>
+    </summary>
+    <span class="sub">
+      <code>ExportFile_&lt;TENANT&gt;_&lt;guid&gt;_&lt;ticks&gt;.csv</code> (users) &nbsp;·&nbsp;
+      <code>Security Role_&lt;TENANT&gt;_&lt;date&gt;.csv</code> (security roles) &nbsp;·&nbsp;
+      <code>Functional Security Role_&lt;TENANT&gt;_&lt;date&gt;.csv</code> (functional roles — drop all 75-row files, they merge)
+      <br><span id="droptenant" class="muted"></span>
+    </span>
+  </details>
+
+  <div class="stats" id="stats"></div>
+  <div id="conobar"></div>
+
+  <div class="tabs">
+    <div class="tab on" data-pane="users">IFS Users</div>
+    <div class="tab" data-pane="roles">IFS Security Roles</div>
+    <div class="tab" data-pane="fsr">IFS Functional Security Role</div>
+    <div class="tab" data-pane="functions">SES400 Function</div>
+    <div class="tab" data-pane="mns405">MNS405 Roles</div>
+    <div class="tab" data-pane="mns410">MNS410 Roles Per User</div>
+  </div>
+
+  <!-- ------------------------------------------------------------ USERS -->
+  <section class="pane on" id="pane-users">
+    <div class="toolbar">
+      <input id="uq" placeholder="Search name, email, UPN, person id…" style="min-width:280px">
+      <select id="ustatus">
+        <option value="">All statuses</option>
+        <option>Active</option><option>Disabled</option><option>Removed</option>
+      </select>
+      <select id="ustate">
+        <option value="">All records</option>
+        <option value="modified">Modified</option>
+        <option value="new">New</option>
+        <option value="deleted">Deleted</option>
+      </select>
+      <input id="urole" list="rolelist" placeholder="Holding role…" style="min-width:200px">
+      <datalist id="rolelist"></datalist>
+      <input id="ufuncrole" list="ufuncrolelist" placeholder="Holding functional role…" style="min-width:220px">
+      <datalist id="ufuncrolelist"></datalist>
+      <label class="muted" style="font-size:12px"><input type="checkbox" id="ufunc" style="vertical-align:-2px"> holding a functional role</label>
+      <div class="grow"></div>
+      <label class="muted" style="font-size:12px"><input type="checkbox" id="freshname" checked style="vertical-align:-2px"> fresh file name</label>
+      <button id="unew">+ User</button>
+      <button class="good" id="uexport">Export changes</button>
+      <button id="uexportfull">Full export</button>
+      <button id="upushed" title="Clear the change flags once this delta has been pushed into M3">Mark pushed</button>
+      <button class="danger" id="uclear" title="Empty the users capture for this tenant so the next drop starts from scratch">Clear all</button>
+    </div>
+    <div class="selbar" id="uselbar">
+      <span id="uselcount">0 selected</span>
+      <button id="uselall">Select all in view</button>
+      <button id="uselclear">Clear selection</button>
+      <div class="grow"></div>
+      <button class="danger" id="uselfunc">Remove functional roles</button>
+    </div>
+    <div id="ubulkout"></div>
+    <div class="wrap">
+      <table>
+        <thead><tr>
+          <th style="width:28px"><input type="checkbox" id="uselpage" title="Select the users on this page"></th>
+          <th data-sort="last_name">Last</th><th data-sort="first_name">First</th>
+          <th data-sort="email_id">Email</th><th data-sort="title">Title</th>
+          <th data-sort="status">Status</th><th data-sort="upn">UPN</th>
+          <th data-sort="n_security">Sec roles</th><th data-sort="n_functional">Func roles</th>
+          <th data-sort="last_login_date">Last login</th><th data-sort="row_state">State</th>
+        </tr></thead>
+        <tbody id="utbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <button id="uprev">‹ Prev</button><span id="uinfo"></span><button id="unext">Next ›</button>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------------ ROLES -->
+  <section class="pane" id="pane-roles">
+    <div class="toolbar">
+      <input id="rq" placeholder="Search role name or description…" style="min-width:320px">
+      <select id="rm3">
+        <option value="">All roles</option>
+        <option value="yes">In M3</option>
+        <option value="no">Not in M3</option>
+        <option value="unchecked">Not yet checked</option>
+      </select>
+      <button id="rcheck" title="Read the role list from M3 (MNS405MI/Lst) and flag which of these exist there">Check M3</button>
+      <button class="good" id="raddm3" title="Add the roles that exist in MNS405 but are not in this capture. They are added as new, so the next Security Role export creates them in IFS">Add from MNS405</button>
+      <div class="grow"></div>
+      <button id="rnew">+ Role</button>
+      <button class="good" id="rexport">Export changes</button>
+      <button id="rexportfull">Full export</button>
+      <button id="rpushed" title="Clear the change flags once this delta has been pushed into M3">Mark pushed</button>
+      <button class="danger" id="rclear" title="Empty the security role capture for this tenant so the next drop starts from scratch">Clear all</button>
+    </div>
+    <div id="selbar" class="selbar">
+      <span id="selcount">0 selected</span>
+      <button id="selnotm3">Select all not in M3</button>
+      <button id="selclear">Clear selection</button>
+      <div class="grow"></div>
+      <button class="good" id="selcreate" title="Create the selected roles in M3 with MNS405MI/Add">Create in M3</button>
+      <button class="good" id="seladdmem" title="Give the captured members of the selected roles that role in M3 (MNS410MI/Add), matching email to USID">Add members in M3</button>
+      <button class="danger" id="selremove">Remove members from selected</button>
+    </div>
+    <div id="bulkout"></div>
+    <div class="wrap">
+      <table>
+        <thead><tr>
+          <th style="width:28px"><input type="checkbox" id="selpage" title="Select the roles on this page"></th>
+          <th data-sort="name">Name</th><th data-sort="in_m3">In M3</th>
+          <th data-sort="description">Description</th><th data-sort="m3_description">M3 description</th>
+          <th data-sort="n_members">Members</th><th data-sort="m3_member_count">M3 members</th>
+          <th data-sort="n_user_links">User-export links</th><th data-sort="row_state">State</th>
+        </tr></thead>
+        <tbody id="rtbody"></tbody>
+      </table>
+    </div>
+    <div class="pager">
+      <button id="rprev">‹ Prev</button><span id="rinfo"></span><button id="rnext">Next ›</button>
+    </div>
+  </section>
+
+  <!-- ------------------------------------ IFS FUNCTIONAL SECURITY ROLES -->
+  <section class="pane" id="pane-fsr">
+    <div class="toolbar">
+      <input id="sq" placeholder="Search functional role or description…" style="min-width:300px">
+      <input id="srole" list="fsrrolelist" placeholder="Containing security role…" style="min-width:220px">
+      <datalist id="fsrrolelist"></datalist>
+      <div class="grow"></div>
+      <button id="snew">+ Functional Role</button>
+      <button class="good" id="sexport">Export changes</button>
+      <button id="sexportfull">Full export</button>
+      <button class="danger" id="sclear" title="Empty the functional security role tables for this tenant so the next drop starts from scratch">Clear all</button>
+    </div>
+    <div class="stats" id="sstats"></div>
+    <div class="selbar" id="sselbar">
+      <span id="sselcount">0 selected</span>
+      <button id="sselall">Select all in view</button>
+      <button id="sselclear">Clear selection</button>
+      <div class="grow"></div>
+      <button class="good" id="sselcreate" title="Create every security role inside the selected functional roles in M3 (MNS405MI/Add)">Create security roles in M3</button>
+      <button class="danger" id="sselremove">Remove security roles</button>
+    </div>
+    <div id="sbulkout"></div>
+    <div class="split">
+      <div>
+        <div class="wrap">
+          <table>
+            <thead><tr>
+              <th style="width:28px"><input type="checkbox" id="sselpage" title="Select the functional roles on this page"></th>
+              <th data-sort="name">Functional security role</th>
+              <th data-sort="description">Description</th>
+              <th data-sort="n_roles">Security roles</th><th data-sort="n_users">Users</th>
+              <th data-sort="row_state">State</th>
+            </tr></thead>
+            <tbody id="stbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="sprev">‹ Prev</button><span id="sinfo"></span><button id="snext">Next ›</button>
+        </div>
+      </div>
+      <div class="wrap" id="sdetail">
+        <div class="empty">Pick a functional role to add or remove security roles.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- -------------------------------------------------------- FUNCTIONS -->
+  <section class="pane" id="pane-functions">
+    <div class="toolbar">
+      <div class="seg" id="fby">
+        <button class="on" data-by="role">By role</button>
+        <button data-by="function">By function</button>
+      </div>
+      <input id="fq" placeholder="Search…" style="min-width:260px">
+      <select id="fcd"><option value="">All company / division</option></select>
+      <select id="fstat"><option value="">All statuses</option></select>
+      <label class="muted" style="font-size:12px"><input type="checkbox" id="fmissing" style="vertical-align:-2px"> only roles missing from MNS405</label>
+      <div class="grow"></div>
+      <button id="fload" title="Read function authorisations from SES400MI/Lst">Load from M3</button>
+      <button class="good" id="faddmissing">Add missing roles to MNS405</button>
+    </div>
+    <div class="stats" id="fstats"></div>
+    <div id="fselbar" class="selbar">
+      <span id="fselcount">0 selected</span>
+      <button id="fselall">Select all in view</button>
+      <button id="fselclear">Clear selection</button>
+      <div class="grow"></div>
+      <select id="fsetstat"></select>
+      <button id="fselstatus">Set status</button>
+      <button class="danger" id="fseldelete">Delete selected from SES400</button>
+    </div>
+    <div id="fbulkout"></div>
+    <div class="split">
+      <div>
+        <div class="wrap" id="fwrap">
+          <table>
+            <thead><tr id="fhead"></tr></thead>
+            <tbody id="ftbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="fprev">‹ Prev</button><span id="finfo"></span><button id="fnext">Next ›</button>
+        </div>
+      </div>
+      <div class="wrap" id="fdetail">
+        <div class="empty">Pick a row to see the other side of the pairing.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ----------------------------------------------------- MNS405 ROLES -->
+  <section class="pane" id="pane-mns405">
+    <div class="toolbar">
+      <input id="dq" placeholder="Search role, description or name…" style="min-width:300px">
+      <div class="grow"></div>
+      <button id="dload" title="Read role definitions from MNS405MI/Lst">Load from M3</button>
+      <button class="good" id="dnew">+ Role</button>
+    </div>
+    <div class="stats" id="dstats"></div>
+    <div id="bodbar"></div>
+    <div class="selbar" id="dselbar">
+      <span id="dselcount">0 selected</span>
+      <button id="dselall">Select all in view</button>
+      <button id="dselclear">Clear selection</button>
+      <div class="grow"></div>
+      <label class="muted" style="font-size:12px"><input type="checkbox" id="dbod" checked style="vertical-align:-2px"> write event XML</label>
+      <button class="danger" id="dseldelete">Delete selected from MNS405</button>
+    </div>
+    <div id="dbulkout"></div>
+    <div class="split">
+      <div>
+        <div class="wrap">
+          <table>
+            <thead><tr>
+              <th style="width:28px"></th><th data-sort="roll">ROLL</th>
+              <th data-sort="tx40">TX40 description</th><th data-sort="tx15">TX15 name</th>
+              <th data-sort="rolt">Type</th><th data-sort="n_users">Users</th>
+              <th data-sort="n_functions">Functions</th>
+            </tr></thead>
+            <tbody id="dtbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="dprev">‹ Prev</button><span id="dinfo"></span><button id="dnext">Next ›</button>
+        </div>
+      </div>
+      <div class="wrap" id="ddetail">
+        <div class="empty">Pick a role to edit it, or use “+ Role” to add one.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- --------------------------------------------- MNS410 ROLES PER USER -->
+  <section class="pane" id="pane-mns410">
+    <div class="toolbar">
+      <input id="pq" placeholder="Search role or user…" style="min-width:280px">
+      <input id="prole" list="rolelist" placeholder="Role…" style="min-width:180px">
+      <div class="grow"></div>
+      <button id="pload" title="Read every role-per-user row from MNS410MI/Lst">Load from M3</button>
+      <button class="good" id="pnew">+ Role per user</button>
+    </div>
+    <div class="stats" id="pstats"></div>
+    <div class="selbar" id="pselbar">
+      <span id="pselcount">0 selected</span>
+      <button id="pselall">Select all in view</button>
+      <button id="pselclear">Clear selection</button>
+      <div class="grow"></div>
+      <button class="danger" id="pseldelete">Delete selected from MNS410</button>
+    </div>
+    <div id="pbulkout"></div>
+    <div class="split">
+      <div>
+        <div class="wrap">
+          <table>
+            <thead><tr>
+              <th style="width:28px"></th><th data-sort="role_name">ROLL</th>
+              <th data-sort="in_mns405">In MNS405</th><th data-sort="usid">USID</th>
+              <th data-sort="email">User</th><th data-sort="valid_from">Valid from</th>
+              <th data-sort="valid_to">Valid to</th>
+            </tr></thead>
+            <tbody id="ptbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="pprev">‹ Prev</button><span id="pinfo"></span><button id="pnext">Next ›</button>
+        </div>
+      </div>
+      <div class="wrap" id="pdetail">
+        <div class="empty">Pick a row to edit its dates, or use “+ Role per user”.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ------------------------------------------------------------- DRAWER -->
+<div class="drawer" id="drawer">
+  <header>
+    <div><h1 id="dtitle">Record</h1><div class="sub" id="dsub"></div></div>
+    <button id="dclose">Close</button>
+  </header>
+  <div class="body" id="dbody"></div>
+  <div class="foot">
+    <button class="primary" id="dsave">Save</button>
+    <div class="grow"></div>
+    <button class="danger" id="ddelete">Delete</button>
+  </div>
+</div>
+
+<div id="progress">
+  <div class="lbl"><b id="pglabel">Working…</b><span id="pgcount"></span></div>
+  <div class="bar" id="pgbar"><i></i></div>
+  <div class="phase" id="pgphase"></div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, kids = []) => {
+  const n = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) {
+    if (k === 'class') n.className = v;
+    else if (k === 'text') n.textContent = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  (Array.isArray(kids) ? kids : [kids]).forEach(k => k && n.appendChild(k));
+  return n;
+};
+const state = {
+  tenant: '', roleNames: [], changes: { users: 0, roles: 0 },
+  sel: new Map(),        // role_key -> name, survives paging and filtering
+  usel: new Map(),       // user_key -> email, same idea on the Users tab
+  u: { page: 1, size: 50, total: 0 },
+  r: { page: 1, size: 50, total: 0 },
+  f: { by: 'role', page: 1, size: 50, total: 0 },
+  s: { page: 1, size: 50, total: 0 },      // IFS Functional Security Roles
+  ssel: new Map(),       // fsr_key -> name, survives paging and filtering
+  fsrRoleNames: [],
+  d: { page: 1, size: 50, total: 0 },      // MNS405 Roles
+  p: { page: 1, size: 50, total: 0 },      // MNS410 Roles Per User
+  bod: null, m3cfg: null,
+  fsel: new Map(),       // function_role_key -> {fnid, roll, cono, divi}
+  open: null           // {kind:'user'|'role', key, data}
+};
+
+/* ------------------------------------------------------------- sorting
+   Clicking a column heading sorts the WHOLE list in SQL, not the page on
+   screen, so page 3 of a name sort is the third page of that sort. Click
+   once for ascending, again for descending, a third time to go back to the
+   list's natural order. */
+function sortParams(s) {
+  return s && s.sort ? { sort: s.sort, dir: s.dir || 'asc' } : {};
+}
+function paintSort(head, s, reload) {
+  head.querySelectorAll('th[data-sort]').forEach(th => {
+    const key = th.dataset.sort;
+    const on = s.sort === key;
+    th.classList.add('sortable');
+    th.classList.toggle('sorted', on);
+    let a = th.querySelector('.arrow');
+    if (!a) { a = el('span', { class: 'arrow' }); th.appendChild(a); }
+    a.textContent = on ? (s.dir === 'desc' ? '▼' : '▲') : '↕';
+    if (th._wired) return;
+    th._wired = true;
+    th.addEventListener('click', () => {
+      if (s.sort !== key) { s.sort = key; s.dir = 'asc'; }
+      else if (s.dir === 'asc') { s.dir = 'desc'; }
+      else { s.sort = null; s.dir = 'asc'; }      // third click clears it
+      s.page = 1;
+      reload();
+    });
+  });
+}
+
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'on' + (bad ? ' err' : '');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => (t.className = ''), bad ? 6000 : 2600);
+}
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  const j = await r.json().catch(() => ({ status: 'error', message: r.statusText }));
+  if (!r.ok || j.status === 'error') throw new Error(j.message || 'Request failed');
+  return j;
+}
+const debounce = (fn, ms = 250) => { let h; return (...a) => { clearTimeout(h); h = setTimeout(() => fn(...a), ms); }; };
+
+/* ------------------------------------------------------------- progress */
+function showProgress(label) {
+  $('#pglabel').textContent = label;
+  $('#pgcount').textContent = '';
+  $('#pgphase').textContent = '';
+  $('#pgbar').classList.add('indet');
+  $('#pgbar').firstElementChild.style.width = '';
+  $('#progress').classList.add('on');
+}
+function updateProgress(job) {
+  const bar = $('#pgbar');
+  if (job.total > 0) {
+    bar.classList.remove('indet');
+    bar.firstElementChild.style.width = Math.round(100 * job.done / job.total) + '%';
+    $('#pgcount').textContent = `${job.done.toLocaleString()} / ${job.total.toLocaleString()}`;
+  } else {
+    bar.classList.add('indet');
+    $('#pgcount').textContent = '';
+  }
+  $('#pgphase').textContent = job.phase || '';
+}
+const hideProgress = () => $('#progress').classList.remove('on');
+
+/**
+ * POST something that may come back as {job_id}. If it does, poll the job and
+ * drive the progress bar until it finishes, then return the job's result.
+ * A plain response (a preview, say) is returned as-is.
+ */
+async function run(label, url, body) {
+  const first = await api(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!first.job_id) return first;
+
+  showProgress(label);
+  try {
+    for (;;) {
+      await new Promise(r => setTimeout(r, 400));
+      const { job } = await api('/api/job/' + first.job_id);
+      updateProgress(job);
+      if (job.status === 'done') return job.result;
+      if (job.status === 'error') throw new Error(job.error || 'Job failed');
+    }
+  } finally { hideProgress(); }
+}
+
+/* --------------------------------------------------------------- status */
+async function loadStatus(keep) {
+  const j = await api('/api/status');
+  $('#dbpath').textContent = j.db;
+  const sel = $('#tenant');
+  const prev = keep ? state.tenant : (state.tenant || '');
+  sel.innerHTML = '';
+  j.tenants.forEach(t => sel.appendChild(el('option', { value: t.tenant, text: t.tenant })));
+  if (!j.tenants.length) {
+    sel.appendChild(el('option', { value: '', text: '— no data loaded —' }));
+    $('#stats').textContent = '';
+    state.tenant = '';
+    dropTenantHint();
+    renderUsers({ rows: [], total: 0 }); renderRoles({ rows: [], total: 0 });
+    await loadChanges();
+    return;
+  }
+  state.tenant = j.tenants.some(t => t.tenant === prev) ? prev : j.tenants[0].tenant;
+  sel.value = state.tenant;
+  dropTenantHint();
+  const t = j.tenants.find(x => x.tenant === state.tenant);
+  $('#stats').innerHTML =
+    `<span><b>${t.users}</b> users</span>
+     <span><b>${t.roles}</b> security roles</span>
+     <span><b>${t.assignments}</b> role assignments</span>
+     <span><b>${t.users_changed + t.roles_changed}</b> edited</span>
+     <span><b>${t.users_deleted}</b> flagged for removal</span>
+     <span class="muted">last load: ${t.imports.length ? t.imports[0].file_name : '—'}</span>`;
+  await loadRoleNames();
+  await loadChanges();
+}
+async function loadRoleNames() {
+  if (!state.tenant) return;
+  const j = await api('/api/role-names?tenant=' + encodeURIComponent(state.tenant));
+  state.roleNames = j.names;
+  const dl = $('#rolelist'); dl.innerHTML = '';
+  j.names.forEach(n => dl.appendChild(el('option', { value: n })));
+
+  const f = await api('/api/role-names?type=Functional&tenant='
+                      + encodeURIComponent(state.tenant));
+  const fdl = $('#ufuncrolelist'); fdl.innerHTML = '';
+  (f.names || []).forEach(n => fdl.appendChild(el('option', { value: n })));
+}
+
+/* --------------------------------------------------------------- upload */
+const drop = $('#drop');
+['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.add('hot');
+}));
+['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => {
+  ev.preventDefault(); drop.classList.remove('hot');
+}));
+drop.addEventListener('drop', ev => upload(ev.dataTransfer.files));
+$('#file').addEventListener('change', ev => upload(ev.target.files));
+
+/**
+ * Files whose name carries no tenant - most Security Role and Functional
+ * Security Role exports - load into whichever tenant is selected above. A
+ * name that does carry one always wins, so a mixed drop still goes to the
+ * right places.
+ */
+function dropTenantHint() {
+  const s = $('#droptenant');
+  if (!s) return;
+  s.innerHTML = state.tenant
+    ? `A file with no tenant in its name loads into the selected tenant, <b>${state.tenant}</b>.`
+    : 'A file with no tenant in its name needs a tenant selected above, '
+      + 'or the tenant folded into the file name.';
+}
+
+async function upload(files) {
+  if (!files || !files.length) return;
+  const fd = new FormData();
+  [...files].forEach(f => fd.append('files', f));
+  // The selected tenant, used only when the file name does not carry one.
+  if (state.tenant) fd.append('tenant', state.tenant);
+  drop.querySelector('b').textContent = 'Loading ' + files.length + ' file(s)…';
+  try {
+    const j = await api('/api/upload', { method: 'POST', body: fd });
+    const msgs = j.results.map(r => {
+      // say so when the file name had no tenant and the selection supplied it
+      const to = r.tenant + (r.tenant_source === 'selected' ? ' (selected)' : '');
+      if (r.kind === 'users') {
+        const miss = (r.missing_columns || []).length;
+        return `${r.users} users (${r.new_users} new, ${r.updated_users} refreshed) `
+             + `→ ${to} · ${r.role_links} role link(s) for the new users, `
+             + `${r.role_links_kept} kept as held`
+             + (r.users_not_in_file
+                 ? ` · ${r.users_not_in_file} held user(s) not in this file, left alone` : '')
+             + (r.skipped_rows ? ` · ${r.skipped_rows} row(s) with no PersonId skipped` : '')
+             + (miss ? ` · ${miss} column(s) this tenant does not export are null` : '');
+      }
+      if (r.kind === 'functional')
+        return `${r.functional_roles} functional role(s) `
+             + `(${r.new_functional_roles} new, ${r.existing_functional_roles} already held), `
+             + `${r.members_added} security role(s) added, `
+             + `${r.members_skipped} duplicate(s) skipped → ${to}`;
+      return `${r.roles} roles / ${r.assignments} assignments → ${to}`;
+    });
+    (j.errors || []).forEach(e => msgs.push('⚠ ' + e.file + ': ' + e.message));
+    if (j.results.length) state.tenant = j.results[0].tenant;
+    toast(msgs.join('   ·   '), (j.errors || []).length > 0);
+    await loadStatus(true); await loadUsers(); await loadRoles();
+    await loadFsrRoleNames(); await loadFsr();
+  } catch (e) { toast(e.message, true); }
+  drop.querySelector('b').textContent = 'Drop the M3 security exports here';
+}
+
+/* ---------------------------------------------------------------- users */
+function m3Pill(v) {
+  if (v === 1 || v === true) return el('span', { class: 'pill m3yes', text: 'M3' });
+  if (v === 0 || v === false) return el('span', { class: 'pill m3no', text: 'not in M3' });
+  return el('span', { class: 'muted', text: '—' });
+}
+function statePill(s) {
+  const map = { unchanged: '', modified: 'modified', new: 'new', deleted: 'removed' };
+  return s === 'unchanged' ? el('span', { class: 'muted', text: '—' })
+    : el('span', { class: 'pill ' + map[s], text: s });
+}
+/* a single role is more use than the count 1, so name it; no roles reads
+   better as an empty cell than as a column of zeroes */
+function roleCell(n, name) {
+  if (!n) return '';
+  return n === 1 && name ? name : n;
+}
+async function loadUsers() {
+  if (!state.tenant) return renderUsers({ rows: [], total: 0 });
+  const p = new URLSearchParams({
+    tenant: state.tenant, q: $('#uq').value, status: $('#ustatus').value,
+    state: $('#ustate').value, role: $('#urole').value,
+    func_role: $('#ufuncrole').value,
+    has_functional: $('#ufunc').checked ? '1' : '',
+    ...sortParams(state.u),
+    page: state.u.page, size: state.u.size
+  });
+  if ($('#ustate').value === 'deleted') p.set('include_deleted', '1');
+  renderUsers(await api('/api/users?' + p));
+}
+function renderUsers(j) {
+  state.u.total = j.total || 0;
+  paintSort($('#pane-users thead tr'), state.u, loadUsers);
+  $('#uclear').disabled = !state.tenant;
+  const tb = $('#utbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = state.usel.has(r.user_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) state.usel.set(r.user_key, r.email_id || String(r.user_key));
+      else state.usel.delete(r.user_key);
+      tr.classList.toggle('picked', cb.checked);
+      renderUserSel();
+    });
+    const tr = el('tr', { onclick: () => openUser(r.user_key) }, [
+      el('td', { onclick: ev => ev.stopPropagation() }, cb),
+      el('td', { text: r.last_name || '' }),
+      el('td', { text: r.first_name || '' }),
+      el('td', { text: r.email_id || '' }),
+      el('td', { text: r.title || '' }),
+      el('td', {}, el('span', {
+        class: 'pill ' + (r.status || '').toLowerCase(), text: r.status || '—'
+      })),
+      el('td', { text: r.upn || '' }),
+      el('td', { text: roleCell(r.n_security, r.security_role) }),
+      el('td', { text: roleCell(r.n_functional, r.functional_role) }),
+      el('td', { text: (r.last_login_date || '').slice(0, 10) || '—' }),
+      el('td', {}, statePill(r.row_state))
+    ]);
+    tr.dataset.key = r.user_key;
+    tr.dataset.email = r.email_id || '';
+    if (cb.checked) tr.classList.add('picked');
+    tb.appendChild(tr);
+  });
+  $('#uselpage').checked = (j.rows || []).length > 0
+    && (j.rows || []).every(r => state.usel.has(r.user_key));
+  renderUserSel();
+  const from = j.total ? (state.u.page - 1) * state.u.size + 1 : 0;
+  $('#uinfo').textContent = `${from}–${Math.min(state.u.page * state.u.size, j.total || 0)} of ${j.total || 0}`;
+  $('#uprev').disabled = state.u.page <= 1;
+  $('#unext').disabled = state.u.page * state.u.size >= (j.total || 0);
+}
+
+function chipBox(items, onchange, listId) {
+  const box = el('div', { class: 'chips' });
+  const draw = () => {
+    box.innerHTML = '';
+    if (!items.length) box.appendChild(el('span', { class: 'muted', text: 'none' }));
+    items.forEach((n, i) => box.appendChild(el('div', { class: 'chip' }, [
+      el('span', { text: n }),
+      el('button', { text: '×', title: 'remove', onclick: () => { items.splice(i, 1); draw(); onchange(); } })
+    ])));
+  };
+  draw();
+  const inp = el('input', { placeholder: 'add…', list: listId || '' });
+  const add = () => {
+    const v = inp.value.trim();
+    if (v && !items.includes(v)) { items.push(v); draw(); onchange(); }
+    inp.value = '';
+  };
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); add(); } });
+  return { box, adder: el('div', { class: 'addrow' }, [inp, el('button', { text: 'Add', onclick: add })]) };
+}
+
+async function openUser(key) {
+  const j = await api('/api/users/' + key);
+  const u = j.user;
+  state.open = { kind: 'user', key, sec: [...j.security_roles], fun: [...j.functional_roles], dirty: false };
+  $('#dtitle').textContent = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email_id || 'User';
+  $('#dsub').textContent = 'PersonId ' + u.person_id;
+  const b = $('#dbody'); b.innerHTML = '';
+  const F = (label, name, value, type = 'input') => {
+    const f = el('div', { class: 'fld' }, el('label', { text: label }));
+    const i = el(type === 'select' ? 'select' : 'input', { value: value || '' });
+    if (type === 'select') {
+      ['Active', 'Disabled', 'Removed'].forEach(o =>
+        i.appendChild(el('option', { value: o, text: o, ...(o === value ? { selected: 'selected' } : {}) })));
+      i.value = value || 'Active';
+    } else { i.value = value || ''; }
+    i.dataset.field = name;
+    f.appendChild(i);
+    return f;
+  };
+  b.appendChild(el('h3', { text: 'Identity' }));
+  const g1 = el('div', { class: 'grid2' });
+  g1.appendChild(F('First name', 'first_name', u.first_name));
+  g1.appendChild(F('Last name', 'last_name', u.last_name));
+  b.appendChild(g1);
+  b.appendChild(F('Email', 'email_id', u.email_id));
+  const g2 = el('div', { class: 'grid2' });
+  g2.appendChild(F('Title', 'title', u.title));
+  g2.appendChild(F('Status', 'status', u.status, 'select'));
+  b.appendChild(g2);
+  const g3 = el('div', { class: 'grid2' });
+  g3.appendChild(F('User name', 'user_name', u.user_name));
+  g3.appendChild(F('UPN', 'upn', u.upn));
+  b.appendChild(g3);
+  const g4 = el('div', { class: 'grid2' });
+  g4.appendChild(F('User alias', 'user_alias', u.user_alias));
+  g4.appendChild(F('Federated id', 'federated_id', u.federated_id));
+  b.appendChild(g4);
+
+  b.appendChild(el('h3', { text: 'Locale' }));
+  const g5 = el('div', { class: 'grid2' });
+  g5.appendChild(F('Language', 'gp_language', u.gp_language));
+  g5.appendChild(F('Locale', 'gp_locale', u.gp_locale));
+  b.appendChild(g5);
+  const g6 = el('div', { class: 'grid2' });
+  g6.appendChild(F('Timezone', 'gp_timezone', u.gp_timezone));
+  g6.appendChild(F('App timezone', 'gp_application_timezone', u.gp_application_timezone));
+  b.appendChild(g6);
+
+  b.appendChild(el('h3', { text: 'Security roles (' + state.open.sec.length + ')' }));
+  const c1 = chipBox(state.open.sec, () => {}, 'rolelist');
+  b.appendChild(c1.box); b.appendChild(c1.adder);
+
+  b.appendChild(el('h3', { text: 'Functional security roles (' + state.open.fun.length + ')' }));
+  const c2 = chipBox(state.open.fun, () => {}, 'rolelist');
+  b.appendChild(c2.box); b.appendChild(c2.adder);
+
+  b.appendChild(el('h3', { text: 'Security access profiles' }));
+  b.appendChild(F('', 'security_access_profiles', u.security_access_profiles));
+
+  b.appendChild(el('h3', { text: 'Read only' }));
+  b.appendChild(el('div', {
+    class: 'muted',
+    text: `Created ${u.created_date || '—'} · Last login ${u.last_login_date || '—'} · Guid ${u.user_guid || '—'} · State ${u.row_state}`
+  }));
+  $('#ddelete').textContent = u.row_state === 'deleted' ? 'Restore' : 'Delete';
+  $('#drawer').classList.add('on');
+}
+
+/* ------------------------------------------- user selection and bulk strip */
+function renderUserSel() {
+  const n = state.usel.size;
+  $('#uselcount').textContent = n === 1 ? '1 selected' : `${n} selected`;
+  $('#uselbar').classList.toggle('hot', n > 0);
+  $('#uselfunc').disabled = !n;
+  $('#uselclear').disabled = !n;
+}
+function clearUserSel() {
+  state.usel.clear();
+  $('#ubulkout').innerHTML = '';
+  document.querySelectorAll('#utbody tr.picked').forEach(tr => tr.classList.remove('picked'));
+  document.querySelectorAll('#utbody input[type=checkbox]').forEach(c => c.checked = false);
+  $('#uselpage').checked = false;
+  renderUserSel();
+}
+$('#uselclear').addEventListener('click', clearUserSel);
+$('#uselpage').addEventListener('change', e => {
+  const on = e.target.checked;
+  document.querySelectorAll('#utbody tr').forEach(tr => {
+    const key = Number(tr.dataset.key);
+    if (!key) return;
+    if (on) state.usel.set(key, tr.dataset.email || String(key));
+    else state.usel.delete(key);
+    tr.classList.toggle('picked', on);
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = on;
+  });
+  renderUserSel();
+});
+$('#uselall').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load a users export first', true);
+  const p = new URLSearchParams({
+    tenant: state.tenant, q: $('#uq').value, status: $('#ustatus').value,
+    state: $('#ustate').value, role: $('#urole').value,
+    func_role: $('#ufuncrole').value,
+    has_functional: $('#ufunc').checked ? '1' : ''
+  });
+  const j = await api('/api/users/keys?' + p);
+  j.rows.forEach(r => state.usel.set(r.user_key, r.email_id || String(r.user_key)));
+  await loadUsers();
+  const withFunc = j.rows.filter(r => r.n_functional).length;
+  toast(`${j.total} user(s) selected — ${withFunc} hold a functional role`);
+});
+
+$('#uselfunc').addEventListener('click', async () => {
+  const out = $('#ubulkout');
+  out.innerHTML = '';
+  const keys = [...state.usel.keys()];
+  let j;
+  try {
+    j = await run('Checking selection', '/api/users/remove-roles',
+                  { tenant: state.tenant, user_keys: keys, role_type: 'Functional' });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'The FunctionalSecurityRoleN columns only — the SecurityRoleN block '
+        + 'is left alone. Nothing is sent to M3: the users are flagged as '
+        + 'changed, and importing the next users export into IFS is what '
+        + 'actually removes them.'
+  }));
+
+  if (!j.plan.length) {
+    panel.appendChild(el('div', { class: 'warnrow',
+                                  text: 'None of the selected users hold a functional role.' }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  // Every functional role the selection holds, ticked. Untick to keep one.
+  const chosen = new Set(j.plan.map(p => p.role));
+  panel.appendChild(el('div', { class: 'muted', style: 'margin-top:8px',
+                                text: 'Roles to remove — untick any you want to keep:' }));
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    [el('th', { style: 'width:28px' }), el('th', { text: 'Functional role' }),
+     el('th', { text: 'Users holding it' })])));
+  const tb = el('tbody');
+  const count = el('span');
+  const retally = () => {
+    const n = j.plan.filter(p => chosen.has(p.role))
+                    .reduce((a, p) => a + p.users, 0);
+    count.textContent = `${chosen.size} role(s), ${n} assignment(s)`;
+    go.disabled = !chosen.size;
+    go.textContent = `Remove ${chosen.size} functional role(s)`;
+  };
+  j.plan.forEach(p => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = true;
+    cb.addEventListener('change', () => {
+      if (cb.checked) chosen.add(p.role); else chosen.delete(p.role);
+      retally();
+    });
+    tb.appendChild(el('tr', {}, [
+      el('td', {}, cb), el('td', { text: p.role }), el('td', { text: p.users })
+    ]));
+  });
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  panel.appendChild(el('div', { class: 'muted' }, count));
+
+  const inp = el('input', { placeholder: 'type REMOVE to confirm' });
+  const go = el('button', {
+    class: 'danger', text: 'Remove',
+    onclick: async () => {
+      if (inp.value.trim() !== 'REMOVE') return toast('Type REMOVE to confirm', true);
+      go.disabled = true; go.textContent = 'Removing…';
+      try {
+        const all = chosen.size === j.plan.length;
+        const res = await run('Removing functional roles', '/api/users/remove-roles', {
+          tenant: state.tenant, user_keys: keys, role_type: 'Functional',
+          roles: all ? [] : [...chosen], confirm: 'REMOVE'
+        });
+        toast(res.message);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        clearUserSel();
+        out.appendChild(done);
+        await loadUsers(); await loadStatus(true);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  retally();
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+/* ---------------------------------------------------------------- roles */
+async function loadRoles() {
+  if (!state.tenant) return renderRoles({ rows: [], total: 0 });
+  const p = new URLSearchParams({
+    tenant: state.tenant, q: $('#rq').value, m3: $('#rm3').value,
+    ...sortParams(state.r), page: state.r.page, size: state.r.size
+  });
+  renderRoles(await api('/api/roles?' + p));
+}
+function renderRoles(j) {
+  state.r.total = j.total || 0;
+  paintSort($('#pane-roles thead tr'), state.r, loadRoles);
+  $('#rclear').disabled = !state.tenant;
+  const tb = $('#rtbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = state.sel.has(r.role_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) state.sel.set(r.role_key, r.name); else state.sel.delete(r.role_key);
+      tr.classList.toggle('picked', cb.checked);
+      renderSel();
+    });
+    const tr = el('tr', { onclick: () => openRole(r.role_key) }, [
+      el('td', { onclick: ev => ev.stopPropagation() }, cb),
+      el('td', {}, el('span', { class: r.in_m3 ? 'inm3' : '', text: r.name })),
+      el('td', {}, m3Pill(r.in_m3)),
+      el('td', { text: r.description || '' }),
+      el('td', { text: r.m3_description || '' }),
+      el('td', { text: r.n_members }),
+      el('td', { text: r.m3_member_count === null || r.m3_member_count === undefined ? '—' : r.m3_member_count }),
+      el('td', { text: r.n_user_links }),
+      el('td', {}, statePill(r.row_state))
+    ]);
+    if (r.in_m3) tr.classList.add('m3row');
+    if (cb.checked) tr.classList.add('picked');
+    tr.dataset.key = r.role_key;
+    tr.dataset.name = r.name;
+    tb.appendChild(tr);
+  });
+  $('#selpage').checked = (j.rows || []).length > 0
+    && (j.rows || []).every(r => state.sel.has(r.role_key));
+  renderSel();
+  const from = j.total ? (state.r.page - 1) * state.r.size + 1 : 0;
+  $('#rinfo').textContent = `${from}–${Math.min(state.r.page * state.r.size, j.total || 0)} of ${j.total || 0}`;
+  $('#rprev').disabled = state.r.page <= 1;
+  $('#rnext').disabled = state.r.page * state.r.size >= (j.total || 0);
+}
+async function openRole(key) {
+  const j = await api('/api/roles/' + key);
+  const r = j.role;
+  const members = j.members.map(m => m.email_id).filter(Boolean);
+  state.open = { kind: 'role', key, members };
+  $('#dtitle').textContent = r.name;
+  $('#dsub').textContent = members.length + ' member(s)';
+  const b = $('#dbody'); b.innerHTML = '';
+  const nameI = el('input', { value: r.name }); nameI.dataset.field = 'name';
+  const descI = el('input', { value: r.description || '' }); descI.dataset.field = 'description';
+  b.appendChild(el('div', { class: 'fld' }, [el('label', { text: 'Role name' }), nameI]));
+  b.appendChild(el('div', { class: 'fld' }, [el('label', { text: 'Description' }), descI]));
+  b.appendChild(el('h3', { text: 'Members' }));
+  const c = chipBox(members, () => { $('#dsub').textContent = members.length + ' member(s)'; });
+  b.appendChild(c.box); b.appendChild(c.adder);
+  b.appendChild(el('div', {
+    class: 'muted',
+    text: 'Renaming the role updates every assignment and every user record that holds it.'
+  }));
+
+  b.appendChild(el('h3', { text: 'In M3' }));
+  const m3box = el('div', { class: 'm3panel cold', text: 'Loading…' });
+  b.appendChild(m3box);
+  renderM3Panel(m3box, r.name);
+
+  $('#ddelete').textContent = 'Delete';
+  $('#drawer').classList.add('on');
+}
+
+/* ------------------------------------------------------------------- M3 */
+async function renderM3Panel(box, role, refresh) {
+  box.textContent = refresh ? 'Reading M3…' : 'Loading…';
+  let j;
+  try {
+    j = await api(`/api/m3/role?tenant=${encodeURIComponent(state.tenant)}`
+                + `&role=${encodeURIComponent(role)}${refresh ? '&refresh=1' : ''}`);
+  } catch (e) { box.className = 'm3panel cold'; box.textContent = e.message; return; }
+
+  box.className = 'm3panel' + (j.in_m3 ? '' : ' cold');
+  box.innerHTML = '';
+  if (j.in_m3 !== 1) {
+    box.appendChild(el('div', {
+      text: j.in_m3 === 0
+        ? 'This role does not exist in M3 — it is an Infor OS / IFS role only.'
+        : 'Not checked against M3 yet. Use “Check M3” on the Security Roles tab.'
+    }));
+  } else {
+    box.appendChild(el('div', {}, [
+      m3Pill(1),
+      el('span', { text: `  ${j.m3_description || ''}` +
+                         (j.m3_role_type ? `  ·  type ${j.m3_role_type}` : '') })
+    ]));
+  }
+  box.appendChild(el('div', {
+    class: 'muted', style: 'margin-top:4px',
+    text: `${j.m3_members.length} member(s) in M3 · ${j.csv_members.length} in the capture`
+        + (j.checked_at ? ` · read ${j.checked_at}` : '')
+  }));
+
+  if (j.m3_members.length) {
+    const list = el('div', { class: 'memlist' });
+    j.m3_members.forEach(m => list.appendChild(el('div', {
+      class: (m.email && j.csv_members.some(c => c.toLowerCase() === m.email.toLowerCase()))
+        ? '' : 'warnrow',
+      text: `${m.usid.padEnd(12)} ${m.email || '(no email in M3)'}`
+          + (m.name ? `  — ${m.name}` : '')
+    })));
+    box.appendChild(list);
+  }
+  if (j.only_in_m3.length || j.only_in_csv.length) {
+    box.appendChild(el('div', { class: 'muted', style: 'font-size:12px' },
+      el('span', {
+        text: `${j.only_in_m3.length} only in M3 · ${j.only_in_csv.length} only in the capture`
+      })));
+  }
+
+  const bar = el('div', { class: 'addrow', style: 'margin-top:8px' }, [
+    el('button', { text: 'Re-read from M3', onclick: () => renderM3Panel(box, role, true) })
+  ]);
+  box.appendChild(bar);
+
+  if (j.in_m3 === 1) {
+    const dz = el('div', { class: 'danger-zone' }, [
+      el('h4', { text: 'Remove all members' }),
+      el('div', {
+        class: 'muted',
+        text: 'Deletes every user from this role in M3 via MNS410MI/Dlt. '
+            + 'Preview first — nothing is sent until you confirm.'
+      })
+    ]);
+    const out = el('div');
+    dz.appendChild(el('div', { class: 'addrow', style: 'margin-top:8px' }, [
+      el('button', { text: 'Preview removal', onclick: () => previewRemoval(role, out, box) })
+    ]));
+    dz.appendChild(out);
+    box.appendChild(dz);
+  }
+}
+
+async function previewRemoval(role, out, panel) {
+  out.innerHTML = '';
+  out.appendChild(el('div', { class: 'muted', text: 'Reading current membership from M3…' }));
+  let j;
+  try {
+    j = await run('Reading membership', '/api/m3/remove-members',
+      { tenant: state.tenant, role });
+  } catch (e) { out.innerHTML = ''; out.appendChild(el('div', { class: 'warnrow', text: e.message })); return; }
+
+  out.innerHTML = '';
+  out.appendChild(el('div', { text: j.message }));
+  if (!j.members.length) return;
+  const list = el('div', { class: 'memlist' });
+  j.members.forEach(u => list.appendChild(el('div', { text: u })));
+  out.appendChild(list);
+
+  const inp = el('input', { placeholder: `type ${role} to confirm` });
+  const go = el('button', {
+    class: 'danger',
+    text: `Remove ${j.members.length} member(s) from M3`,
+    onclick: async () => {
+      if (inp.value.trim() !== role) { toast('Type the role name exactly to confirm', true); return; }
+      go.disabled = true; go.textContent = 'Removing…';
+      try {
+        const res = await run(`Removing members of ${role}`, '/api/m3/remove-members',
+          { tenant: state.tenant, role, confirm: inp.value.trim() });
+        toast(`${role}: ${res.message}`, res.failed.length > 0);
+        out.innerHTML = '';
+        out.appendChild(el('div', { text: res.message }));
+        res.failed.forEach(f => out.appendChild(
+          el('div', { class: 'warnrow', text: `${f.usid}: ${f.message}` })));
+        await renderM3Panel(panel, role, true);
+        await loadRoles(); await loadStatus(true);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  out.appendChild(el('div', { class: 'addrow', style: 'margin-top:8px' }, [inp, go]));
+}
+
+/* -------------------------------------------------------- role selection */
+function renderSel() {
+  const n = state.sel.size;
+  $('#selcount').textContent = n === 1 ? '1 selected' : `${n} selected`;
+  $('#selbar').classList.toggle('hot', n > 0);
+  $('#selremove').disabled = !n;
+  $('#selcreate').disabled = !n;
+  $('#seladdmem').disabled = !n;
+  $('#selclear').disabled = !n;
+}
+function clearSel() {
+  state.sel.clear(); $('#bulkout').innerHTML = '';
+  document.querySelectorAll('#rtbody tr.picked').forEach(tr => tr.classList.remove('picked'));
+  document.querySelectorAll('#rtbody input[type=checkbox]').forEach(c => c.checked = false);
+  $('#selpage').checked = false;
+  renderSel();
+}
+async function selectNotInM3() {
+  if (!state.tenant) return toast('Load a security role export first', true);
+  const p = new URLSearchParams({ tenant: state.tenant, q: $('#rq').value, m3: 'no' });
+  const j = await api('/api/roles/keys?' + p);
+  const unchecked = j.rows.filter(r => r.in_m3 === null).length;
+  j.rows.forEach(r => state.sel.set(r.role_key, r.name));
+  await loadRoles();
+  toast(unchecked
+    ? `${j.total} role(s) selected — ${unchecked} of them have not been checked against M3 yet`
+    : `${j.total} role(s) not in M3 selected`, unchecked > 0);
+}
+$('#selnotm3').addEventListener('click', selectNotInM3);
+$('#selclear').addEventListener('click', clearSel);
+$('#selpage').addEventListener('change', e => {
+  const on = e.target.checked;
+  document.querySelectorAll('#rtbody tr').forEach(tr => {
+    const key = Number(tr.dataset.key);
+    if (!key) return;
+    if (on) state.sel.set(key, tr.dataset.name); else state.sel.delete(key);
+    tr.classList.toggle('picked', on);
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = on;
+  });
+  renderSel();
+});
+
+/* ------------------------------------------------------- bulk member wipe */
+$('#selremove').addEventListener('click', async () => {
+  const out = $('#bulkout');
+  out.innerHTML = '';
+  const keys = [...state.sel.keys()];
+  let j;
+  try {
+    j = await run('Checking selection', '/api/roles/remove-members-bulk',
+      { tenant: state.tenant, role_keys: keys });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: `${j.totals.not_in_m3} of the selected role(s) are not in M3 · `
+        + `${j.totals.in_m3} are · ${j.totals.user_links} user-export role link(s) `
+        + 'will be dropped too. Nothing is sent to M3 — this only changes the '
+        + 'capture, so the roles go out in the next export with no members.'
+  }));
+
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {}, [
+    el('th', { text: 'Role' }), el('th', { text: 'In M3' }),
+    el('th', { text: 'Members' }), el('th', { text: 'User links' })
+  ])));
+  const tb = el('tbody');
+  j.plan.forEach(p => tb.appendChild(el('tr', {}, [
+    el('td', { text: p.name }),
+    el('td', {}, m3Pill(p.in_m3)),
+    el('td', { text: p.members }),
+    el('td', { text: p.user_links })
+  ])));
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+
+  const inp = el('input', { placeholder: 'type REMOVE to confirm' });
+  const go = el('button', {
+    class: 'danger', text: `Remove members from ${j.totals.roles} role(s)`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'REMOVE') return toast('Type REMOVE to confirm', true);
+      go.disabled = true; go.textContent = 'Removing…';
+      try {
+        const res = await run('Removing members', '/api/roles/remove-members-bulk',
+          { tenant: state.tenant, role_keys: keys, confirm: 'REMOVE' });
+        toast(res.message);
+        clearSel();
+        await loadRoles(); await loadUsers(); await loadStatus(true);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+/* ------------------------------------------------ create roles in M3
+   Shared by the two tabs that create MNS405 role definitions: the security
+   roles tab, which names the roles it has selected, and the functional
+   security role tab, which names functional roles and lets the server work
+   out the security roles inside them. Same preview, same CREATE confirm. */
+async function createRolesFlow(out, payload, after) {
+  out.innerHTML = '';
+  let j;
+  try {
+    j = await run('Checking roles', '/api/m3/create-roles', payload);
+  } catch (e) { return toast(e.message, true); }
+  // which functional role asked for each security role, when that is how the
+  // list was arrived at
+  const from = {};
+  (j.sources || []).forEach(s => from[s.role] = s.functional_roles || '');
+  const viaFsr = (j.sources || []).length > 0;
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: (viaFsr
+            ? `The security roles inside ${payload.fsr_keys.length} functional `
+              + 'role(s), each created once however many hold it. '
+            : '')
+        + 'MNS405MI/Add · ROLL = role name · TX40 = description cut to 40 · '
+        + 'TX15 = description cut to 15. Roles longer than 10 characters, '
+        + 'containing a hyphen, starting with * or already in M3 are skipped.'
+  }));
+
+  if (j.eligible.length) {
+    const wrap = el('div', { class: 'wrapsm' });
+    const head = [el('th', { text: 'ROLL' }), el('th', { text: 'TX40' }),
+                  el('th', { text: 'TX15' })];
+    if (viaFsr) head.push(el('th', { text: 'Inside' }));
+    const tbl = el('table', {}, el('thead', {}, el('tr', {}, head)));
+    const tb = el('tbody');
+    j.eligible.forEach(p => {
+      const cells = [
+        el('td', {}, el('span', { class: 'inm3', text: p.ROLL })),
+        el('td', { text: p.TX40, class: p.truncated ? 'warnrow' : '' }),
+        el('td', { text: p.TX15 })
+      ];
+      if (viaFsr) cells.push(el('td', { class: 'muted', text: from[p.name] || '' }));
+      tb.appendChild(el('tr', {}, cells));
+    });
+    tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  }
+
+  if (j.skipped.length) {
+    const det = el('details');
+    det.appendChild(el('summary', {
+      class: 'muted',
+      text: `${j.skipped.length} skipped — `
+          + Object.entries(j.totals.reasons).map(([r, n]) => `${n} ${r}`).join(', ')
+    }));
+    const wrap = el('div', { class: 'wrapsm' });
+    const tbl = el('table', {}, el('thead', {}, el('tr', {}, [
+      el('th', { text: 'Role' }), el('th', { text: 'Reason' })
+    ].concat(viaFsr ? [el('th', { text: 'Inside' })] : []))));
+    const tb = el('tbody');
+    j.skipped.forEach(p => tb.appendChild(el('tr', {}, [
+      el('td', { text: p.name }), el('td', { class: 'muted', text: p.reason })
+    ].concat(viaFsr ? [el('td', { class: 'muted', text: from[p.name] || '' })] : []))));
+    tbl.appendChild(tb); wrap.appendChild(tbl); det.appendChild(wrap);
+    panel.appendChild(det);
+  }
+
+  if (!j.eligible.length) {
+    panel.appendChild(el('div', { class: 'warnrow', text: 'Nothing to create.' }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const inp = el('input', { placeholder: 'type CREATE to confirm' });
+  const go = el('button', {
+    class: 'good', text: `Create ${j.eligible.length} role(s) in M3`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'CREATE') return toast('Type CREATE to confirm', true);
+      go.disabled = true; go.textContent = 'Creating…';
+      try {
+        const res = await run('Creating roles in M3', '/api/m3/create-roles',
+          { ...payload, confirm: 'CREATE' });
+        toast(res.message, res.failed.length > 0);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        res.failed.forEach(f => done.appendChild(
+          el('div', { class: 'warnrow', text: `${f.name}: ${f.message}` })));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        out.appendChild(done);
+        if (after) await after();
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+}
+$('#selcreate').addEventListener('click', () => createRolesFlow(
+  $('#bulkout'), { tenant: state.tenant, role_keys: [...state.sel.keys()] },
+  loadRoles));
+$('#sselcreate').addEventListener('click', () => createRolesFlow(
+  $('#sbulkout'), { tenant: state.tenant, fsr_keys: [...state.ssel.keys()] },
+  loadFsr));
+
+/* -------------------------------------------- add role members in M3 */
+$('#seladdmem').addEventListener('click', async () => {
+  const out = $('#bulkout');
+  out.innerHTML = '';
+  const keys = [...state.sel.keys()];
+  let j;
+  try {
+    j = await run('Matching emails to USIDs', '/api/m3/add-members',
+      { tenant: state.tenant, role_keys: keys });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'MNS410MI/Add · ROLL = role name · USID resolved by matching the '
+        + "member's email address to the M3 user list. Addresses M3 does not "
+        + 'know are reported, never guessed at.'
+  }));
+
+  if (j.todo.length) {
+    const wrap = el('div', { class: 'wrapsm' });
+    const tbl = el('table', {}, el('thead', {}, el('tr', {}, [
+      el('th', { text: 'ROLL' }), el('th', { text: 'USID' }), el('th', { text: 'Email' })
+    ])));
+    const tb = el('tbody');
+    j.todo.forEach(t => tb.appendChild(el('tr', {}, [
+      el('td', {}, el('span', { class: 'inm3', text: t.role })),
+      el('td', { text: t.usid }),
+      el('td', { class: 'muted', text: t.email })
+    ])));
+    tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  }
+
+  if (j.skipped.length) {
+    const det = el('details');
+    det.appendChild(el('summary', {
+      class: j.totals.unresolved_emails ? 'warnrow' : 'muted',
+      text: `${j.skipped.length} skipped — `
+          + Object.entries(j.totals.reasons).map(([r, n]) => `${n} ${r}`).join(', ')
+    }));
+    const wrap = el('div', { class: 'wrapsm' });
+    const tbl = el('table', {}, el('thead', {}, el('tr', {}, [
+      el('th', { text: 'Role' }), el('th', { text: 'Email' }), el('th', { text: 'Reason' })
+    ])));
+    const tb = el('tbody');
+    j.skipped.forEach(s => tb.appendChild(el('tr', {}, [
+      el('td', { text: s.role }), el('td', { text: s.email || '—' }),
+      el('td', { class: 'muted', text: s.reason })
+    ])));
+    tbl.appendChild(tb); wrap.appendChild(tbl); det.appendChild(wrap);
+    panel.appendChild(det);
+  }
+
+  if (!j.todo.length) {
+    panel.appendChild(el('div', { class: 'warnrow', text: 'Nothing to add.' }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const inp = el('input', { placeholder: 'type ADD to confirm' });
+  const go = el('button', {
+    class: 'good', text: `Add ${j.todo.length} member(s) in M3`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'ADD') return toast('Type ADD to confirm', true);
+      go.disabled = true; go.textContent = 'Adding…';
+      try {
+        const res = await run('Adding members in M3', '/api/m3/add-members',
+          { tenant: state.tenant, role_keys: keys, confirm: 'ADD' });
+        toast(res.message, res.failed.length > 0);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        res.failed.forEach(f => done.appendChild(el('div', {
+          class: 'warnrow', text: `${f.usid} -> ${f.role}: ${f.message}` })));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        out.appendChild(done);
+        await loadRoles();
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+async function checkM3() {
+  if (!state.tenant) return toast('Load a security role export first', true);
+  const btn = $('#rcheck'); const label = btn.textContent;
+  btn.disabled = true; btn.textContent = 'Reading M3…';
+  try {
+    const j = await run('Check M3', '/api/m3/sync-roles',
+      { tenant: state.tenant, with_members: true, with_users: true });
+    toast(`${j.ionapi}: M3 holds ${j.m3_roles} role(s) — ${j.matched} of the captured roles exist in M3, `
+        + `${j.unmatched} M3 role(s) are not in the capture, ${j.members} membership row(s) read`);
+    // Everything MNS405 does not know about is pre-selected, ready to adjust
+    state.sel.clear();
+    $('#bulkout').innerHTML = '';
+    await selectNotInM3();
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false; btn.textContent = label;
+}
+$('#rcheck').addEventListener('click', checkM3);
+
+/* ------------------------------------------- add the roles MNS405 has */
+$('#raddm3').addEventListener('click', async () => {
+  const out = $('#bulkout');
+  out.innerHTML = '';
+  let j;
+  try {
+    j = await run('Checking MNS405', '/api/roles/add-from-mns405',
+                  { tenant: state.tenant });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'Nothing is sent to M3 — these roles are already there. They are '
+        + 'added to the capture as new, with TX40 as the description, so the '
+        + 'next Security Role export is what creates them in IFS.'
+  }));
+
+  if (!j.plan.length) {
+    panel.appendChild(el('div', { class: 'warnrow', text: 'Nothing to add.' }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    ['Role', 'Description (TX40)', 'TX15', 'M3 members', 'Functions']
+      .map(h => el('th', { text: h })))));
+  const tb = el('tbody');
+  j.plan.forEach(p => tb.appendChild(el('tr', {}, [
+    el('td', {}, el('span', { class: 'inm3', text: p.roll })),
+    el('td', { text: p.tx40 || p.roll }),
+    el('td', { text: p.tx15 || '' }),
+    el('td', { text: p.n_users }),
+    el('td', { text: p.n_functions })
+  ])));
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+
+  const inp = el('input', { placeholder: 'type CREATE to confirm' });
+  const go = el('button', {
+    class: 'good', text: `Add ${j.plan.length} role(s) to IFS Security Roles`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'CREATE') return toast('Type CREATE to confirm', true);
+      go.disabled = true; go.textContent = 'Adding…';
+      try {
+        const res = await run('Adding roles to the capture',
+          '/api/roles/add-from-mns405',
+          { tenant: state.tenant, confirm: 'CREATE' });
+        toast(res.message);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        (res.skipped || []).forEach(n => done.appendChild(
+          el('div', { class: 'warnrow', text: `${n}: already in the capture` })));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        out.appendChild(done);
+        await loadRoles(); await loadChanges();
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+/* ---------------------------------------------------------------- save  */
+$('#dsave').addEventListener('click', async () => {
+  const o = state.open; if (!o) return;
+  try {
+    if (o.kind === 'user') {
+      const fields = {};
+      $('#dbody').querySelectorAll('[data-field]').forEach(i => fields[i.dataset.field] = i.value);
+      await api('/api/users/' + o.key, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields, security_roles: o.sec, functional_roles: o.fun })
+      });
+      toast('User saved'); await loadUsers();
+    } else {
+      const f = {};
+      $('#dbody').querySelectorAll('[data-field]').forEach(i => f[i.dataset.field] = i.value);
+      await api('/api/roles/' + o.key, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...f, members: o.members })
+      });
+      toast('Role saved'); await loadRoles();
+    }
+    await loadStatus(true); await loadRoleNames();
+    $('#drawer').classList.remove('on');
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#ddelete').addEventListener('click', async () => {
+  const o = state.open; if (!o) return;
+  try {
+    if (o.kind === 'user') {
+      if ($('#ddelete').textContent === 'Restore') {
+        await api('/api/users/' + o.key + '/state', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ row_state: 'modified' })
+        });
+        toast('User restored');
+      } else {
+        await api('/api/users/' + o.key, { method: 'DELETE' });
+        toast('User flagged for removal — it will be left out of the export');
+      }
+      await loadUsers();
+    } else {
+      await api('/api/roles/' + o.key, { method: 'DELETE' });
+      toast('Role flagged for removal — it will be left out of the export');
+      await loadRoles();
+    }
+    await loadStatus(true);
+    $('#drawer').classList.remove('on');
+  } catch (e) { toast(e.message, true); }
+});
+$('#dclose').addEventListener('click', () => $('#drawer').classList.remove('on'));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#drawer').classList.remove('on'); });
+
+/* ------------------------------------------------------------- new rows */
+$('#unew').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load a users export first', true);
+  const email = prompt('Email address for the new user:');
+  if (!email) return;
+  try {
+    const j = await api('/api/users/new', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenant: state.tenant,
+        fields: { email_id: email, user_name: email, upn: email, status: 'Active' }
+      })
+    });
+    await loadUsers(); await loadStatus(true); openUser(j.user_key);
+  } catch (e) { toast(e.message, true); }
+});
+$('#rnew').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load a security role export first', true);
+  const name = prompt('New role name:');
+  if (!name) return;
+  try {
+    const j = await api('/api/roles/new', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, name })
+    });
+    await loadRoles(); await loadRoleNames(); await loadStatus(true); openRole(j.role_key);
+  } catch (e) { toast(e.message, true); }
+});
+
+/* --------------------------------------------------------------- export */
+async function loadChanges() {
+  if (!state.tenant) { state.changes = { users: 0, roles: 0, functional: 0 }; }
+  else state.changes = await api('/api/changes?tenant=' + encodeURIComponent(state.tenant));
+  const c = state.changes;
+  $('#uexport').textContent = `Export changes (${c.users})`;
+  $('#rexport').textContent = `Export changes (${c.roles})`;
+  $('#sexport').textContent = `Export changes (${c.functional || 0})`;
+  $('#uexport').disabled = !c.users;
+  $('#rexport').disabled = !c.roles;
+  $('#sexport').disabled = !c.functional;
+  const miss = c.missing_from_mns405 || 0;
+  $('#raddm3').disabled = !miss;
+  $('#raddm3').textContent = miss
+    ? `Add ${miss} role(s) from MNS405` : 'Add from MNS405';
+  $('#upushed').disabled = !(c.users || c.roles);
+  $('#rpushed').disabled = !(c.users || c.roles);
+}
+
+async function download(kind, scope) {
+  if (!state.tenant) return toast('Nothing loaded yet', true);
+  const fresh = $('#freshname').checked ? '1' : '0';
+  const url = `/api/export/${kind}?tenant=${encodeURIComponent(state.tenant)}`
+            + `&new_name=${fresh}&scope=${scope}`;
+  try {
+    const r = await fetch(url);
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      throw new Error(j.message || 'Export failed');
+    }
+    const cd = r.headers.get('Content-Disposition') || '';
+    const m = cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+    const name = m ? decodeURIComponent(m[1]) : `${kind}.csv`;
+    const blob = await r.blob();
+    const a = el('a', { href: URL.createObjectURL(blob), download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast(`${scope === 'changes' ? 'Changed records' : 'Full export'} written to the output folder — ${name}`);
+  } catch (e) { toast(e.message, true); }
+}
+$('#uexport').addEventListener('click', () => download('users', 'changes'));
+$('#rexport').addEventListener('click', () => download('roles', 'changes'));
+$('#uexportfull').addEventListener('click', () => download('users', 'full'));
+$('#rexportfull').addEventListener('click', () => download('roles', 'full'));
+
+async function markPushed(kind) {
+  const c = state.changes || { users: 0, roles: 0 };
+  const n = kind === 'users' ? c.users : c.roles;
+  if (!confirm(
+    `Clear the change flags for ${n} ${kind === 'users' ? 'user' : 'role'} record(s)?\n\n`
+    + 'Do this only after the exported file has been pushed into M3. '
+    + 'Records flagged for removal are dropped at the same time.')) return;
+  try {
+    const j = await api('/api/mark-pushed', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, kind })
+    });
+    toast(`Baseline reset — ${j.users} user(s), ${j.roles} role(s) cleared, ${j.purged} removal(s) purged`);
+    await loadStatus(true); await loadUsers(); await loadRoles();
+  } catch (e) { toast(e.message, true); }
+}
+$('#upushed').addEventListener('click', () => markPushed('users'));
+$('#rpushed').addEventListener('click', () => markPushed('roles'));
+
+/* ---------------------------------------------------------------- clearing
+   Each IFS tab is fed by a CSV and each can need a fresh start. Preview,
+   type CLEAR, then the tab's own tables and its import history go. Shared by
+   all three so the wording and the safety rail are identical. */
+const CLEAR_WHAT = {
+  users: 'the users and the roles they hold',
+  roles: 'the security roles and their members',
+  functional: 'the functional security roles and the security roles inside them'
+};
+async function clearFlow(kind, opts) {
+  const out = $(opts.out);
+  out.innerHTML = '';
+  if (!state.tenant) return toast('Nothing loaded yet', true);
+  let j;
+  try {
+    j = await run('Checking', '/api/clear/' + kind, { tenant: state.tenant });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: `This empties ${CLEAR_WHAT[kind]} for ${state.tenant}, and the record `
+        + 'of which files were loaded, so the next drop starts from scratch. '
+        + (opts.keeps || '')
+  }));
+
+  if (!j.totals.rows) {
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    [el('th', { text: 'Goes' }), el('th', { text: 'Rows' })])));
+  const tb = el('tbody');
+  j.plan.forEach(p => tb.appendChild(el('tr', {}, [
+    el('td', { text: p.label }),
+    el('td', { text: p.count.toLocaleString() })
+  ])));
+  tb.appendChild(el('tr', {}, [
+    el('td', { class: 'muted', text: 'import history' }),
+    el('td', { class: 'muted', text: j.totals.files.toLocaleString() })
+  ]));
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+
+  if (j.totals.changed) {
+    panel.appendChild(el('div', {
+      class: 'warnrow',
+      text: `${j.totals.changed.toLocaleString()} record(s) were edited and `
+          + 'not yet exported — those edits go too. Export them first if you '
+          + 'still need them.'
+    }));
+  }
+
+  const inp = el('input', { placeholder: 'type CLEAR to confirm' });
+  const go = el('button', {
+    class: 'danger', text: `Clear ${j.totals.rows.toLocaleString()} row(s)`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'CLEAR') return toast('Type CLEAR to confirm', true);
+      go.disabled = true; go.textContent = 'Clearing…';
+      try {
+        const res = await run('Clearing', '/api/clear/' + kind,
+                              { tenant: state.tenant, confirm: 'CLEAR' });
+        toast(res.message);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        out.appendChild(done);
+        if (opts.after) await opts.after();
+        await loadChanges(); await loadStatus(true);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+}
+
+$('#uclear').addEventListener('click', () => clearFlow('users', {
+  out: '#ubulkout',
+  keeps: 'The security roles and functional security roles themselves are held '
+       + 'separately and stay — clear those from their own tabs.',
+  after: async () => {
+    clearUserSel(); $('#drawer').classList.remove('on');
+    state.u.page = 1; await loadUsers();
+  }
+}));
+$('#rclear').addEventListener('click', () => clearFlow('roles', {
+  out: '#bulkout',
+  keeps: 'The roles users hold in the users capture stay, as does anything '
+       + 'read from M3 on the MNS405 tab.',
+  after: async () => {
+    clearSel(); $('#drawer').classList.remove('on');
+    state.r.page = 1; await loadRoles(); await loadRoleNames();
+  }
+}));
+
+/* ==========================================================================
+   IFS Functional Security Roles - a functional role is a named bag of
+   security roles. Imports merge (75 rows per IFS file, so several files),
+   the export writes the same format back.
+   ========================================================================== */
+async function loadFsrRoleNames() {
+  if (!state.tenant) return;
+  const j = await api('/api/fsr/roles?tenant=' + encodeURIComponent(state.tenant));
+  state.fsrRoleNames = j.names || [];
+  const dl = $('#fsrrolelist'); dl.innerHTML = '';
+  state.fsrRoleNames.forEach(n => dl.appendChild(el('option', { value: n })));
+}
+
+function renderFsrSel() {
+  const n = state.ssel.size;
+  $('#sselcount').textContent = n === 1 ? '1 selected' : `${n} selected`;
+  $('#sselbar').classList.toggle('hot', n > 0);
+  $('#sselremove').disabled = !n;
+  $('#sselcreate').disabled = !n;
+  $('#sselclear').disabled = !n;
+}
+function clearFsrSel() {
+  state.ssel.clear();
+  $('#sbulkout').innerHTML = '';
+  document.querySelectorAll('#stbody tr.picked').forEach(tr => tr.classList.remove('picked'));
+  document.querySelectorAll('#stbody input[type=checkbox]').forEach(c => c.checked = false);
+  $('#sselpage').checked = false;
+  renderFsrSel();
+}
+
+function fsrParams(extra) {
+  return new URLSearchParams(Object.assign({
+    tenant: state.tenant, q: $('#sq').value, role: $('#srole').value
+  }, extra || {}));
+}
+
+async function loadFsr() {
+  if (!state.tenant) {
+    $('#stbody').innerHTML = ''; $('#sstats').textContent = '';
+    $('#sclear').disabled = true;
+    return renderFsrSel();
+  }
+  const j = await api('/api/fsr?' + fsrParams({ ...sortParams(state.s),
+                                               page: state.s.page, size: state.s.size }));
+  const s = j.summary || {};
+  $('#sstats').innerHTML = s.roles
+    ? `<span><b>${(s.roles || 0).toLocaleString()}</b> functional role(s)</span>
+       <span><b>${(s.members || 0).toLocaleString()}</b> security role assignment(s)</span>
+       <span><b>${(s.changed || 0).toLocaleString()}</b> edited</span>
+       <span class="muted">${(s.files || 0)} file(s) merged</span>`
+    : '<span class="muted">Nothing loaded yet — drop the Functional Security Role exports above. '
+      + 'IFS caps each file at 75 rows, so drop them all: they merge and duplicates are ignored.</span>';
+  $('#sclear').disabled = !s.roles;
+
+  paintSort($('#pane-fsr thead tr'), state.s, loadFsr);
+  const tb = $('#stbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = state.ssel.has(r.fsr_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) state.ssel.set(r.fsr_key, r.name); else state.ssel.delete(r.fsr_key);
+      tr.classList.toggle('picked', cb.checked);
+      renderFsrSel();
+    });
+    const tr = el('tr', { onclick: () => openFsr(r.fsr_key) }, [
+      el('td', { onclick: ev => ev.stopPropagation() }, cb),
+      el('td', {}, el('b', { text: r.name })),
+      el('td', { class: 'muted', text: r.description || '' }),
+      el('td', { text: r.n_roles }),
+      el('td', { text: r.n_users }),
+      el('td', {}, statePill(r.row_state))
+    ]);
+    tr.dataset.key = r.fsr_key; tr.dataset.name = r.name;
+    if (cb.checked) tr.classList.add('picked');
+    tb.appendChild(tr);
+  });
+  renderFsrSel();
+  $('#sselpage').checked = (j.rows || []).length > 0
+    && (j.rows || []).every(r => state.ssel.has(r.fsr_key));
+
+  state.s.total = j.total || 0;
+  const from = j.total ? (state.s.page - 1) * state.s.size + 1 : 0;
+  $('#sinfo').textContent = `${from}–${Math.min(state.s.page * state.s.size, j.total || 0)} of ${j.total || 0}`;
+  $('#sprev').disabled = state.s.page <= 1;
+  $('#snext').disabled = state.s.page * state.s.size >= (j.total || 0);
+}
+
+const FSR_EMPTY = '<div class="empty">Pick a functional role to add or remove security roles.</div>';
+
+async function openFsr(key) {
+  const j = await api('/api/fsr/' + key);
+  const f = j.fsr;
+  const roles = [...(j.roles || [])];
+  const box = $('#sdetail');
+  box.innerHTML = '';
+  box.appendChild(el('div', { class: 'head' }, [
+    el('b', { text: f.name }),
+    el('div', { class: 'sub',
+                text: `${roles.length} security role(s) · ${(j.users || []).length} user(s) hold it` })
+  ]));
+  const body = el('div', { style: 'padding:14px' });
+  const store = { name: f.name, description: f.description || '' };
+  body.appendChild(field('Functional security role name', f.name, 'name', store,
+                         { hint: 'Renaming it here renames it on every row of the export.' }));
+  body.appendChild(field('Description', f.description, 'description', store));
+
+  body.appendChild(el('h3', { text: 'Security roles in this functional role' }));
+  const c = chipBox(roles, () => {
+    box.querySelector('.sub').textContent =
+      `${roles.length} security role(s) · ${(j.users || []).length} user(s) hold it`;
+  }, 'fsrrolelist');
+  body.appendChild(c.box); body.appendChild(c.adder);
+
+  if ((j.users || []).length) {
+    body.appendChild(el('h3', { text: 'Users holding it (' + j.users.length + ')' }));
+    body.appendChild(el('div', { class: 'muted', style: 'font-size:12px',
+                                 text: j.users.slice(0, 40).join(', ')
+                                     + (j.users.length > 40 ? ` … +${j.users.length - 40} more` : '') }));
+  }
+
+  body.appendChild(el('div', { class: 'addrow', style: 'margin-top:12px' }, [
+    el('button', {
+      class: 'good', text: 'Save',
+      onclick: async () => {
+        try {
+          await api('/api/fsr/' + key, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: store.name, description: store.description, roles })
+          });
+          toast(`Saved — ${roles.length} security role(s) in ${store.name}`);
+          box.innerHTML = FSR_EMPTY;
+          await loadFsr(); await loadFsrRoleNames(); await loadChanges();
+        } catch (e) { toast(e.message, true); }
+      }
+    }),
+    el('button', {
+      class: 'danger', text: 'Delete',
+      onclick: async () => {
+        if (!confirm(`Flag "${f.name}" for removal?\n\n`
+                   + 'It drops out of the export, which is what removes it in IFS.')) return;
+        try {
+          await api('/api/fsr/' + key, { method: 'DELETE' });
+          toast(`${f.name} flagged for removal`);
+          box.innerHTML = FSR_EMPTY;
+          await loadFsr(); await loadChanges();
+        } catch (e) { toast(e.message, true); }
+      }
+    }),
+    el('button', { text: 'Close', onclick: () => box.innerHTML = FSR_EMPTY })
+  ]));
+  box.appendChild(body);
+}
+
+$('#snew').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first so the tenant is known', true);
+  const name = prompt('Functional security role name');
+  if (!name) return;
+  try {
+    const j = await api('/api/fsr/new', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, name: name.trim(),
+                             description: name.trim() })
+    });
+    await loadFsr(); await loadChanges();
+    await openFsr(j.fsr_key);
+    toast(`${name.trim()} added — now put security roles in it`);
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#sselclear').addEventListener('click', clearFsrSel);
+$('#sselpage').addEventListener('change', e => {
+  const on = e.target.checked;
+  document.querySelectorAll('#stbody tr').forEach(tr => {
+    const key = Number(tr.dataset.key);
+    if (!key) return;
+    if (on) state.ssel.set(key, tr.dataset.name || String(key));
+    else state.ssel.delete(key);
+    tr.classList.toggle('picked', on);
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = on;
+  });
+  renderFsrSel();
+});
+$('#sselall').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first', true);
+  const j = await api('/api/fsr/keys?' + fsrParams());
+  j.rows.forEach(r => state.ssel.set(r.fsr_key, r.name));
+  await loadFsr();
+  toast(`${j.total} functional role(s) selected`);
+});
+
+$('#sselremove').addEventListener('click', async () => {
+  const out = $('#sbulkout');
+  out.innerHTML = '';
+  const keys = [...state.ssel.keys()];
+  let j;
+  try {
+    j = await run('Checking selection', '/api/fsr/remove-roles',
+                  { tenant: state.tenant, keys });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'Nothing is sent to M3: the functional roles are flagged as changed, '
+        + 'and importing the next Functional Security Role export into IFS is '
+        + 'what actually removes the security roles from them.'
+  }));
+
+  if (!j.plan.length) {
+    panel.appendChild(el('div', { class: 'warnrow',
+                                  text: 'None of the selected functional roles contain a security role.' }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const chosen = new Set(j.plan.map(p => p.role));
+  panel.appendChild(el('div', { class: 'muted', style: 'margin-top:8px',
+                                text: 'Security roles to take out — untick any you want to keep:' }));
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    [el('th', { style: 'width:28px' }), el('th', { text: 'Security role' }),
+     el('th', { text: 'Functional roles holding it' })])));
+  const tb = el('tbody');
+  const count = el('span');
+  const retally = () => {
+    const n = j.plan.filter(p => chosen.has(p.role)).reduce((a, p) => a + p.roles, 0);
+    count.textContent = `${chosen.size} security role(s), ${n} assignment(s)`;
+    go.disabled = !chosen.size;
+    go.textContent = `Remove ${chosen.size} security role(s)`;
+  };
+  j.plan.forEach(p => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = true;
+    cb.addEventListener('change', () => {
+      if (cb.checked) chosen.add(p.role); else chosen.delete(p.role);
+      retally();
+    });
+    tb.appendChild(el('tr', {}, [
+      el('td', {}, cb), el('td', { text: p.role }), el('td', { text: p.roles })
+    ]));
+  });
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  panel.appendChild(el('div', { class: 'muted' }, count));
+
+  const inp = el('input', { placeholder: 'type REMOVE to confirm' });
+  const go = el('button', {
+    class: 'danger', text: 'Remove',
+    onclick: async () => {
+      if (inp.value.trim() !== 'REMOVE') return toast('Type REMOVE to confirm', true);
+      go.disabled = true; go.textContent = 'Removing…';
+      try {
+        const all = chosen.size === j.plan.length;
+        const res = await run('Removing security roles', '/api/fsr/remove-roles', {
+          tenant: state.tenant, keys,
+          roles: all ? [] : [...chosen], confirm: 'REMOVE'
+        });
+        toast(res.message);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        clearFsrSel();
+        out.appendChild(done);
+        await loadFsr(); await loadChanges(); await loadStatus(true);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  retally();
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+$('#sclear').addEventListener('click', () => clearFlow('functional', {
+  out: '#sbulkout',
+  keeps: 'The FunctionalSecurityRoleN entries the users hold come from the '
+       + 'users export, so they are left alone — clear those from the IFS '
+       + 'Users tab.',
+  after: async () => {
+    clearFsrSel();
+    $('#sdetail').innerHTML = FSR_EMPTY;
+    state.s.page = 1;
+    await loadFsr(); await loadFsrRoleNames();
+  }
+}));
+
+$('#sexport').addEventListener('click', () => download('functional', 'changes'));
+$('#sexportfull').addEventListener('click', () => download('functional', 'full'));
+const reS = debounce(() => { state.s.page = 1; loadFsr(); });
+['#sq', '#srole'].forEach(s => $(s).addEventListener('input', reS));
+$('#sprev').addEventListener('click', () => { state.s.page--; loadFsr(); });
+$('#snext').addEventListener('click', () => { state.s.page++; loadFsr(); });
+
+/* ------------------------------------------------------------ functions */
+function mns405Pill(v) {
+  if (v === 1) return el('span', { class: 'pill mns405yes', text: 'MNS405' });
+  if (v === 0) return el('span', { class: 'pill mns405no', text: 'missing' });
+  return el('span', { class: 'muted', text: '—' });
+}
+const STAT_LABEL = {};          // filled from /api/functions/status
+function statLabel(v) {
+  const t = (v || '').trim();
+  if (!t) return '';
+  return STAT_LABEL[t] ? `${t} ${STAT_LABEL[t]}` : t;
+}
+function fnParams(extra) {
+  const [cono, divi] = ($('#fcd').value || '\t').split('\t');
+  return new URLSearchParams({
+    tenant: state.tenant, by: state.f.by, cono: cono || '', divi: divi || '',
+    stat: $('#fstat').value || '', ...extra
+  });
+}
+
+async function loadFnStatus() {
+  if (!state.tenant) { $('#fstats').textContent = ''; return; }
+  const j = await api('/api/functions/status?tenant=' + encodeURIComponent(state.tenant));
+  $('#fstats').innerHTML = j.authorisations
+    ? `<span><b>${j.authorisations.toLocaleString()}</b> authorisations</span>
+       <span><b>${j.functions.toLocaleString()}</b> functions</span>
+       <span><b>${j.roles.toLocaleString()}</b> roles</span>
+       <span><b>${j.missing.toLocaleString()}</b> missing from MNS405</span>
+       <span class="muted">read ${j.checked_at || '—'}</span>`
+    : '<span class="muted">Nothing loaded yet — use “Load from M3” to read SES400.</span>';
+  $('#faddmissing').disabled = !j.missing;
+  $('#faddmissing').textContent = j.missing
+    ? `Add ${j.missing} missing role(s) to MNS405` : 'Add missing roles to MNS405';
+
+  const sel = $('#fcd'), keep = sel.value;
+  sel.innerHTML = '';
+  sel.appendChild(el('option', { value: '', text: 'All company / division' }));
+  (j.divisions || []).forEach(d => sel.appendChild(el('option', {
+    value: `${d.cono || ''}\t${d.divi || ''}`,
+    text: `CONO ${d.cono || '—'} · DIVI ${d.divi || '—'}`
+  })));
+  sel.value = keep;
+
+  (j.status_values || []).forEach(v => STAT_LABEL[v.code] = v.label);
+  const setter = $('#fsetstat'), keepSet = setter.value;
+  setter.innerHTML = '';
+  (j.status_values || []).forEach(v => setter.appendChild(el('option', {
+    value: v.code, text: `${v.code} — ${v.label}` })));
+  setter.value = keepSet || (j.status_values || []).slice(-1).map(v => v.code)[0] || '';
+
+  const fs = $('#fstat'), keepStat = fs.value;
+  fs.innerHTML = '';
+  fs.appendChild(el('option', { value: '', text: 'All statuses' }));
+  (j.statuses || []).forEach(x => fs.appendChild(el('option', {
+    value: x.stat || '(blank)',
+    text: `${statLabel(x.stat) || '(blank)'} · ${x.n}` })));
+  fs.value = keepStat;
+}
+
+async function loadFunctions() {
+  if (!state.tenant) return;
+  const p = fnParams({
+    q: $('#fq').value, page: state.f.page, size: state.f.size,
+    ...sortParams(state.f),
+    missing: $('#fmissing').checked ? '1' : ''
+  });
+  const j = await api('/api/functions?' + p);
+
+  const byRole = j.by === 'role';
+  // this head is rebuilt on every load, and the sortable columns differ
+  // between the two views, so the keys travel with the labels
+  $('#fhead').innerHTML = '';
+  $('#fhead').appendChild(el('th', { style: 'width:28px' }));
+  (byRole
+    ? [['Role', 'name'], ['In MNS405', 'in_mns405'], ['Description', 'description'],
+       ['Functions', 'n_functions'], ['Rows', 'n_rows']]
+    : [['Function', 'name'], ['Roles', 'n_roles'],
+       ['Roles missing from MNS405', 'n_missing'], ['Rows', 'n_rows']]
+  ).forEach(([h, key]) => $('#fhead').appendChild(
+      el('th', { text: h, 'data-sort': key })));
+  paintSort($('#fhead'), state.f, loadFunctions);
+
+  const tb = $('#ftbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.addEventListener('click', async ev => {
+      ev.stopPropagation();
+      await toggleAggregate(r.name, cb.checked);
+      tr.classList.toggle('picked', cb.checked);
+    });
+    const tr = el('tr', { onclick: () => openFnDetail(r.name) },
+      [el('td', { onclick: ev => ev.stopPropagation() }, cb)].concat(
+      byRole ? [
+        el('td', {}, el('span', { class: r.in_mns405 === 0 ? '' : 'inm3', text: r.name })),
+        el('td', {}, mns405Pill(r.in_mns405)),
+        el('td', { class: 'muted', text: r.description || '' }),
+        el('td', { text: r.n_functions }),
+        el('td', { text: r.n_rows })
+      ] : [
+        el('td', { text: r.name }),
+        el('td', { text: r.n_roles }),
+        el('td', { class: r.n_missing ? 'warnrow' : 'muted', text: r.n_missing }),
+        el('td', { text: r.n_rows })
+      ]));
+    tr.dataset.name = r.name;
+    if (byRole && r.in_mns405 === 0) tr.classList.add('miss');
+    if (!byRole && r.n_missing) tr.classList.add('miss');
+    tb.appendChild(tr);
+  });
+
+  // reflect any authorisations already selected for the rows on screen
+  document.querySelectorAll('#ftbody tr').forEach(tr => {
+    const picked = [...state.fsel.values()].some(v =>
+      (byRole ? v.roll : v.fnid) === tr.dataset.name);
+    tr.classList.toggle('picked', picked);
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = picked;
+  });
+  renderFnSel();
+
+  state.f.total = j.total || 0;
+  const from = j.total ? (state.f.page - 1) * state.f.size + 1 : 0;
+  $('#finfo').textContent = `${from}–${Math.min(state.f.page * state.f.size, j.total || 0)} of ${j.total || 0}`;
+  $('#fprev').disabled = state.f.page <= 1;
+  $('#fnext').disabled = state.f.page * state.f.size >= (j.total || 0);
+}
+
+async function openFnDetail(name) {
+  const box = $('#fdetail');
+  box.innerHTML = '<div class="empty">Loading…</div>';
+  const j = await api('/api/functions/detail?' + fnParams({ name }));
+  const byRole = j.by === 'role';
+  box.innerHTML = '';
+
+  const head = el('div', { class: 'head' }, [
+    el('div', {}, [
+      el('b', { text: name }),
+      el('span', { text: '  ' }),
+      byRole ? mns405Pill(j.in_mns405) : el('span', { class: 'muted', text: '' })
+    ]),
+    el('div', {
+      class: 'sub',
+      text: byRole
+        ? `${j.rows.length} function authorisation(s) for this role`
+        : `${j.rows.length} role authorisation(s) on this function`
+    })
+  ]);
+  box.appendChild(head);
+
+  if (!j.rows.length) {
+    box.appendChild(el('div', { class: 'empty', text: 'Nothing recorded.' }));
+    return;
+  }
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    [el('th', { style: 'width:28px' })].concat(
+      (byRole ? ['Function', 'CONO', 'DIVI', 'Status']
+              : ['Role', 'In MNS405', 'CONO', 'DIVI', 'Status'])
+        .map(h => el('th', { text: h }))))));
+  const tb = el('tbody');
+  j.rows.forEach(r => {
+    const rec = byRole
+      ? { fnid: r.name, roll: name, cono: r.cono, divi: r.divi }
+      : { fnid: name, roll: r.name, cono: r.cono, divi: r.divi };
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = state.fsel.has(r.function_role_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) state.fsel.set(r.function_role_key, rec);
+      else state.fsel.delete(r.function_role_key);
+      tr.classList.toggle('picked', cb.checked);
+      renderFnSel();
+    });
+    const tr = el('tr', {
+      onclick: () => {                  // jump to the other side of the pairing
+        state.f.by = byRole ? 'function' : 'role';
+        document.querySelectorAll('#fby button').forEach(b =>
+          b.classList.toggle('on', b.dataset.by === state.f.by));
+        $('#fq').value = r.name;
+        state.f.page = 1;
+        loadFunctions().then(() => openFnDetail(r.name));
+      }
+    }, [el('td', { onclick: ev => ev.stopPropagation() }, cb)].concat(
+       byRole ? [
+      el('td', { text: r.name }),
+      el('td', { text: r.cono || '' }), el('td', { text: r.divi || '' }),
+      el('td', { class: 'muted', text: r.stat || '' })
+    ] : [
+      el('td', {}, el('span', { class: r.in_mns405 === 0 ? '' : 'inm3', text: r.name })),
+      el('td', {}, mns405Pill(r.in_mns405)),
+      el('td', { text: r.cono || '' }), el('td', { text: r.divi || '' }),
+      el('td', { class: r.stat === '10' ? 'warnrow' : 'muted',
+                 text: statLabel(r.stat) })
+    ]));
+    if (!byRole && r.in_mns405 === 0) tr.classList.add('miss');
+    if (cb.checked) tr.classList.add('picked');
+    tb.appendChild(tr);
+  });
+  tbl.appendChild(tb);
+  box.appendChild(tbl);
+}
+
+/* --------------------------------------- function authorisation selection */
+function renderFnSel() {
+  const n = state.fsel.size;
+  $('#fselcount').textContent = n === 1 ? '1 selected' : `${n} selected`;
+  $('#fselbar').classList.toggle('hot', n > 0);
+  $('#fseldelete').disabled = !n;
+  $('#fselstatus').disabled = !n;
+  $('#fselclear').disabled = !n;
+}
+function clearFnSel() {
+  state.fsel.clear();
+  $('#fbulkout').innerHTML = '';
+  document.querySelectorAll('#pane-functions tr.picked').forEach(tr => tr.classList.remove('picked'));
+  document.querySelectorAll('#pane-functions input[type=checkbox]').forEach(c => c.checked = false);
+  renderFnSel();
+}
+
+/**
+ * A tick on an aggregate row stands for every authorisation underneath it, so
+ * the keys are fetched rather than guessed at.
+ */
+async function toggleAggregate(name, on) {
+  const p = fnParams({ name });
+  const j = await api('/api/functions/keys?' + p);
+  j.rows.forEach(r => {
+    if (on) state.fsel.set(r.function_role_key,
+                           { fnid: r.fnid, roll: r.roll, cono: r.cono, divi: r.divi });
+    else state.fsel.delete(r.function_role_key);
+  });
+  renderFnSel();
+}
+
+$('#fselall').addEventListener('click', async () => {
+  if (!state.tenant) return;
+  const p = fnParams({ q: $('#fq').value, missing: $('#fmissing').checked ? '1' : '' });
+  const j = await api('/api/functions/keys?' + p);
+  j.rows.forEach(r => state.fsel.set(r.function_role_key,
+    { fnid: r.fnid, roll: r.roll, cono: r.cono, divi: r.divi }));
+  document.querySelectorAll('#ftbody tr').forEach(tr => {
+    tr.classList.add('picked');
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = true;
+  });
+  renderFnSel();
+  toast(`${j.total} authorisation(s) selected`);
+});
+$('#fselclear').addEventListener('click', clearFnSel);
+
+$('#fselstatus').addEventListener('click', async () => {
+  const out = $('#fbulkout');
+  out.innerHTML = '';
+  const keys = [...state.fsel.keys()];
+  const newStat = $('#fsetstat').value;
+  let j;
+  try {
+    j = await run('Checking selection', '/api/functions/update-status',
+                  { tenant: state.tenant, keys, status: newStat });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'SES400MI/Upd · only the key fields and STAT are sent, so the option '
+        + 'and function-key flags on each authorisation are left exactly as '
+        + 'they are. Rows already at this status are not sent at all.'
+  }));
+
+  if (j.plan.length) {
+    const wrap = el('div', { class: 'wrapsm' });
+    const tbl = el('table', {}, el('thead', {}, el('tr', {},
+      ['FNID', 'ROLL', 'CONO', 'DIVI', 'From', 'To'].map(h => el('th', { text: h })))));
+    const tb = el('tbody');
+    j.plan.forEach(p => tb.appendChild(el('tr', {}, [
+      el('td', { text: p.fnid }), el('td', { text: p.roll }),
+      el('td', { text: p.cono || '' }), el('td', { text: p.divi || '' }),
+      el('td', { class: 'muted', text: statLabel(p.stat) || '(blank)' }),
+      el('td', {}, el('span', { class: 'inm3', text: statLabel(p.new_stat) }))
+    ])));
+    tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  }
+  if (j.unchanged.length) {
+    panel.appendChild(el('div', {
+      class: 'muted',
+      text: `${j.unchanged.length} selected authorisation(s) are already at `
+          + `${statLabel(j.new_status)} and will not be sent.`
+    }));
+  }
+  if (!j.plan.length) {
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const inp = el('input', { placeholder: 'type UPDATE to confirm' });
+  const go = el('button', {
+    class: 'good', text: `Set ${j.plan.length} authorisation(s) to ${statLabel(j.new_status)}`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'UPDATE') return toast('Type UPDATE to confirm', true);
+      go.disabled = true; go.textContent = 'Updating…';
+      try {
+        const res = await run('Setting status', '/api/functions/update-status',
+          { tenant: state.tenant, keys, status: newStat, confirm: 'UPDATE' });
+        toast(res.message, res.failed.length > 0);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        res.failed.forEach(f => done.appendChild(el('div', {
+          class: 'warnrow', text: `${f.fnid} / ${f.roll}: ${f.message}` })));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        clearFnSel();                 // this empties #fbulkout, so report after
+        out.appendChild(done);
+        await loadFnStatus(); await loadFunctions();
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+$('#fseldelete').addEventListener('click', async () => {
+  const out = $('#fbulkout');
+  out.innerHTML = '';
+  const keys = [...state.fsel.keys()];
+  let j;
+  try {
+    j = await run('Checking selection', '/api/functions/delete',
+                  { tenant: state.tenant, keys });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'SES400MI/Dlt · each delete targets one exact row — function, role, '
+        + 'company and division together. The roles themselves stay in MNS405; '
+        + 'only the authorisation is removed.'
+  }));
+
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    ['FNID', 'ROLL', 'CONO', 'DIVI'].map(h => el('th', { text: h })))));
+  const tb = el('tbody');
+  j.plan.forEach(p => tb.appendChild(el('tr', {}, [
+    el('td', { text: p.fnid }), el('td', { text: p.roll }),
+    el('td', { text: p.cono || '' }), el('td', { text: p.divi || '' })
+  ])));
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+
+  const inp = el('input', { placeholder: 'type DELETE to confirm' });
+  const go = el('button', {
+    class: 'danger', text: `Delete ${j.totals.authorisations} authorisation(s)`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'DELETE') return toast('Type DELETE to confirm', true);
+      go.disabled = true; go.textContent = 'Deleting…';
+      try {
+        const res = await run('Deleting authorisations', '/api/functions/delete',
+                              { tenant: state.tenant, keys, confirm: 'DELETE' });
+        toast(res.message, res.failed.length > 0);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel' }, el('div', { text: res.message }));
+        res.failed.forEach(f => done.appendChild(el('div', {
+          class: 'warnrow', text: `${f.fnid} / ${f.roll}: ${f.message}` })));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        clearFnSel();                   // this empties #fbulkout, so report after
+        out.appendChild(done);
+        $('#fdetail').innerHTML =
+          '<div class="empty">Pick a row to see the other side of the pairing.</div>';
+        await loadFnStatus(); await loadFunctions();
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+$('#fload').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first so the tenant is known', true);
+  try {
+    const j = await run('Loading SES400', '/api/functions/sync', { tenant: state.tenant });
+    toast(`${j.ionapi}: ${j.authorisations.toLocaleString()} authorisation(s) over `
+        + `${j.functions} function(s) and ${j.roles} role(s) — `
+        + `${j.missing_count} role(s) missing from MNS405`, j.missing_count > 0);
+    clearFnSel();
+    await loadFnStatus(); await loadFunctions();
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#faddmissing').addEventListener('click', async () => {
+  const out = $('#fbulkout');
+  out.innerHTML = '';
+  let j;
+  try {
+    j = await run('Checking missing roles', '/api/functions/add-missing-roles',
+                  { tenant: state.tenant });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'MNS405MI/Add · SES400 carries no description, so TX40 and TX15 are '
+        + 'both the role name (TX15 cut to 15). These names already exist in M3 '
+        + 'as valid role ids, so none are filtered out — anything M3 refuses is '
+        + 'reported per role.'
+  }));
+  if (j.plan.length) {
+    const wrap = el('div', { class: 'wrapsm' });
+    const tbl = el('table', {}, el('thead', {}, el('tr', {},
+      ['ROLL', 'TX40', 'TX15', 'Functions'].map(h => el('th', { text: h })))));
+    const tb = el('tbody');
+    j.plan.forEach(p => tb.appendChild(el('tr', {}, [
+      el('td', {}, el('span', { class: 'inm3', text: p.ROLL })),
+      el('td', { text: p.TX40 }), el('td', { text: p.TX15 }),
+      el('td', { text: p.functions })
+    ])));
+    tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  } else {
+    panel.appendChild(el('div', { class: 'warnrow', text: 'Nothing to add.' }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const inp = el('input', { placeholder: 'type CREATE to confirm' });
+  const go = el('button', {
+    class: 'good', text: `Add ${j.plan.length} role(s) to MNS405`,
+    onclick: async () => {
+      if (inp.value.trim() !== 'CREATE') return toast('Type CREATE to confirm', true);
+      go.disabled = true; go.textContent = 'Adding…';
+      try {
+        const res = await run('Adding roles to MNS405',
+          '/api/functions/add-missing-roles',
+          { tenant: state.tenant, confirm: 'CREATE' });
+        toast(res.message, res.failed.length > 0);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        res.failed.forEach(f => done.appendChild(
+          el('div', { class: 'warnrow', text: `${f.name}: ${f.message}` })));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        out.appendChild(done);
+        await loadFnStatus(); await loadFunctions(); await loadRoles();
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+});
+
+document.querySelectorAll('#fby button').forEach(b =>
+  b.addEventListener('click', () => {
+    if (state.f.by === b.dataset.by) return;
+    state.f.by = b.dataset.by;
+    document.querySelectorAll('#fby button').forEach(x =>
+      x.classList.toggle('on', x === b));
+    state.f.page = 1;
+    // the two views do not share every sortable column, so start clean
+    state.f.sort = null; state.f.dir = 'asc';
+    clearFnSel();
+    $('#fdetail').innerHTML =
+      '<div class="empty">Pick a row to see the other side of the pairing.</div>';
+    loadFunctions();
+  }));
+const reF = debounce(() => { state.f.page = 1; loadFunctions(); });
+['#fq', '#fcd', '#fstat', '#fmissing'].forEach(s => {
+  $(s).addEventListener('input', reF); $(s).addEventListener('change', reF);
+});
+$('#fprev').addEventListener('click', () => { state.f.page--; loadFunctions(); });
+$('#fnext').addEventListener('click', () => { state.f.page++; loadFunctions(); });
+
+/* =========================================================================
+   MNS405 Roles and MNS410 Roles Per User
+   Both tabs are the same shape: load from M3, list, select, per-record edit,
+   add, bulk delete. The shared pieces live here so the two only differ in
+   their columns and their fields.
+   ========================================================================= */
+function makeSelBar(prefix, onDelete) {
+  const sel = new Map();
+  const render = () => {
+    const n = sel.size;
+    $(`#${prefix}selcount`).textContent = n === 1 ? '1 selected' : `${n} selected`;
+    $(`#${prefix}selbar`).classList.toggle('hot', n > 0);
+    $(`#${prefix}seldelete`).disabled = !n;
+    $(`#${prefix}selclear`).disabled = !n;
+  };
+  const clear = () => {
+    sel.clear();
+    $(`#${prefix}bulkout`).innerHTML = '';
+    document.querySelectorAll(`#pane-${prefix === 'd' ? 'mns405' : 'mns410'} tr.picked`)
+      .forEach(tr => tr.classList.remove('picked'));
+    document.querySelectorAll(`#${prefix}tbody input[type=checkbox]`)
+      .forEach(c => c.checked = false);
+    render();
+  };
+  $(`#${prefix}selclear`).addEventListener('click', clear);
+  $(`#${prefix}seldelete`).addEventListener('click', () => onDelete([...sel.keys()]));
+  return { sel, render, clear };
+}
+
+/** Preview -> typed confirm -> run, shared by every write on these two tabs. */
+async function writeFlow(opts) {
+  const out = $(opts.out);
+  out.innerHTML = '';
+  let j;
+  try { j = await run(opts.checking, opts.url, opts.body); }
+  catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' + (opts.danger ? '' : ' create') });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  if (opts.note) panel.appendChild(el('div', { class: 'muted', text: opts.note }));
+
+  const plan = j.plan || [];
+  if (plan.length) {
+    const wrap = el('div', { class: 'wrapsm' });
+    const cols = opts.columns;
+    const tbl = el('table', {}, el('thead', {}, el('tr', {},
+      cols.map(c => el('th', { text: c[0] })))));
+    const tb = el('tbody');
+    plan.forEach(p => tb.appendChild(el('tr', {},
+      cols.map(c => el('td', { text: p[c[1]] === undefined || p[c[1]] === null ? '' : String(p[c[1]]) })))));
+    tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  }
+  if (!plan.length) {
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const word = opts.confirmWord;
+  const inp = el('input', { placeholder: `type ${word} to confirm` });
+  const go = el('button', {
+    class: opts.danger ? 'danger' : 'good', text: opts.goLabel(plan.length),
+    onclick: async () => {
+      if (inp.value.trim() !== word) return toast(`Type ${word} to confirm`, true);
+      go.disabled = true; go.textContent = 'Working…';
+      try {
+        const res = await run(opts.running, opts.url,
+                              { ...opts.body, confirm: word });
+        toast(res.message, (res.failed || []).length > 0);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        (res.failed || []).forEach(f => done.appendChild(el('div', {
+          class: 'warnrow', text: `${opts.failLabel(f)}: ${f.message}` })));
+        if (opts.onDone) opts.onDone(res, done);
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        await opts.after();
+        out.appendChild(done);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+}
+
+/** A labelled input for the little edit panels. */
+function field(label, value, key, store, opts = {}) {
+  const i = el('input', { value: value || '', ...(opts.attrs || {}) });
+  i.addEventListener('input', () => store[key] = i.value);
+  store[key] = value || '';
+  const f = el('div', { class: 'fld' }, [el('label', { text: label }), i]);
+  if (opts.hint) f.appendChild(el('div', { class: 'muted', style: 'font-size:11px',
+                                           text: opts.hint }));
+  return f;
+}
+
+/* --------------------------------------------------- company and division
+   CONO / DIVI are per tenant. Unset, they are left off the request entirely
+   and M3 uses the service account's own default company and division — which
+   is right far more often than any number this tool could guess. Sending a
+   company the service account has no authority for comes back 403. */
+async function loadM3Company() {
+  const b = $('#cono');
+  if (!state.tenant) { b.textContent = '—'; b.title = 'No tenant selected'; return; }
+  try {
+    const j = await api('/api/m3/config?tenant=' + encodeURIComponent(state.tenant));
+    state.m3cfg = j;
+    b.textContent = j.pinned
+      ? `${j.company || '—'} / ${j.division || '—'}`
+      : 'M3 default';
+    b.title = j.pinned
+      ? `CONO ${j.company || '(none)'} DIVI ${j.division || '(none)'} — from ${j.source}`
+      : 'Not set — the M3 calls omit cono/divi, so M3 uses the service '
+        + 'account’s own company and division. Click to change.';
+  } catch (e) { b.textContent = '—'; }
+}
+
+$('#cono').addEventListener('click', async () => {
+  const bar = $('#conobar');
+  if (bar.innerHTML) { bar.innerHTML = ''; return; }      // click again to close
+  if (!state.tenant) return toast('Select a tenant first', true);
+  const j = state.m3cfg || {};
+  const store = { company: j.company || '', division: j.division || '' };
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600',
+                                text: `Company and division for ${state.tenant}` }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: j.pinned
+      ? `Currently sending cono=${j.company || '(none)'} divi=${j.division || '(none)'}, from ${j.source}.`
+      : 'Currently sending neither, so M3 uses the service account’s own '
+        + 'company and division. That is usually what you want — pin them only '
+        + 'when this tenant needs a specific company.'
+  }));
+
+  const found = el('div');
+  const row = el('div', { class: 'addrow', style: 'margin-top:8px' });
+  const ci = el('input', { value: store.company, placeholder: 'CONO, e.g. 100' });
+  const di = el('input', { value: store.division, placeholder: 'DIVI, e.g. 100' });
+  ci.addEventListener('input', () => store.company = ci.value);
+  di.addEventListener('input', () => store.division = di.value);
+  const save = async (c, d) => {
+    try {
+      const res = await api('/api/m3/company', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: state.tenant, company: c, division: d })
+      });
+      toast(res.message);
+      bar.innerHTML = '';
+      await loadM3Company();
+    } catch (e) { toast(e.message, true); }
+  };
+  row.appendChild(ci); row.appendChild(di);
+  row.appendChild(el('button', { class: 'good', text: 'Save',
+                                 onclick: () => save(store.company, store.division) }));
+  row.appendChild(el('button', { text: 'Use M3 default', title: 'Clear both, so the calls omit cono and divi',
+                                 onclick: () => save('', '') }));
+  row.appendChild(el('button', {
+    text: 'Read from M3',
+    title: 'MNS095MI/Lst and MNS100MI/LstDivisions — what this tenant actually has',
+    onclick: async ev => {
+      const btn = ev.target;
+      btn.disabled = true; btn.textContent = 'Reading…';
+      found.innerHTML = '';
+      try {
+        const res = await run('Reading companies', '/api/m3/companies',
+                              { tenant: state.tenant });
+        if (!res.companies.length) {
+          found.appendChild(el('div', { class: 'warnrow', text: res.message }));
+        } else {
+          found.appendChild(el('div', { class: 'muted', style: 'margin-top:8px',
+                                        text: 'Click one to fill the boxes:' }));
+          const wrap = el('div', { class: 'wrapsm' });
+          const tbl = el('table', {}, el('thead', {}, el('tr', {},
+            [el('th', { text: 'CONO' }), el('th', { text: 'Company' }),
+             el('th', { text: 'DIVI' }), el('th', { text: 'Division' })])));
+          const tb = el('tbody');
+          res.companies.forEach(c => {
+            const rows = c.divisions.length ? c.divisions : [{ divi: '', name: '' }];
+            rows.forEach(d => tb.appendChild(el('tr', {
+              style: 'cursor:pointer',
+              onclick: () => { ci.value = c.cono; di.value = d.divi;
+                               store.company = c.cono; store.division = d.divi; }
+            }, [
+              el('td', { text: c.cono }), el('td', { class: 'muted', text: c.name }),
+              el('td', { text: d.divi || '' }),
+              el('td', { class: 'muted', text: d.name || '' })
+            ])));
+          });
+          tbl.appendChild(tb); wrap.appendChild(tbl); found.appendChild(wrap);
+        }
+      } catch (e) { toast(e.message, true); }
+      btn.disabled = false; btn.textContent = 'Read from M3';
+    }
+  }));
+  row.appendChild(el('button', { text: 'Close', onclick: () => bar.innerHTML = '' }));
+  panel.appendChild(row);
+  panel.appendChild(found);
+  panel.appendChild(el('div', { class: 'muted', style: 'font-size:11px',
+                                text: `Stored per tenant in ${j.config_file || 'M3_Security_M3.json'}` }));
+  bar.appendChild(panel);
+});
+
+/* ------------------------ SyncSecurityRoleMaster event settings (optional) */
+async function loadBodConfig() {
+  const bar = $('#bodbar');
+  bar.innerHTML = '';
+  if (!state.tenant) return;
+  let j;
+  try { j = await api('/api/bod/config?tenant=' + encodeURIComponent(state.tenant)); }
+  catch (e) { return; }
+  state.bod = j;
+
+  const panel = el('div', { class: 'bulkpanel create' });
+  panel.appendChild(el('div', { style: 'font-weight:600',
+                                text: 'SyncSecurityRoleMaster event settings' }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'Deleting a role writes the M3BODProcessor EventData document with '
+        + 'Operation DELETE. Everything it needs comes from the tenant and the '
+        + 'role, so these are optional: owner is stamped as CHID, and the '
+        + 'sequence stands in for M3\u2019s own event counter — set it to the '
+        + 'last number you saw and each document takes the next one.'
+  }));
+  const store = { tenant: state.tenant };
+  const row = el('div', { class: 'addrow', style: 'margin-top:8px' });
+  [['Owner / CHID', 'owner', 'EPRONOVOST'],
+   ['Last sequence', 'sequence', '261542'],
+   ['Version', 'version', '16']].forEach(([label, key, ph]) => {
+    const i = el('input', { value: j[key] === 0 ? '0' : (j[key] || ''),
+                            placeholder: `${label} (${ph})` });
+    i.addEventListener('input', () => store[key] = i.value);
+    row.appendChild(i);
+  });
+  row.appendChild(el('button', {
+    class: 'good', text: 'Save',
+    onclick: async () => {
+      try {
+        await api('/api/bod/config', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(store)
+        });
+        toast('Event settings saved');
+        await loadBodConfig();
+      } catch (e) { toast(e.message, true); }
+    }
+  }));
+  panel.appendChild(row);
+  panel.appendChild(el('div', { class: 'muted', style: 'font-size:11px',
+    text: `Next document takes sequence ${(j.sequence || 0) + 1} · stored in `
+        + `${j.file} · written to ${j.bod_dir}` }));
+  const det = el('details');
+  det.appendChild(el('summary', { class: 'muted',
+                                  text: 'SyncSecurityRoleMaster event settings' }));
+  det.appendChild(panel);
+  bar.appendChild(det);
+}
+
+/** The BOD files a delete produced, with a download for each. */
+function renderBods(res, into) {
+  const bods = res.bods || [];
+  if (!bods.length) return;
+  const ok = bods.filter(b => !b.error);
+  into.appendChild(el('div', { style: 'margin-top:8px;font-weight:600',
+                               text: `${ok.length} SyncSecurityRoleMaster event(s) written` }));
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    ['Role', 'Seq', 'keyValue', 'File'].map(h => el('th', { text: h })))));
+  const tb = el('tbody');
+  bods.forEach(b => tb.appendChild(el('tr', {}, [
+    el('td', { text: b.role }),
+    el('td', { class: 'muted', text: b.sequence || '' }),
+    el('td', { class: 'muted', text: b.key_value || '' }),
+    b.error
+      ? el('td', { class: 'warnrow', text: b.error })
+      : el('td', {}, el('a', { href: '/api/bod/file/' + encodeURIComponent(b.file),
+                               text: b.file, style: 'color:var(--accent)' }))
+  ])));
+  tbl.appendChild(tb); wrap.appendChild(tbl); into.appendChild(wrap);
+}
+
+/* ------------------------------------------------------- MNS405 Roles */
+const dsel = makeSelBar('d', keys => writeFlow({
+  out: '#dbulkout', url: '/api/mns405/write', danger: true,
+  body: { tenant: state.tenant, action: 'delete', keys,
+          emit_bods: $('#dbod').checked },
+  checking: 'Checking selection', running: 'Deleting roles',
+  confirmWord: 'DELETE',
+  note: 'MNS405MI/Dlt · each deleted role is also taken off the captured IFS '
+      + 'users and written out as a SyncSecurityRoleMaster event with '
+      + 'Operation DELETE. Export the IFS Users tab afterwards and import it, so nobody '
+      + 'holds the role any more. SES400 authorisations are not touched here.',
+  columns: [['ROLL', 'roll'], ['TX40', 'tx40'], ['TX15', 'tx15'], ['Type', 'rolt'],
+            ['IFS users', 'ifs_users']],
+  goLabel: n => `Delete ${n} role definition(s)`,
+  failLabel: f => f.roll,
+  onDone: (res, into) => {
+    renderBods(res, into);
+    const n = (res.stripped || {}).user_links || 0;
+    if (n) into.appendChild(el('div', {
+      style: 'margin-top:8px',
+      text: `Taken off ${n} captured IFS user record(s). Export the IFS Users `
+          + `tab (Export changes) and import it, then the roles are free to delete.`
+    }));
+  },
+  after: async () => {
+    dsel.clear();
+    await loadMns405(); await loadStatus(true); await loadUsers();
+  }
+}));
+
+async function loadMns405() {
+  if (!state.tenant) return;
+  const p = new URLSearchParams({ tenant: state.tenant, q: $('#dq').value,
+                                  ...sortParams(state.d),
+                                  page: state.d.page, size: state.d.size });
+  const j = await api('/api/mns405?' + p);
+  $('#dstats').innerHTML = j.total || j.checked_at
+    ? `<span><b>${j.total.toLocaleString()}</b> role definition(s)</span>
+       <span class="muted">read ${j.checked_at || '—'}</span>`
+    : '<span class="muted">Nothing loaded yet — use “Load from M3”.</span>';
+
+  paintSort($('#pane-mns405 thead tr'), state.d, loadMns405);
+  const tb = $('#dtbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = dsel.sel.has(r.role_def_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) dsel.sel.set(r.role_def_key, r.roll); else dsel.sel.delete(r.role_def_key);
+      tr.classList.toggle('picked', cb.checked);
+      dsel.render();
+    });
+    const tr = el('tr', { onclick: () => openMns405(r) }, [
+      el('td', { onclick: ev => ev.stopPropagation() }, cb),
+      el('td', {}, el('span', { class: 'inm3', text: r.roll })),
+      el('td', { text: r.tx40 || '' }), el('td', { text: r.tx15 || '' }),
+      el('td', { class: 'muted', text: r.rolt || '' }),
+      el('td', { text: r.n_users }), el('td', { text: r.n_functions })
+    ]);
+    if (cb.checked) tr.classList.add('picked');
+    tb.appendChild(tr);
+  });
+  dsel.render();
+
+  state.d.total = j.total || 0;
+  const from = j.total ? (state.d.page - 1) * state.d.size + 1 : 0;
+  $('#dinfo').textContent = `${from}–${Math.min(state.d.page * state.d.size, j.total || 0)} of ${j.total || 0}`;
+  $('#dprev').disabled = state.d.page <= 1;
+  $('#dnext').disabled = state.d.page * state.d.size >= (j.total || 0);
+}
+
+function openMns405(r, isNew) {
+  const box = $('#ddetail');
+  box.innerHTML = '';
+  const store = {};
+  box.appendChild(el('div', { class: 'head' }, [
+    el('b', { text: isNew ? 'New role definition' : r.roll }),
+    el('div', { class: 'sub', text: isNew ? 'MNS405MI/Add' : 'MNS405MI/Upd' })
+  ]));
+  const body = el('div', { style: 'padding:14px' });
+  body.appendChild(field('ROLL', r.roll, 'roll', store, {
+    attrs: isNew ? { maxlength: '10' } : { maxlength: '10', readonly: 'readonly' },
+    hint: isNew ? 'Up to 10 characters' : 'The key — create a new role to change it'
+  }));
+  body.appendChild(field('TX40 description', r.tx40, 'tx40', store,
+                         { attrs: { maxlength: '40' } }));
+  body.appendChild(field('TX15 name', r.tx15, 'tx15', store,
+                         { attrs: { maxlength: '15' } }));
+  body.appendChild(field('ROLT role type', r.rolt, 'rolt', store,
+                         { attrs: { maxlength: '1' },
+                           hint: 'Optional, 1 character. Left alone if blank.' }));
+  body.appendChild(el('div', { class: 'addrow', style: 'margin-top:12px' }, [
+    el('button', {
+      class: 'good', text: isNew ? 'Add to MNS405' : 'Save to MNS405',
+      onclick: () => writeFlow({
+        out: '#dbulkout', url: '/api/mns405/write',
+        body: { tenant: state.tenant, action: isNew ? 'add' : 'update',
+                rows: [{ ...store }] },
+        checking: 'Checking', running: isNew ? 'Adding role' : 'Updating role',
+        confirmWord: isNew ? 'CREATE' : 'UPDATE',
+        note: isNew
+          ? 'MNS405MI/Add · TX40 is mandatory; left blank it falls back to the role name.'
+          : 'MNS405MI/Upd · fields left blank are not sent, so they keep their current value.',
+        columns: [['ROLL', 'ROLL'], ['TX40', 'TX40'], ['TX15', 'TX15'], ['ROLT', 'ROLT']],
+        goLabel: () => isNew ? 'Add role' : 'Save role',
+        failLabel: f => f.ROLL,
+        after: async () => { await loadMns405(); $('#ddetail').innerHTML =
+          '<div class="empty">Pick a role to edit it, or use “+ Role” to add one.</div>'; }
+      })
+    }),
+    el('button', { text: 'Close', onclick: () => box.innerHTML =
+      '<div class="empty">Pick a role to edit it, or use “+ Role” to add one.</div>' })
+  ]));
+  box.appendChild(body);
+}
+
+$('#dnew').addEventListener('click', () =>
+  openMns405({ roll: '', tx40: '', tx15: '', rolt: '' }, true));
+$('#dload').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first so the tenant is known', true);
+  try {
+    const j = await run('Loading MNS405', '/api/mns405/sync', { tenant: state.tenant });
+    toast(j.message);
+    dsel.clear(); await loadMns405();
+  } catch (e) { toast(e.message, true); }
+});
+$('#dselall').addEventListener('click', async () => {
+  const j = await api('/api/mns405/keys?' + new URLSearchParams(
+    { tenant: state.tenant, q: $('#dq').value }));
+  j.rows.forEach(r => dsel.sel.set(r.role_def_key, r.roll));
+  await loadMns405();
+  toast(`${j.total} role definition(s) selected`);
+});
+$('#dq').addEventListener('input', debounce(() => { state.d.page = 1; loadMns405(); }));
+$('#dprev').addEventListener('click', () => { state.d.page--; loadMns405(); });
+$('#dnext').addEventListener('click', () => { state.d.page++; loadMns405(); });
+
+/* --------------------------------------------- MNS410 Roles Per User */
+const psel = makeSelBar('p', keys => writeFlow({
+  out: '#pbulkout', url: '/api/mns410/write', danger: true,
+  body: { tenant: state.tenant, action: 'delete', keys },
+  checking: 'Checking selection', running: 'Deleting rows',
+  confirmWord: 'DELETE',
+  note: 'MNS410MI/Dlt · takes the user out of the role. The role itself stays '
+      + 'in MNS405.',
+  columns: [['ROLL', 'role_name'], ['USID', 'usid'],
+            ['Valid from', 'valid_from'], ['Valid to', 'valid_to']],
+  goLabel: n => `Delete ${n} row(s)`,
+  failLabel: f => `${f.usid} / ${f.role_name}`,
+  after: async () => { psel.clear(); await loadMns410(); }
+}));
+
+async function loadMns410() {
+  if (!state.tenant) return;
+  const p = new URLSearchParams({ tenant: state.tenant, q: $('#pq').value,
+                                  role: $('#prole').value, ...sortParams(state.p),
+                                  page: state.p.page, size: state.p.size });
+  const j = await api('/api/mns410?' + p);
+  const s = j.summary || {};
+  $('#pstats').innerHTML = s.rows
+    ? `<span><b>${(s.rows || 0).toLocaleString()}</b> rows</span>
+       <span><b>${(s.roles || 0).toLocaleString()}</b> roles</span>
+       <span><b>${(s.users || 0).toLocaleString()}</b> users</span>
+       <span class="muted">read ${s.checked_at || '—'}</span>`
+    : '<span class="muted">Nothing loaded yet — use “Load from M3”.</span>';
+
+  paintSort($('#pane-mns410 thead tr'), state.p, loadMns410);
+  const tb = $('#ptbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = psel.sel.has(r.m3_member_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) psel.sel.set(r.m3_member_key, r); else psel.sel.delete(r.m3_member_key);
+      tr.classList.toggle('picked', cb.checked);
+      psel.render();
+    });
+    const tr = el('tr', { onclick: () => openMns410(r) }, [
+      el('td', { onclick: ev => ev.stopPropagation() }, cb),
+      el('td', {}, el('span', { class: r.in_mns405 ? 'inm3' : '', text: r.role_name })),
+      el('td', {}, mns405Pill(r.in_mns405 ? 1 : 0)),
+      el('td', { text: r.usid }),
+      el('td', { class: 'muted', text: r.email || r.user_name || '' }),
+      el('td', { text: r.valid_from || '' }), el('td', { text: r.valid_to || '' })
+    ]);
+    if (!r.in_mns405) tr.classList.add('miss');
+    if (cb.checked) tr.classList.add('picked');
+    tb.appendChild(tr);
+  });
+  psel.render();
+
+  state.p.total = j.total || 0;
+  const from = j.total ? (state.p.page - 1) * state.p.size + 1 : 0;
+  $('#pinfo').textContent = `${from}–${Math.min(state.p.page * state.p.size, j.total || 0)} of ${j.total || 0}`;
+  $('#pprev').disabled = state.p.page <= 1;
+  $('#pnext').disabled = state.p.page * state.p.size >= (j.total || 0);
+}
+
+function openMns410(r, isNew) {
+  const box = $('#pdetail');
+  box.innerHTML = '';
+  const store = {};
+  box.appendChild(el('div', { class: 'head' }, [
+    el('b', { text: isNew ? 'New role per user' : `${r.usid} · ${r.role_name}` }),
+    el('div', { class: 'sub', text: isNew ? 'MNS410MI/Add' : 'MNS410MI/Upd' })
+  ]));
+  const body = el('div', { style: 'padding:14px' });
+  const keyAttrs = isNew ? { maxlength: '10' } : { maxlength: '10', readonly: 'readonly' };
+  body.appendChild(field('USID user', r.usid, 'usid', store, { attrs: keyAttrs }));
+  body.appendChild(field('ROLL role', r.role_name, 'roll', store,
+                         { attrs: { ...keyAttrs, list: 'rolelist' } }));
+  body.appendChild(field('FVDT valid from', r.valid_from, 'valid_from', store,
+                         { attrs: { placeholder: 'YYYYMMDD' },
+                           hint: 'Blank leaves it as it is' }));
+  body.appendChild(field('VTDT valid to', r.valid_to, 'valid_to', store,
+                         { attrs: { placeholder: 'YYYYMMDD' },
+                           hint: 'Blank leaves it as it is' }));
+  if (!isNew && r.email) {
+    body.appendChild(el('div', { class: 'muted', style: 'font-size:12px',
+                                 text: `M3 user: ${r.user_name || ''} · ${r.email}` }));
+  }
+  body.appendChild(el('div', { class: 'addrow', style: 'margin-top:12px' }, [
+    el('button', {
+      class: 'good', text: isNew ? 'Add to MNS410' : 'Save to MNS410',
+      onclick: () => writeFlow({
+        out: '#pbulkout', url: '/api/mns410/write',
+        body: { tenant: state.tenant, action: isNew ? 'add' : 'update',
+                rows: [{ ...store }] },
+        checking: 'Checking', running: isNew ? 'Adding row' : 'Updating row',
+        confirmWord: isNew ? 'CREATE' : 'UPDATE',
+        note: isNew
+          ? 'MNS410MI/Add · the role must already exist in MNS405.'
+          : 'MNS410MI/Upd · dates left blank are not sent, so they keep their current value.',
+        columns: [['USID', 'USID'], ['ROLL', 'ROLL'],
+                  ['FVDT', 'FVDT'], ['VTDT', 'VTDT']],
+        goLabel: () => isNew ? 'Add row' : 'Save row',
+        failLabel: f => `${f.USID} / ${f.ROLL}`,
+        after: async () => { await loadMns410(); $('#pdetail').innerHTML =
+          '<div class="empty">Pick a row to edit its dates, or use “+ Role per user”.</div>'; }
+      })
+    }),
+    el('button', { text: 'Close', onclick: () => box.innerHTML =
+      '<div class="empty">Pick a row to edit its dates, or use “+ Role per user”.</div>' })
+  ]));
+  box.appendChild(body);
+}
+
+$('#pnew').addEventListener('click', () =>
+  openMns410({ usid: '', role_name: '', valid_from: '', valid_to: '' }, true));
+$('#pload').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first so the tenant is known', true);
+  try {
+    const j = await run('Loading MNS410', '/api/mns410/sync', { tenant: state.tenant });
+    toast(j.message);
+    psel.clear(); await loadMns410();
+  } catch (e) { toast(e.message, true); }
+});
+$('#pselall').addEventListener('click', async () => {
+  const j = await api('/api/mns410/keys?' + new URLSearchParams(
+    { tenant: state.tenant, q: $('#pq').value, role: $('#prole').value }));
+  j.rows.forEach(r => psel.sel.set(r.m3_member_key, r));
+  await loadMns410();
+  toast(`${j.total} row(s) selected`);
+});
+const reP = debounce(() => { state.p.page = 1; loadMns410(); });
+['#pq', '#prole'].forEach(s => $(s).addEventListener('input', reP));
+$('#pprev').addEventListener('click', () => { state.p.page--; loadMns410(); });
+$('#pnext').addEventListener('click', () => { state.p.page++; loadMns410(); });
+
+/* ---------------------------------------------------------- rows per page
+   The table area is sized to the window, so fewer rows means less scrolling
+   inside it - the pager itself never moves. */
+[['u', () => loadUsers()], ['r', () => loadRoles()], ['s', () => loadFsr()],
+ ['f', () => loadFunctions()], ['d', () => loadMns405()], ['p', () => loadMns410()]]
+.forEach(([k, reload]) => {
+  const pager = $(`#${k}prev`).parentElement;
+  const sel = el('select', { title: 'Rows per page' });
+  [25, 50, 100, 200, 500].forEach(n => sel.appendChild(
+    el('option', { value: n, text: `${n} rows`, ...(n === state[k].size ? { selected: 'selected' } : {}) })));
+  sel.value = String(state[k].size);
+  sel.addEventListener('change', () => {
+    state[k].size = Number(sel.value);
+    state[k].page = 1;
+    reload();
+  });
+  pager.appendChild(el('div', { class: 'grow' }));
+  pager.appendChild(sel);
+});
+
+/* ----------------------------------------------------------------- wire */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  document.querySelectorAll('.pane').forEach(p =>
+    p.classList.toggle('on', p.id === 'pane-' + t.dataset.pane));
+}));
+$('#tenant').addEventListener('change', async e => {
+  state.tenant = e.target.value;
+  dropTenantHint();
+  $('#conobar').innerHTML = '';
+  state.u.page = 1; state.r.page = 1; state.f.page = 1;
+  state.d.page = 1; state.p.page = 1; state.s.page = 1;
+  clearSel(); clearFnSel(); clearUserSel(); clearFsrSel(); dsel.clear(); psel.clear();
+  await loadStatus(true); await loadUsers(); await loadRoles();
+  await loadFsrRoleNames(); await loadFsr();
+  await loadFnStatus(); await loadFunctions();
+  await loadMns405(); await loadMns410(); await loadBodConfig();
+  await loadM3Company();
+});
+$('#refresh').addEventListener('click', async () => {
+  await loadStatus(true); await loadUsers(); await loadRoles();
+  await loadFsrRoleNames(); await loadFsr();
+  await loadFnStatus(); await loadFunctions();
+  await loadMns405(); await loadMns410(); await loadBodConfig();
+  await loadM3Company();
+});
+const reU = debounce(() => { state.u.page = 1; loadUsers(); });
+['#uq', '#ustatus', '#ustate', '#urole', '#ufuncrole', '#ufunc'].forEach(s => {
+  $(s).addEventListener('input', reU); $(s).addEventListener('change', reU);
+});
+const reR = debounce(() => { state.r.page = 1; loadRoles(); });
+$('#rq').addEventListener('input', reR);
+$('#rm3').addEventListener('change', reR);
+$('#uprev').addEventListener('click', () => { state.u.page--; loadUsers(); });
+$('#unext').addEventListener('click', () => { state.u.page++; loadUsers(); });
+$('#rprev').addEventListener('click', () => { state.r.page--; loadRoles(); });
+$('#rnext').addEventListener('click', () => { state.r.page++; loadRoles(); });
+
+(async () => {
+  try {
+    await loadStatus(); await loadUsers(); await loadRoles();
+    await loadFsrRoleNames(); await loadFsr();
+    await loadFnStatus(); await loadFunctions();
+    await loadMns405(); await loadMns410(); await loadBodConfig();
+  await loadM3Company();
+  } catch (e) { toast(e.message, true); }
+})();
+</script>
+</body>
+</html>

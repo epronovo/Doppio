@@ -1,0 +1,28 @@
+trigger:
+  branches:
+    include:
+    - '*'
+    exclude:
+    - master
+
+pool:
+  name: Azure Pipelines
+  vmImage: windows-2022
+
+steps:
+- task: CopyFiles@2
+  displayName: Copy Files to $(Build.ArtifactStagingDirectory)
+  inputs:
+    SourceFolder:     
+    TargetFolder: $(Build.ArtifactStagingDirectory)
+
+- task: SSIS.ssis-devops-tools.ssis-build-task.SSISBuild@1
+  displayName: 'Build SSIS'
+  inputs:
+    projectPath: '$(Build.ArtifactStagingDirectory)'
+    projectPassword: SSIS
+    
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: BGI_DW_M3'
+  
+name: $(SourceBranchName)_$(BuildDefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)

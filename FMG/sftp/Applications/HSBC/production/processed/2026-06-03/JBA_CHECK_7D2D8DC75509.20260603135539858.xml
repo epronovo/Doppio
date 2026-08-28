@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>JBA_CHECK_7D2D8DC75509</MsgId>
+      <CreDtTm>2026-06-03T13:55:39</CreDtTm>
+      <Authstn>
+        <Cd>AUTH</Cd>
+      </Authstn>
+      <NbOfTxs>8</NbOfTxs>
+      <CtrlSum>30244.34</CtrlSum>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>603A813A</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>83C34021B7F4</PmtInfId>
+      <PmtMtd>CHK</PmtMtd>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>NURG</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2026-06-03</ReqdExctnDt>
+      <Dbtr>
+        <Nm>HYSON KALLER</Nm>
+        <PstlAdr>
+          <StrtNm>123 Main St</StrtNm>
+          <PstCd>06010</PstCd>
+          <TwnNm>Bristol</TwnNm>
+          <CtrySubDvsn>CT</CtrySubDvsn>
+          <Ctry>US</Ctry>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <Othr>
+            <Id>797025162</Id>
+          </Othr>
+        </Id>
+        <Ccy>USD</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <ClrSysMmbId>
+            <MmbId>022000020</MmbId>
+          </ClrSysMmbId>
+          <PstlAdr>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </FinInstnId>
+      </DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100364A</InstrId>
+          <EndToEndId>76100364A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">27444.80</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100364</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>PERRY ROLL TECHNOLOGY  SERVICES</Nm>
+          <PstlAdr>
+            <StrtNm>5015 SPINNAKER LANE UNIT C</StrtNm>
+            <PstCd>46307</PstCd>
+            <TwnNm>CROWN POINT</TwnNm>
+            <CtrySubDvsn>IN</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>5012026-PER-INV</Nb>
+              <RltdDt>2026-05-01</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1474.80</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1474.80</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>5012026-PER-INV</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>4012026-PER-INV</Nb>
+              <RltdDt>2026-04-01</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">25970.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">25970.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>4012026-PER-INV</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100368A</InstrId>
+          <EndToEndId>76100368A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">155.90</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100368</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>MCMASTER-CARR SUPPLY CO</Nm>
+          <PstlAdr>
+            <StrtNm>P.O. BOX 7690</StrtNm>
+            <PstCd>60680-7690</PstCd>
+            <TwnNm>CHICAGO</TwnNm>
+            <CtrySubDvsn>IL</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>60834881</Nb>
+              <RltdDt>2026-03-03</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">129.05</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">129.05</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>60834881</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>60860400</Nb>
+              <RltdDt>2026-03-04</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">26.85</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">26.85</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>60860400</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100374A</InstrId>
+          <EndToEndId>76100374A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">312.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100374</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>ABSOLUTE MACHINE TOOLS, INC.</Nm>
+          <PstlAdr>
+            <StrtNm>7420 INDUSTRIAL PARKWAY</StrtNm>
+            <PstCd>44053</PstCd>
+            <TwnNm>LORAIN</TwnNm>
+            <CtrySubDvsn>OH</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>103865-IN</Nb>
+              <RltdDt>2026-03-16</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">312.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">312.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>103865-IN</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100385A</InstrId>
+          <EndToEndId>76100385A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">473.12</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100385</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>CINTAS FIRST AID  SAFETY 352</Nm>
+          <PstlAdr>
+            <StrtNm>PO BOX 631025</StrtNm>
+            <PstCd>45263-1025</PstCd>
+            <TwnNm>CINCINNATI</TwnNm>
+            <CtrySubDvsn>OH</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>5326867807</Nb>
+              <RltdDt>2026-03-31</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">124.28</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">124.28</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>5326867807</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>9365903295</Nb>
+              <RltdDt>2026-03-31</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">135.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">135.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>9365903295</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>9365903284</Nb>
+              <RltdDt>2026-03-31</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">213.84</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">213.84</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>9365903284</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100390A</InstrId>
+          <EndToEndId>76100390A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">166.31</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100390</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>MTM RECOGNITION</Nm>
+          <PstlAdr>
+            <StrtNm>P.O. BOX 15659</StrtNm>
+            <PstCd>73115-5659</PstCd>
+            <TwnNm>OKLAHOMA CITY</TwnNm>
+            <CtrySubDvsn>OK</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>6277411</Nb>
+              <RltdDt>2026-03-17</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">166.31</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">166.31</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>6277411</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100391A</InstrId>
+          <EndToEndId>76100391A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">895.02</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100391</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>LM TOOL  IND SUPPLY INC</Nm>
+          <PstlAdr>
+            <StrtNm>26800 FARGO AVE</StrtNm>
+            <PstCd>44146</PstCd>
+            <TwnNm>BEDFORD HTS</TwnNm>
+            <CtrySubDvsn>OH</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>5238357</Nb>
+              <RltdDt>2026-03-17</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">663.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">663.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>5238357</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>5238532</Nb>
+              <RltdDt>2026-03-19</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">232.02</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">232.02</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>5238532</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100395A</InstrId>
+          <EndToEndId>76100395A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">187.50</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100395</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>VENT HEATING  COOLING LLC</Nm>
+          <PstlAdr>
+            <StrtNm>1515 WEST 130TH STREET</StrtNm>
+            <PstCd>44233</PstCd>
+            <TwnNm>HICKELY</TwnNm>
+            <CtrySubDvsn>OH</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>7436</Nb>
+              <RltdDt>2026-04-15</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">187.50</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">187.50</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>7436</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100400A</InstrId>
+          <EndToEndId>76100400A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">609.69</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>76100400</ChqNb>
+          <FrmsCd>BG162</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>MCMASTER KOSS COMPANY</Nm>
+          <PstlAdr>
+            <StrtNm>4224 NORMANDY CT</StrtNm>
+            <PstCd>48073</PstCd>
+            <TwnNm>ROYAL OAK</TwnNm>
+            <CtrySubDvsn>MI</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>781609</Nb>
+              <RltdDt>2026-03-16</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">692.45</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">692.45</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>781609</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>785099</Nb>
+              <RltdDt>2026-04-30</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">-61.76</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">-61.76</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>785099</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>785100</Nb>
+              <RltdDt>2026-04-30</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">-21.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">-21.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>785100</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

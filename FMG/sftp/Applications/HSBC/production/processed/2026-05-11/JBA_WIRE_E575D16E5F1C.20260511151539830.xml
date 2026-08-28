@@ -1,0 +1,776 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>JBA_WIRE_E575D16E5F1C</MsgId>
+      <CreDtTm>2026-05-11T15:15:39</CreDtTm>
+      <Authstn>
+        <Cd>AUTH</Cd>
+      </Authstn>
+      <NbOfTxs>2</NbOfTxs>
+      <CtrlSum>280610.96</CtrlSum>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>ABC65397001</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>CC114EE099CC</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>URGP</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2026-05-11</ReqdExctnDt>
+      <Dbtr>
+        <Nm>HYSON KALLER</Nm>
+        <PstlAdr>
+          <StrtNm>123 Main St</StrtNm>
+          <PstCd>06010</PstCd>
+          <TwnNm>Bristol</TwnNm>
+          <CtrySubDvsn>CT</CtrySubDvsn>
+          <Ctry>US</Ctry>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <Othr>
+            <Id>797025162</Id>
+          </Othr>
+        </Id>
+        <Ccy>USD</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <BIC>MRMDUS33</BIC>
+          <PstlAdr>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </FinInstnId>
+      </DbtrAgt>
+      <ChrgBr>SHAR</ChrgBr>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100087A</InstrId>
+          <EndToEndId>76100087A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">265578.26</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>NDEASESS</BIC>
+            <Nm>STROMSHOLMENS MEKANISKA</Nm>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>STROMSHOLMENS MEKANISKA</Nm>
+          <PstlAdr>
+            <StrtNm>BOX 216</StrtNm>
+            <TwnNm>TRANAS</TwnNm>
+            <Ctry>SE</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>SE3930000000030621803499</Id>
+            </Othr>
+          </Id>
+          <Tp>
+            <Cd>CASH</Cd>
+          </Tp>
+        </CdtrAcct>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">387.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">387.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">56.70</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">56.70</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">952.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">952.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">24668.28</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">24668.28</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">11518.96</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">11518.96</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">981.05</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">981.05</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">5742.50</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">5742.50</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">495.58</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">495.58</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1122.45</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1122.45</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">32.35</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">32.35</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">13297.11</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">13297.11</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">31912.09</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">31912.09</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">912.36</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">912.36</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">15840.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">15840.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">69.92</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">69.92</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">2590.25</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">2590.25</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1608.50</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1608.50</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">3014.11</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">3014.11</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">13139.10</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">13139.10</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">11064.05</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">11064.05</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">5256.25</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">5256.25</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">15165.79</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">15165.79</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">84591.86</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">84591.86</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100087A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">21160.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">21160.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100087A</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>76100088A</InstrId>
+          <EndToEndId>76100088A1</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">15032.70</InstdAmt>
+        </Amt>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>BKCHCNBJ200</BIC>
+            <Nm>BARNES(TIANJIN)COMPANY Ltd.</Nm>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>BARNESTIANJINCOMPANY Ltd.</Nm>
+          <PstlAdr>
+            <StrtNm>BUILD A MINGGANG INDUSTRY PARK</StrtNm>
+            <PstCd>300350</PstCd>
+            <TwnNm>TIAJIN CHINA</TwnNm>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>280460037894</Id>
+            </Othr>
+          </Id>
+          <Tp>
+            <Cd>CASH</Cd>
+          </Tp>
+        </CdtrAcct>
+        <RmtInf>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1048.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1048.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1476.80</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1476.80</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">3892.70</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">3892.70</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1827.60</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1827.60</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1168.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1168.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">1490.30</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">1490.30</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">520.70</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">520.70</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">195.20</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">195.20</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">857.40</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">857.40</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>76100088A</Nb>
+              <RltdDt>2026-05-11</RltdDt>
+            </RfrdDocInf>
+            <RfrdDocAmt>
+              <DuePyblAmt Ccy="USD">2556.00</DuePyblAmt>
+              <DscntApldAmt Ccy="USD">0</DscntApldAmt>
+              <RmtdAmt Ccy="USD">2556.00</RmtdAmt>
+            </RfrdDocAmt>
+            <CdtrRefInf>
+              <Ref>76100088A</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

@@ -1,0 +1,500 @@
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>CHKTest1-20260407215502</MsgId>
+      <CreDtTm>2026-04-07T21:55:02</CreDtTm>
+      <Authstn>
+        <Cd>FDET</Cd>
+      </Authstn>
+      <NbOfTxs>10</NbOfTxs>
+      <CtrlSum>52954.54</CtrlSum>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>ABC65397001</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>CHKTest1</PmtInfId>
+      <PmtMtd>CHK</PmtMtd>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>NURG</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2026-02-21</ReqdExctnDt>
+      <Dbtr>
+        <Nm>HSBC DISBURSEMENTS</Nm>
+        <PstlAdr>
+          <StrtNm>13685 Otterson Court</StrtNm>
+          <PstCd>48150</PstCd>
+          <TwnNm>Livonia</TwnNm>
+          <CtrySubDvsn>MI</CtrySubDvsn>
+          <Ctry>US</Ctry>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <Othr>
+            <Id>797025120</Id>
+          </Othr>
+        </Id>
+        <Ccy>USD</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <ClrSysMmbId>
+            <MmbId>022000020</MmbId>
+          </ClrSysMmbId>
+          <PstlAdr>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </FinInstnId>
+      </DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286831</InstrId>
+          <EndToEndId>286831</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">2460.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000012</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>C &amp; C MACHINERY INC.</Nm>
+          <PstlAdr>
+            <StrtNm>PO BOX 8022</StrtNm>
+            <PstCd>01904</PstCd>
+            <TwnNm>LYNN</TwnNm>
+            <CtrySubDvsn>MA</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286831</Ustrd>
+          <Ustrd>CheckNum: 0000000012</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV WO 10139</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>WO 10139</Nb>
+              <RltdDt>2024-10-13</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>WO 10139</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286832</InstrId>
+          <EndToEndId>286832</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">269.40</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000013</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>CINTAS FIRST AID &amp; SAFETY</Nm>
+          <PstlAdr>
+            <StrtNm>PO BOX 631025</StrtNm>
+            <PstCd>45263-1025</PstCd>
+            <TwnNm>CINCINNATI</TwnNm>
+            <CtrySubDvsn>OH</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286832</Ustrd>
+          <Ustrd>CheckNum: 0000000013</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 4229610567</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>4229610567</Nb>
+              <RltdDt>2025-05-06</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>4229610567</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286833</InstrId>
+          <EndToEndId>286833</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">520.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000010</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>BELLEVILLE WIRE CLOTH CO. INC</Nm>
+          <PstlAdr>
+            <StrtNm>18 RUTGERS AVENUE</StrtNm>
+            <PstCd>07009</PstCd>
+            <TwnNm>CEDAR GROVE</TwnNm>
+            <CtrySubDvsn>NJ</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286833</Ustrd>
+          <Ustrd>CheckNum: 0000000010</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 68332</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>68332</Nb>
+              <RltdDt>2025-04-04</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>68332</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286834</InstrId>
+          <EndToEndId>286834</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">275.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000014</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>DANVERS INDUSTRIAL PACKAGING CORP.</Nm>
+          <PstlAdr>
+            <StrtNm>39 TOZER ROAD</StrtNm>
+            <PstCd>01915</PstCd>
+            <TwnNm>BEVERLY</TwnNm>
+            <CtrySubDvsn>MA</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286834</Ustrd>
+          <Ustrd>CheckNum: 0000000014</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 0650162-IN</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>0650162-IN</Nb>
+              <RltdDt>2025-04-09</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>0650162-IN</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286835</InstrId>
+          <EndToEndId>286835</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">15304.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000011</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>BLACKHAWK INDUSTRIAL DISTRIBUTION</Nm>
+          <PstlAdr>
+            <StrtNm>DEPT #41923</StrtNm>
+            <PstCd>75265-0823</PstCd>
+            <TwnNm>DALLAS</TwnNm>
+            <CtrySubDvsn>TX</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286835</Ustrd>
+          <Ustrd>CheckNum: 0000000011</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 11169141</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>11169141</Nb>
+              <RltdDt>2025-04-30</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>11169141</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286836</InstrId>
+          <EndToEndId>286836</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">100.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000006</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>ADVANCED RECORD MGMT SERVICES</Nm>
+          <PstlAdr>
+            <StrtNm>ONE SECOND STREET</StrtNm>
+            <PstCd>01960</PstCd>
+            <TwnNm>PEABODY</TwnNm>
+            <CtrySubDvsn>MA</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286836</Ustrd>
+          <Ustrd>CheckNum: 0000000006</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 0006385</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>0006385</Nb>
+              <RltdDt>2025-05-01</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>0006385</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286837</InstrId>
+          <EndToEndId>286837</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">89.13</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000009</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>Amazon Capital Services</Nm>
+          <PstlAdr>
+            <StrtNm>PO Box 035184</StrtNm>
+            <PstCd>98124-5184</PstCd>
+            <TwnNm>Seattle</TwnNm>
+            <CtrySubDvsn>WA</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286837</Ustrd>
+          <Ustrd>CheckNum: 0000000009</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 1FWH-JY9M-WMRP</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>1FWH-JY9M-WMRP</Nb>
+              <RltdDt>2025-04-17</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>1FWH-JY9M-WMRP</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286838</InstrId>
+          <EndToEndId>286838</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">1561.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000007</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>ALBION ALLEN</Nm>
+          <PstlAdr>
+            <StrtNm>699 LIVELY BLVD.</StrtNm>
+            <PstCd>60007</PstCd>
+            <TwnNm>ELK GROVE VILLAGE</TwnNm>
+            <CtrySubDvsn>IL</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286838</Ustrd>
+          <Ustrd>CheckNum: 0000000007</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 70282</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>70282</Nb>
+              <RltdDt>2025-02-11</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>70282</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286839</InstrId>
+          <EndToEndId>286839</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">23355.00</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000008</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>ALLIED INSTRUMENT SERVICE</Nm>
+          <PstlAdr>
+            <StrtNm>1051 Rohlwing Rd</StrtNm>
+            <PstCd>60008</PstCd>
+            <TwnNm>Rolling Meadows</TwnNm>
+            <CtrySubDvsn>IL</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286839</Ustrd>
+          <Ustrd>CheckNum: 0000000008</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 108904</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>108904</Nb>
+              <RltdDt>2025-04-29</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>108904</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>286840</InstrId>
+          <EndToEndId>286840</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">9021.01</InstdAmt>
+        </Amt>
+        <ChqInstr>
+          <ChqNb>0000000005</ChqNb>
+          <FrmsCd>BG120</FrmsCd>
+        </ChqInstr>
+        <Cdtr>
+          <Nm>ADECCO EMPLOYMENT SERVICES</Nm>
+          <PstlAdr>
+            <StrtNm>P.O. BOX 371084</StrtNm>
+            <PstCd>15250-7084</PstCd>
+            <TwnNm>PITTSBURGH</TwnNm>
+            <CtrySubDvsn>PA</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <RmtInf>
+          <Ustrd>GroupID: CHKTest1</Ustrd>
+          <Ustrd>HeadNum: 286840</Ustrd>
+          <Ustrd>CheckNum: 0000000005</Ustrd>
+          <Ustrd>FrmsCd: BG120</Ustrd>
+          <Ustrd>INV 71987701</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>71987701</Nb>
+              <RltdDt>2025-05-05</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>71987701</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

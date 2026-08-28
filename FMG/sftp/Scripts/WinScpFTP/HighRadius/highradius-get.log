@@ -1,0 +1,1050 @@
+. 2026-08-12 21:23:35.828 --------------------------------------------------------------------------
+. 2026-08-12 21:23:35.832 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-12 21:23:35.833 Configuration: nul
+. 2026-08-12 21:23:35.833 Log level: Normal
+. 2026-08-12 21:23:35.833 Local account: BG\AKAFG
+. 2026-08-12 21:23:35.833 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-12 21:23:35.833 Process ID: 392
+. 2026-08-12 21:23:35.841 Ancestor processes: powershell_ise, explorer, ...
+. 2026-08-12 21:23:35.841 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\4\wscp273C.00BDFFE6.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\HighRadius\highradius-get.log"  /console /consoleinstance=_10044_6159153_988
+. 2026-08-12 21:23:35.843 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-12 21:23:35.843 Login time: Wednesday, August 12, 2026 9:23:35 PM
+. 2026-08-12 21:23:35.843 --------------------------------------------------------------------------
+. 2026-08-12 21:23:35.843 Script: Retrospectively logging previous script records:
+> 2026-08-12 21:23:35.843 Script: option batch on
+< 2026-08-12 21:23:35.843 Script: batch           on        
+< 2026-08-12 21:23:35.843 Script: reconnecttime   120       
+> 2026-08-12 21:23:35.843 Script: option confirm off
+< 2026-08-12 21:23:35.843 Script: confirm         off       
+> 2026-08-12 21:23:35.843 Script: option reconnecttime 120
+< 2026-08-12 21:23:35.843 Script: reconnecttime   120       
+> 2026-08-12 21:23:35.843 Script: open sftp://UATBaresGroup:***@uatsftp-turtle13.highradius.com -hostkey="ecdsa-sha2-nistp256 256 28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ" -timeout=15
+. 2026-08-12 21:23:35.843 --------------------------------------------------------------------------
+. 2026-08-12 21:23:35.843 Session name: UATBaresGroup@uatsftp-turtle13.highradius.com (Ad-Hoc site)
+. 2026-08-12 21:23:35.843 Host name: uatsftp-turtle13.highradius.com (Port: 22)
+. 2026-08-12 21:23:35.843 User name: UATBaresGroup (Password: Yes, Key file: No, Passphrase: No)
+. 2026-08-12 21:23:35.843 Tunnel: No
+. 2026-08-12 21:23:35.843 Transfer Protocol: SFTP
+. 2026-08-12 21:23:35.843 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-12 21:23:35.843 Disable Nagle: No
+. 2026-08-12 21:23:35.843 Proxy: None
+. 2026-08-12 21:23:35.843 Send buffer: 262144
+. 2026-08-12 21:23:35.843 Compression: No
+. 2026-08-12 21:23:35.843 Bypass authentication: No
+. 2026-08-12 21:23:35.843 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-12 21:23:35.843 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-12 21:23:35.843 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-12 21:23:35.843 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-12 21:23:35.843 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-12 21:23:35.843 Simple channel: Yes
+. 2026-08-12 21:23:35.843 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-12 21:23:35.843 Shell: default
+. 2026-08-12 21:23:35.843 EOL: LF, UTF: Auto
+. 2026-08-12 21:23:35.843 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-12 21:23:35.843 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-12 21:23:35.843 SFTP Bugs: Auto,Auto
+. 2026-08-12 21:23:35.843 SFTP Server: default
+. 2026-08-12 21:23:35.843 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-12 21:23:35.843 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-12 21:23:35.843 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-12 21:23:35.843 DST mode: Unix
+. 2026-08-12 21:23:35.843 --------------------------------------------------------------------------
+< 2026-08-12 21:23:35.843 Script: Searching for host...
+. 2026-08-12 21:23:35.844 Looking up host "uatsftp-turtle13.highradius.com" for SSH connection
+. 2026-08-12 21:23:36.022 Connecting to 199.46.37.72 port 22
+. 2026-08-12 21:23:36.032 Connected to 199.46.37.72 (from 10.199.13.109:63378)
+< 2026-08-12 21:23:36.034 Script: Connecting to host...
+. 2026-08-12 21:23:36.034 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-12 21:23:36.034 Connected to 199.46.37.72 (from 10.199.13.109:63378)
+. 2026-08-12 21:23:36.064 Remote version: SSH-2.0-OpenSSH_8.7
+. 2026-08-12 21:23:36.064 Using SSH protocol version 2
+. 2026-08-12 21:23:36.066 Have a known host key of type ecdsa-sha2-nistp256
+. 2026-08-12 21:23:36.068 Enabling strict key exchange semantics
+. 2026-08-12 21:23:36.075 Doing ECDH key exchange with curve Curve25519, using hash SHA-256
+. 2026-08-12 21:23:36.139 Server also has rsa-sha2-512/rsa-sha2-256 host keys, but we don't know any of them
+. 2026-08-12 21:23:36.141 Host key fingerprint is:
+. 2026-08-12 21:23:36.141 ecdsa-sha2-nistp256 256 SHA256:28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ
+< 2026-08-12 21:23:36.141 Script: Authenticating...
+. 2026-08-12 21:23:36.141 Host key matches configured key fingerprint
+. 2026-08-12 21:23:36.141 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-12 21:23:36.141 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-12 21:23:36.141 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-12 21:23:36.141 Initialised HMAC-SHA-256 inbound MAC algorithm
+! 2026-08-12 21:23:36.151 Using username "UATBaresGroup".
+< 2026-08-12 21:23:36.151 Script: Using username "UATBaresGroup".
+. 2026-08-12 21:23:36.166 Server offered these authentication methods: publickey,password
+. 2026-08-12 21:23:36.166 Prompt (password, "SSH password", <no instructions>, "&Password: ")
+. 2026-08-12 21:23:36.166 Using stored password.
+< 2026-08-12 21:23:36.166 Script: Authenticating with pre-entered password.
+. 2026-08-12 21:23:36.166 Sent password
+. 2026-08-12 21:23:36.319 Access granted
+. 2026-08-12 21:23:36.319 Opening main session channel
+. 2026-08-12 21:23:36.862 Opened main channel
+. 2026-08-12 21:23:36.870 Started a shell/command
+< 2026-08-12 21:23:36.870 Script: Authenticated.
+. 2026-08-12 21:23:36.870 --------------------------------------------------------------------------
+. 2026-08-12 21:23:36.870 Using SFTP protocol.
+. 2026-08-12 21:23:36.870 Doing startup conversation with host.
+< 2026-08-12 21:23:36.870 Script: Starting the session...
+. 2026-08-12 21:23:36.870 Well known server, allowing SFTP version 6.
+> 2026-08-12 21:23:36.870 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-12 21:23:36.870 Type: SSH_FXP_VERSION, Size: 238, Number: -1
+. 2026-08-12 21:23:36.870 SFTP version 3 negotiated.
+. 2026-08-12 21:23:36.870 Supports extension posix-rename@openssh.com="1"
+. 2026-08-12 21:23:36.870 Supports statvfs@openssh.com extension version 2
+. 2026-08-12 21:23:36.870 Unknown server extension fstatvfs@openssh.com="2"
+. 2026-08-12 21:23:36.870 Supports hardlink@openssh.com extension version 1
+. 2026-08-12 21:23:36.870 Unknown server extension fsync@openssh.com="1"
+. 2026-08-12 21:23:36.870 Unknown server extension lsetstat@openssh.com="1"
+. 2026-08-12 21:23:36.870 Supports limits@openssh.com extension version 1
+. 2026-08-12 21:23:36.870 Unknown server extension expand-path@openssh.com="1"
+. 2026-08-12 21:23:36.870 We believe the server has signed timestamps bug
+. 2026-08-12 21:23:36.870 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+> 2026-08-12 21:23:36.870 Type: SSH_FXP_EXTENDED, Size: 27, Number: 200
+< 2026-08-12 21:23:36.885 Type: SSH_FXP_EXTENDED_REPLY, Size: 37, Number: 200
+. 2026-08-12 21:23:36.885 Limiting packet size to server's limit of 262144 + 4 bytes
+. 2026-08-12 21:23:36.885 Getting current directory name.
+. 2026-08-12 21:23:36.885 Getting real path for '.'
+> 2026-08-12 21:23:36.885 Type: SSH_FXP_REALPATH, Size: 10, Number: 272
+< 2026-08-12 21:23:36.896 Type: SSH_FXP_NAME, Size: 23, Number: 272
+. 2026-08-12 21:23:36.896 Real path is '/'
+. 2026-08-12 21:23:36.896 Startup conversation with host finished.
+< 2026-08-12 21:23:36.896 Script: Session started.
+< 2026-08-12 21:23:36.896 Script: Active session: [1] UATBaresGroup@uatsftp-turtle13.highradius.com
+> 2026-08-12 21:23:37.537 Script: pwd
+< 2026-08-12 21:23:37.537 Script: /
+> 2026-08-12 21:23:37.606 Script: ls -- "//outbound/test//caa//FMG/"
+. 2026-08-12 21:23:37.606 Listing directory "//outbound/test//caa//FMG".
+> 2026-08-12 21:23:37.606 Type: SSH_FXP_OPENDIR, Size: 34, Number: 523
+< 2026-08-12 21:23:37.618 Type: SSH_FXP_HANDLE, Size: 13, Number: 523
+> 2026-08-12 21:23:37.618 Type: SSH_FXP_READDIR, Size: 13, Number: 780
+< 2026-08-12 21:23:37.628 Type: SSH_FXP_NAME, Size: 983, Number: 780
+> 2026-08-12 21:23:37.628 Type: SSH_FXP_READDIR, Size: 13, Number: 1036
+< 2026-08-12 21:23:37.632 Type: SSH_FXP_STATUS, Size: 28, Number: 1036
+< 2026-08-12 21:23:37.632 Status code: 1
+> 2026-08-12 21:23:37.632 Type: SSH_FXP_CLOSE, Size: 13, Number: 1284
+. 2026-08-12 21:23:37.632 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI;-;1916;2026-08-11T14:48:50.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:23:37.632 .;d;0;2026-08-11T14:48:50.000Z;4;"4485" [4485];"4485" [4485];rwxr-sr-x;0
+. 2026-08-12 21:23:37.632 ..;d;0;2026-08-11T14:30:29.000Z;4;"4485" [4485];"4485" [4485];rwxrwsr-x;0
+. 2026-08-12 21:23:37.632 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML;-;4178;2026-08-07T15:24:02.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:23:37.632 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI;-;2051;2026-08-11T14:36:28.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:23:37.632 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML;-;1612;2026-08-07T15:23:54.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+< 2026-08-12 21:23:37.632 Script: -rw-r--r--   1 4485     4485          1916 Aug 11 14:48:50 2026 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+< 2026-08-12 21:23:37.632 Script: drwxr-sr-x   2 4485     4485          4096 Aug 11 14:48:50 2026 .
+< 2026-08-12 21:23:37.632 Script: drwxrwsr-x   4 4485     4485          4096 Aug 11 14:30:29 2026 ..
+< 2026-08-12 21:23:37.632 Script: -rw-r--r--   1 4485     4485          4178 Aug  7 15:24:02 2026 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+< 2026-08-12 21:23:37.632 Script: -rw-r--r--   1 4485     4485          2051 Aug 11 14:36:28 2026 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+< 2026-08-12 21:23:37.632 Script: -rw-r--r--   1 4485     4485          1612 Aug  7 15:23:54 2026 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+> 2026-08-12 21:23:37.693 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI" "E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI"
+. 2026-08-12 21:23:37.693 Listing file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI".
+> 2026-08-12 21:23:37.693 Type: SSH_FXP_LSTAT, Size: 90, Number: 1543
+< 2026-08-12 21:23:37.702 Type: SSH_FXP_STATUS, Size: 24, Number: 1284
+. 2026-08-12 21:23:37.702 Discarding reserved response
+< 2026-08-12 21:23:37.708 Type: SSH_FXP_ATTRS, Size: 37, Number: 1543
+. 2026-08-12 21:23:37.708 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI;-;1916;2026-08-11T14:48:50.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:23:37.708 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 1,916
+. 2026-08-12 21:23:37.708   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+. 2026-08-12 21:23:37.708   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:23:37.708   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:23:37.708 File: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' [2026-08-11T14:48:50.000Z] [1916]
+. 2026-08-12 21:23:37.708 Copying "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI" to local directory started.
+. 2026-08-12 21:23:37.708 Binary transfer mode selected.
+. 2026-08-12 21:23:37.708 Opening remote file.
+> 2026-08-12 21:23:37.708 Type: SSH_FXP_OPEN, Size: 98, Number: 1795
+< 2026-08-12 21:23:37.711 Type: SSH_FXP_HANDLE, Size: 13, Number: 1795
+> 2026-08-12 21:23:37.711 Type: SSH_FXP_FSTAT, Size: 13, Number: 2056
+< 2026-08-12 21:23:37.728 Type: SSH_FXP_ATTRS, Size: 37, Number: 2056
+> 2026-08-12 21:23:37.728 Type: SSH_FXP_READ, Size: 25, Number: 2309
+< 2026-08-12 21:23:37.769 Type: SSH_FXP_DATA, Size: 1925, Number: 2309
+< 2026-08-12 21:23:37.777 Status code: 1
+. 2026-08-12 21:23:37.777 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:23:37.777 Type: SSH_FXP_CLOSE, Size: 13, Number: 2820
+. 2026-08-12 21:23:37.777 Preserving timestamp [2026-08-11T14:48:50.000Z]
+. 2026-08-12 21:23:37.777 Transfer done: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' => 'E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' [1916]
+. 2026-08-12 21:23:37.777 Copying finished: Transferred: 1,916, Elapsed: 0:00:00, CPS: 27,768/s
+> 2026-08-12 21:23:37.871 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML" "E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML"
+. 2026-08-12 21:23:37.871 Listing file "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML".
+> 2026-08-12 21:23:37.871 Type: SSH_FXP_LSTAT, Size: 77, Number: 3079
+< 2026-08-12 21:23:37.886 Type: SSH_FXP_STATUS, Size: 24, Number: 2820
+. 2026-08-12 21:23:37.886 Discarding reserved response
+< 2026-08-12 21:23:37.891 Type: SSH_FXP_ATTRS, Size: 37, Number: 3079
+. 2026-08-12 21:23:37.891 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML;-;4178;2026-08-07T15:24:02.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:23:37.891 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 4,178
+. 2026-08-12 21:23:37.891   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+. 2026-08-12 21:23:37.891   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:23:37.891   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:23:37.891 File: '//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' [2026-08-07T15:24:02.000Z] [4178]
+. 2026-08-12 21:23:37.891 Copying "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML" to local directory started.
+. 2026-08-12 21:23:37.891 Binary transfer mode selected.
+. 2026-08-12 21:23:37.891 Opening remote file.
+> 2026-08-12 21:23:37.891 Type: SSH_FXP_OPEN, Size: 85, Number: 3331
+< 2026-08-12 21:23:37.901 Type: SSH_FXP_HANDLE, Size: 13, Number: 3331
+> 2026-08-12 21:23:37.901 Type: SSH_FXP_FSTAT, Size: 13, Number: 3592
+< 2026-08-12 21:23:37.901 Type: SSH_FXP_ATTRS, Size: 37, Number: 3592
+> 2026-08-12 21:23:37.901 Type: SSH_FXP_READ, Size: 25, Number: 3845
+< 2026-08-12 21:23:37.981 Type: SSH_FXP_DATA, Size: 4187, Number: 3845
+< 2026-08-12 21:23:37.984 Status code: 1
+. 2026-08-12 21:23:37.984 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:23:37.984 Type: SSH_FXP_CLOSE, Size: 13, Number: 4356
+. 2026-08-12 21:23:37.984 Preserving timestamp [2026-08-07T15:24:02.000Z]
+. 2026-08-12 21:23:37.984 Transfer done: '//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' => 'E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' [4178]
+. 2026-08-12 21:23:37.984 Copying finished: Transferred: 4,178, Elapsed: 0:00:00, CPS: 44,924/s
+> 2026-08-12 21:23:38.012 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI" "E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI"
+. 2026-08-12 21:23:38.012 Listing file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI".
+> 2026-08-12 21:23:38.012 Type: SSH_FXP_LSTAT, Size: 90, Number: 4615
+< 2026-08-12 21:23:38.022 Type: SSH_FXP_STATUS, Size: 24, Number: 4356
+. 2026-08-12 21:23:38.022 Discarding reserved response
+< 2026-08-12 21:23:38.028 Type: SSH_FXP_ATTRS, Size: 37, Number: 4615
+. 2026-08-12 21:23:38.028 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI;-;2051;2026-08-11T14:36:28.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:23:38.028 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 2,051
+. 2026-08-12 21:23:38.028   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+. 2026-08-12 21:23:38.028   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:23:38.028   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:23:38.028 File: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' [2026-08-11T14:36:28.000Z] [2051]
+. 2026-08-12 21:23:38.028 Copying "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI" to local directory started.
+. 2026-08-12 21:23:38.028 Binary transfer mode selected.
+. 2026-08-12 21:23:38.028 Opening remote file.
+> 2026-08-12 21:23:38.028 Type: SSH_FXP_OPEN, Size: 98, Number: 4867
+< 2026-08-12 21:23:38.028 Type: SSH_FXP_HANDLE, Size: 13, Number: 4867
+> 2026-08-12 21:23:38.028 Type: SSH_FXP_FSTAT, Size: 13, Number: 5128
+< 2026-08-12 21:23:38.048 Type: SSH_FXP_ATTRS, Size: 37, Number: 5128
+> 2026-08-12 21:23:38.048 Type: SSH_FXP_READ, Size: 25, Number: 5381
+< 2026-08-12 21:23:38.083 Type: SSH_FXP_DATA, Size: 2060, Number: 5381
+< 2026-08-12 21:23:38.092 Status code: 1
+. 2026-08-12 21:23:38.092 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:23:38.092 Type: SSH_FXP_CLOSE, Size: 13, Number: 5892
+. 2026-08-12 21:23:38.092 Preserving timestamp [2026-08-11T14:36:28.000Z]
+. 2026-08-12 21:23:38.092 Transfer done: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' => 'E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' [2051]
+. 2026-08-12 21:23:38.092 Copying finished: Transferred: 2,051, Elapsed: 0:00:00, CPS: 32,046/s
+> 2026-08-12 21:23:38.142 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML" "E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML"
+. 2026-08-12 21:23:38.142 Listing file "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML".
+> 2026-08-12 21:23:38.142 Type: SSH_FXP_LSTAT, Size: 79, Number: 6151
+< 2026-08-12 21:23:38.142 Type: SSH_FXP_STATUS, Size: 24, Number: 5892
+. 2026-08-12 21:23:38.142 Discarding reserved response
+< 2026-08-12 21:23:38.154 Type: SSH_FXP_ATTRS, Size: 37, Number: 6151
+. 2026-08-12 21:23:38.154 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML;-;1612;2026-08-07T15:23:54.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:23:38.154 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 1,612
+. 2026-08-12 21:23:38.154   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+. 2026-08-12 21:23:38.154   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:23:38.154   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:23:38.154 File: '//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' [2026-08-07T15:23:54.000Z] [1612]
+. 2026-08-12 21:23:38.154 Copying "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML" to local directory started.
+. 2026-08-12 21:23:38.154 Binary transfer mode selected.
+. 2026-08-12 21:23:38.154 Opening remote file.
+> 2026-08-12 21:23:38.154 Type: SSH_FXP_OPEN, Size: 87, Number: 6403
+< 2026-08-12 21:23:38.170 Type: SSH_FXP_HANDLE, Size: 13, Number: 6403
+> 2026-08-12 21:23:38.170 Type: SSH_FXP_FSTAT, Size: 13, Number: 6664
+< 2026-08-12 21:23:38.178 Type: SSH_FXP_ATTRS, Size: 37, Number: 6664
+> 2026-08-12 21:23:38.178 Type: SSH_FXP_READ, Size: 25, Number: 6917
+< 2026-08-12 21:23:38.188 Type: SSH_FXP_DATA, Size: 1621, Number: 6917
+< 2026-08-12 21:23:38.193 Status code: 1
+. 2026-08-12 21:23:38.193 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:23:38.193 Type: SSH_FXP_CLOSE, Size: 13, Number: 7428
+. 2026-08-12 21:23:38.193 Preserving timestamp [2026-08-07T15:23:54.000Z]
+. 2026-08-12 21:23:38.193 Transfer done: '//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' => 'E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' [1612]
+. 2026-08-12 21:23:38.193 Copying finished: Transferred: 1,612, Elapsed: 0:00:00, CPS: 41,333/s
+> 2026-08-12 21:23:38.221 Script: exit
+. 2026-08-12 21:23:38.221 Script: Exit code: 0
+. 2026-08-12 21:23:38.221 Closing connection.
+. 2026-08-12 21:23:38.221 Sending special code: 1
+. 2026-08-12 21:23:38.238 Session sent command exit status 0
+. 2026-08-12 21:23:38.238 Main session channel closed
+. 2026-08-12 21:23:38.238 All channels closed
+. 2026-08-12 21:39:00.327 --------------------------------------------------------------------------
+. 2026-08-12 21:39:00.329 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-12 21:39:00.329 Configuration: nul
+. 2026-08-12 21:39:00.331 Log level: Normal
+. 2026-08-12 21:39:00.331 Local account: BG\AKAFG
+. 2026-08-12 21:39:00.331 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-12 21:39:00.331 Process ID: 5536
+. 2026-08-12 21:39:00.343 Ancestor processes: powershell_ise, explorer, ...
+. 2026-08-12 21:39:00.345 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\4\wscp273C.02C3158B.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\HighRadius\highradius-get.log"  /console /consoleinstance=_10044_56041416_550
+. 2026-08-12 21:39:00.345 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-12 21:39:00.345 Login time: Wednesday, August 12, 2026 9:39:00 PM
+. 2026-08-12 21:39:00.345 --------------------------------------------------------------------------
+. 2026-08-12 21:39:00.345 Script: Retrospectively logging previous script records:
+> 2026-08-12 21:39:00.345 Script: option batch on
+< 2026-08-12 21:39:00.345 Script: batch           on        
+< 2026-08-12 21:39:00.345 Script: reconnecttime   120       
+> 2026-08-12 21:39:00.345 Script: option confirm off
+< 2026-08-12 21:39:00.345 Script: confirm         off       
+> 2026-08-12 21:39:00.345 Script: option reconnecttime 120
+< 2026-08-12 21:39:00.345 Script: reconnecttime   120       
+> 2026-08-12 21:39:00.345 Script: open sftp://UATBaresGroup:***@uatsftp-turtle13.highradius.com -hostkey="ecdsa-sha2-nistp256 256 28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ" -timeout=15
+. 2026-08-12 21:39:00.345 --------------------------------------------------------------------------
+. 2026-08-12 21:39:00.345 Session name: UATBaresGroup@uatsftp-turtle13.highradius.com (Ad-Hoc site)
+. 2026-08-12 21:39:00.345 Host name: uatsftp-turtle13.highradius.com (Port: 22)
+. 2026-08-12 21:39:00.345 User name: UATBaresGroup (Password: Yes, Key file: No, Passphrase: No)
+. 2026-08-12 21:39:00.345 Tunnel: No
+. 2026-08-12 21:39:00.345 Transfer Protocol: SFTP
+. 2026-08-12 21:39:00.345 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-12 21:39:00.345 Disable Nagle: No
+. 2026-08-12 21:39:00.345 Proxy: None
+. 2026-08-12 21:39:00.345 Send buffer: 262144
+. 2026-08-12 21:39:00.345 Compression: No
+. 2026-08-12 21:39:00.345 Bypass authentication: No
+. 2026-08-12 21:39:00.345 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-12 21:39:00.345 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-12 21:39:00.345 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-12 21:39:00.345 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-12 21:39:00.345 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-12 21:39:00.345 Simple channel: Yes
+. 2026-08-12 21:39:00.345 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-12 21:39:00.345 Shell: default
+. 2026-08-12 21:39:00.345 EOL: LF, UTF: Auto
+. 2026-08-12 21:39:00.345 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-12 21:39:00.345 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-12 21:39:00.345 SFTP Bugs: Auto,Auto
+. 2026-08-12 21:39:00.345 SFTP Server: default
+. 2026-08-12 21:39:00.345 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-12 21:39:00.345 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-12 21:39:00.345 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-12 21:39:00.345 DST mode: Unix
+. 2026-08-12 21:39:00.345 --------------------------------------------------------------------------
+< 2026-08-12 21:39:00.345 Script: Searching for host...
+. 2026-08-12 21:39:00.347 Looking up host "uatsftp-turtle13.highradius.com" for SSH connection
+. 2026-08-12 21:39:00.501 Connecting to 199.46.37.72 port 22
+. 2026-08-12 21:39:00.513 Connected to 199.46.37.72 (from 10.199.13.109:50222)
+< 2026-08-12 21:39:00.513 Script: Connecting to host...
+. 2026-08-12 21:39:00.513 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-12 21:39:00.513 Connected to 199.46.37.72 (from 10.199.13.109:50222)
+. 2026-08-12 21:39:00.536 Remote version: SSH-2.0-OpenSSH_8.7
+. 2026-08-12 21:39:00.536 Using SSH protocol version 2
+. 2026-08-12 21:39:00.538 Have a known host key of type ecdsa-sha2-nistp256
+. 2026-08-12 21:39:00.546 Enabling strict key exchange semantics
+. 2026-08-12 21:39:00.548 Doing ECDH key exchange with curve Curve25519, using hash SHA-256
+. 2026-08-12 21:39:00.629 Server also has rsa-sha2-512/rsa-sha2-256 host keys, but we don't know any of them
+. 2026-08-12 21:39:00.629 Host key fingerprint is:
+. 2026-08-12 21:39:00.629 ecdsa-sha2-nistp256 256 SHA256:28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ
+< 2026-08-12 21:39:00.629 Script: Authenticating...
+. 2026-08-12 21:39:00.629 Host key matches configured key fingerprint
+. 2026-08-12 21:39:00.631 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-12 21:39:00.631 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-12 21:39:00.631 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-12 21:39:00.631 Initialised HMAC-SHA-256 inbound MAC algorithm
+! 2026-08-12 21:39:00.639 Using username "UATBaresGroup".
+< 2026-08-12 21:39:00.639 Script: Using username "UATBaresGroup".
+. 2026-08-12 21:39:00.655 Server offered these authentication methods: publickey,password
+. 2026-08-12 21:39:00.655 Prompt (password, "SSH password", <no instructions>, "&Password: ")
+. 2026-08-12 21:39:00.655 Using stored password.
+< 2026-08-12 21:39:00.655 Script: Authenticating with pre-entered password.
+. 2026-08-12 21:39:00.655 Sent password
+. 2026-08-12 21:39:00.763 Access granted
+. 2026-08-12 21:39:00.763 Opening main session channel
+. 2026-08-12 21:39:01.495 Opened main channel
+. 2026-08-12 21:39:01.503 Started a shell/command
+< 2026-08-12 21:39:01.503 Script: Authenticated.
+. 2026-08-12 21:39:01.503 --------------------------------------------------------------------------
+. 2026-08-12 21:39:01.503 Using SFTP protocol.
+. 2026-08-12 21:39:01.503 Doing startup conversation with host.
+< 2026-08-12 21:39:01.503 Script: Starting the session...
+. 2026-08-12 21:39:01.503 Well known server, allowing SFTP version 6.
+> 2026-08-12 21:39:01.503 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-12 21:39:01.512 Type: SSH_FXP_VERSION, Size: 238, Number: -1
+. 2026-08-12 21:39:01.512 SFTP version 3 negotiated.
+. 2026-08-12 21:39:01.512 Supports extension posix-rename@openssh.com="1"
+. 2026-08-12 21:39:01.512 Supports statvfs@openssh.com extension version 2
+. 2026-08-12 21:39:01.512 Unknown server extension fstatvfs@openssh.com="2"
+. 2026-08-12 21:39:01.512 Supports hardlink@openssh.com extension version 1
+. 2026-08-12 21:39:01.512 Unknown server extension fsync@openssh.com="1"
+. 2026-08-12 21:39:01.512 Unknown server extension lsetstat@openssh.com="1"
+. 2026-08-12 21:39:01.512 Supports limits@openssh.com extension version 1
+. 2026-08-12 21:39:01.512 Unknown server extension expand-path@openssh.com="1"
+. 2026-08-12 21:39:01.512 We believe the server has signed timestamps bug
+. 2026-08-12 21:39:01.512 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+> 2026-08-12 21:39:01.512 Type: SSH_FXP_EXTENDED, Size: 27, Number: 200
+< 2026-08-12 21:39:01.520 Type: SSH_FXP_EXTENDED_REPLY, Size: 37, Number: 200
+. 2026-08-12 21:39:01.520 Limiting packet size to server's limit of 262144 + 4 bytes
+. 2026-08-12 21:39:01.520 Getting current directory name.
+. 2026-08-12 21:39:01.520 Getting real path for '.'
+> 2026-08-12 21:39:01.520 Type: SSH_FXP_REALPATH, Size: 10, Number: 272
+< 2026-08-12 21:39:01.527 Type: SSH_FXP_NAME, Size: 23, Number: 272
+. 2026-08-12 21:39:01.527 Real path is '/'
+. 2026-08-12 21:39:01.527 Startup conversation with host finished.
+< 2026-08-12 21:39:01.527 Script: Session started.
+< 2026-08-12 21:39:01.527 Script: Active session: [1] UATBaresGroup@uatsftp-turtle13.highradius.com
+> 2026-08-12 21:39:01.964 Script: pwd
+< 2026-08-12 21:39:01.964 Script: /
+> 2026-08-12 21:39:02.030 Script: ls -- "//outbound/test//caa//FMG/"
+. 2026-08-12 21:39:02.030 Listing directory "//outbound/test//caa//FMG".
+> 2026-08-12 21:39:02.030 Type: SSH_FXP_OPENDIR, Size: 34, Number: 523
+< 2026-08-12 21:39:02.030 Type: SSH_FXP_HANDLE, Size: 13, Number: 523
+> 2026-08-12 21:39:02.030 Type: SSH_FXP_READDIR, Size: 13, Number: 780
+< 2026-08-12 21:39:02.044 Type: SSH_FXP_NAME, Size: 983, Number: 780
+> 2026-08-12 21:39:02.044 Type: SSH_FXP_READDIR, Size: 13, Number: 1036
+< 2026-08-12 21:39:02.060 Type: SSH_FXP_STATUS, Size: 28, Number: 1036
+< 2026-08-12 21:39:02.060 Status code: 1
+> 2026-08-12 21:39:02.060 Type: SSH_FXP_CLOSE, Size: 13, Number: 1284
+. 2026-08-12 21:39:02.060 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI;-;1916;2026-08-11T14:48:50.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.060 .;d;0;2026-08-11T14:48:50.000Z;4;"4485" [4485];"4485" [4485];rwxr-sr-x;0
+. 2026-08-12 21:39:02.060 ..;d;0;2026-08-11T14:30:29.000Z;4;"4485" [4485];"4485" [4485];rwxrwsr-x;0
+. 2026-08-12 21:39:02.060 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML;-;4178;2026-08-07T15:24:02.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.060 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI;-;2051;2026-08-11T14:36:28.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.060 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML;-;1612;2026-08-07T15:23:54.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+< 2026-08-12 21:39:02.061 Script: -rw-r--r--   1 4485     4485          1916 Aug 11 14:48:50 2026 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+< 2026-08-12 21:39:02.061 Script: drwxr-sr-x   2 4485     4485          4096 Aug 11 14:48:50 2026 .
+< 2026-08-12 21:39:02.061 Script: drwxrwsr-x   4 4485     4485          4096 Aug 11 14:30:29 2026 ..
+< 2026-08-12 21:39:02.061 Script: -rw-r--r--   1 4485     4485          4178 Aug  7 15:24:02 2026 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+< 2026-08-12 21:39:02.061 Script: -rw-r--r--   1 4485     4485          2051 Aug 11 14:36:28 2026 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+< 2026-08-12 21:39:02.061 Script: -rw-r--r--   1 4485     4485          1612 Aug  7 15:23:54 2026 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+> 2026-08-12 21:39:02.094 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI" "E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI"
+. 2026-08-12 21:39:02.094 Listing file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI".
+> 2026-08-12 21:39:02.094 Type: SSH_FXP_LSTAT, Size: 90, Number: 1543
+< 2026-08-12 21:39:02.094 Type: SSH_FXP_STATUS, Size: 24, Number: 1284
+. 2026-08-12 21:39:02.094 Discarding reserved response
+< 2026-08-12 21:39:02.108 Type: SSH_FXP_ATTRS, Size: 37, Number: 1543
+. 2026-08-12 21:39:02.108 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI;-;1916;2026-08-11T14:48:50.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.108 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 1,916
+. 2026-08-12 21:39:02.108   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+. 2026-08-12 21:39:02.108   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:39:02.108   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:39:02.108 File: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' [2026-08-11T14:48:50.000Z] [1916]
+. 2026-08-12 21:39:02.108 Copying "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI" to local directory started.
+. 2026-08-12 21:39:02.108 Binary transfer mode selected.
+. 2026-08-12 21:39:02.108 Opening remote file.
+> 2026-08-12 21:39:02.108 Type: SSH_FXP_OPEN, Size: 98, Number: 1795
+< 2026-08-12 21:39:02.108 Type: SSH_FXP_HANDLE, Size: 13, Number: 1795
+> 2026-08-12 21:39:02.108 Type: SSH_FXP_FSTAT, Size: 13, Number: 2056
+< 2026-08-12 21:39:02.131 Type: SSH_FXP_ATTRS, Size: 37, Number: 2056
+> 2026-08-12 21:39:02.131 Type: SSH_FXP_READ, Size: 25, Number: 2309
+< 2026-08-12 21:39:02.139 Type: SSH_FXP_DATA, Size: 1925, Number: 2309
+< 2026-08-12 21:39:02.141 Status code: 1
+. 2026-08-12 21:39:02.141 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:39:02.141 Type: SSH_FXP_CLOSE, Size: 13, Number: 2820
+. 2026-08-12 21:39:02.141 Preserving timestamp [2026-08-11T14:48:50.000Z]
+. 2026-08-12 21:39:02.141 Transfer done: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' => 'E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' [1916]
+. 2026-08-12 21:39:02.141 Copying finished: Transferred: 1,916, Elapsed: 0:00:00, CPS: 58,060/s
+> 2026-08-12 21:39:02.155 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML" "E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML"
+. 2026-08-12 21:39:02.155 Listing file "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML".
+> 2026-08-12 21:39:02.155 Type: SSH_FXP_LSTAT, Size: 77, Number: 3079
+< 2026-08-12 21:39:02.155 Type: SSH_FXP_STATUS, Size: 24, Number: 2820
+. 2026-08-12 21:39:02.155 Discarding reserved response
+< 2026-08-12 21:39:02.176 Type: SSH_FXP_ATTRS, Size: 37, Number: 3079
+. 2026-08-12 21:39:02.176 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML;-;4178;2026-08-07T15:24:02.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.176 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 4,178
+. 2026-08-12 21:39:02.176   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+. 2026-08-12 21:39:02.176   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:39:02.176   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:39:02.176 File: '//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' [2026-08-07T15:24:02.000Z] [4178]
+. 2026-08-12 21:39:02.176 Copying "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML" to local directory started.
+. 2026-08-12 21:39:02.176 Binary transfer mode selected.
+. 2026-08-12 21:39:02.176 Opening remote file.
+> 2026-08-12 21:39:02.176 Type: SSH_FXP_OPEN, Size: 85, Number: 3331
+< 2026-08-12 21:39:02.181 Type: SSH_FXP_HANDLE, Size: 13, Number: 3331
+> 2026-08-12 21:39:02.181 Type: SSH_FXP_FSTAT, Size: 13, Number: 3592
+< 2026-08-12 21:39:02.192 Type: SSH_FXP_ATTRS, Size: 37, Number: 3592
+. 2026-08-12 21:39:02.192 Confirming overwriting of file.
+> 2026-08-12 21:39:02.194 Type: SSH_FXP_READ, Size: 25, Number: 3845
+< 2026-08-12 21:39:02.202 Type: SSH_FXP_DATA, Size: 4187, Number: 3845
+< 2026-08-12 21:39:02.209 Status code: 1
+. 2026-08-12 21:39:02.209 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:39:02.209 Type: SSH_FXP_CLOSE, Size: 13, Number: 4356
+. 2026-08-12 21:39:02.209 Preserving timestamp [2026-08-07T15:24:02.000Z]
+. 2026-08-12 21:39:02.209 Transfer done: '//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' => 'E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' [4178]
+. 2026-08-12 21:39:02.209 Copying finished: Transferred: 4,178, Elapsed: 0:00:00, CPS: 126,606/s
+> 2026-08-12 21:39:02.218 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI" "E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI"
+. 2026-08-12 21:39:02.218 Listing file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI".
+> 2026-08-12 21:39:02.218 Type: SSH_FXP_LSTAT, Size: 90, Number: 4615
+< 2026-08-12 21:39:02.226 Type: SSH_FXP_STATUS, Size: 24, Number: 4356
+. 2026-08-12 21:39:02.226 Discarding reserved response
+< 2026-08-12 21:39:02.234 Type: SSH_FXP_ATTRS, Size: 37, Number: 4615
+. 2026-08-12 21:39:02.234 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI;-;2051;2026-08-11T14:36:28.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.234 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 2,051
+. 2026-08-12 21:39:02.234   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+. 2026-08-12 21:39:02.234   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:39:02.234   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:39:02.234 File: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' [2026-08-11T14:36:28.000Z] [2051]
+. 2026-08-12 21:39:02.234 Copying "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI" to local directory started.
+. 2026-08-12 21:39:02.234 Binary transfer mode selected.
+. 2026-08-12 21:39:02.234 Opening remote file.
+> 2026-08-12 21:39:02.234 Type: SSH_FXP_OPEN, Size: 98, Number: 4867
+< 2026-08-12 21:39:02.234 Type: SSH_FXP_HANDLE, Size: 13, Number: 4867
+> 2026-08-12 21:39:02.234 Type: SSH_FXP_FSTAT, Size: 13, Number: 5128
+< 2026-08-12 21:39:02.251 Type: SSH_FXP_ATTRS, Size: 37, Number: 5128
+> 2026-08-12 21:39:02.251 Type: SSH_FXP_READ, Size: 25, Number: 5381
+< 2026-08-12 21:39:02.261 Type: SSH_FXP_DATA, Size: 2060, Number: 5381
+< 2026-08-12 21:39:02.265 Status code: 1
+. 2026-08-12 21:39:02.265 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:39:02.265 Type: SSH_FXP_CLOSE, Size: 13, Number: 5892
+. 2026-08-12 21:39:02.265 Preserving timestamp [2026-08-11T14:36:28.000Z]
+. 2026-08-12 21:39:02.265 Transfer done: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' => 'E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' [2051]
+. 2026-08-12 21:39:02.265 Copying finished: Transferred: 2,051, Elapsed: 0:00:00, CPS: 66,161/s
+> 2026-08-12 21:39:02.291 Script: get  -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML" "E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML"
+. 2026-08-12 21:39:02.291 Listing file "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML".
+> 2026-08-12 21:39:02.291 Type: SSH_FXP_LSTAT, Size: 79, Number: 6151
+< 2026-08-12 21:39:02.297 Type: SSH_FXP_STATUS, Size: 24, Number: 5892
+. 2026-08-12 21:39:02.297 Discarding reserved response
+< 2026-08-12 21:39:02.297 Type: SSH_FXP_ATTRS, Size: 37, Number: 6151
+. 2026-08-12 21:39:02.297 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML;-;1612;2026-08-07T15:23:54.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:39:02.297 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 1,612
+. 2026-08-12 21:39:02.297   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+. 2026-08-12 21:39:02.297   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:39:02.297   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:39:02.297 File: '//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' [2026-08-07T15:23:54.000Z] [1612]
+. 2026-08-12 21:39:02.297 Copying "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML" to local directory started.
+. 2026-08-12 21:39:02.297 Binary transfer mode selected.
+. 2026-08-12 21:39:02.297 Opening remote file.
+> 2026-08-12 21:39:02.297 Type: SSH_FXP_OPEN, Size: 87, Number: 6403
+< 2026-08-12 21:39:02.313 Type: SSH_FXP_HANDLE, Size: 13, Number: 6403
+> 2026-08-12 21:39:02.313 Type: SSH_FXP_FSTAT, Size: 13, Number: 6664
+< 2026-08-12 21:39:02.325 Type: SSH_FXP_ATTRS, Size: 37, Number: 6664
+. 2026-08-12 21:39:02.325 Confirming overwriting of file.
+> 2026-08-12 21:39:02.325 Type: SSH_FXP_READ, Size: 25, Number: 6917
+< 2026-08-12 21:39:02.334 Type: SSH_FXP_DATA, Size: 1621, Number: 6917
+< 2026-08-12 21:39:02.340 Status code: 1
+. 2026-08-12 21:39:02.340 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:39:02.340 Type: SSH_FXP_CLOSE, Size: 13, Number: 7428
+. 2026-08-12 21:39:02.340 Preserving timestamp [2026-08-07T15:23:54.000Z]
+. 2026-08-12 21:39:02.340 Transfer done: '//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' => 'E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' [1612]
+. 2026-08-12 21:39:02.340 Copying finished: Transferred: 1,612, Elapsed: 0:00:00, CPS: 37,488/s
+> 2026-08-12 21:39:02.345 Script: exit
+. 2026-08-12 21:39:02.345 Script: Exit code: 0
+. 2026-08-12 21:39:02.345 Closing connection.
+. 2026-08-12 21:39:02.345 Sending special code: 1
+. 2026-08-12 21:39:02.363 Session sent command exit status 0
+. 2026-08-12 21:39:02.363 Main session channel closed
+. 2026-08-12 21:39:02.363 All channels closed
+. 2026-08-12 21:46:24.228 --------------------------------------------------------------------------
+. 2026-08-12 21:46:24.231 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-12 21:46:24.231 Configuration: nul
+. 2026-08-12 21:46:24.231 Log level: Normal
+. 2026-08-12 21:46:24.231 Local account: BG\AKAFG
+. 2026-08-12 21:46:24.231 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-12 21:46:24.231 Process ID: 952
+. 2026-08-12 21:46:24.239 Ancestor processes: powershell_ise, explorer, ...
+. 2026-08-12 21:46:24.239 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\4\wscp273C.02694615.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\HighRadius\highradius-get.log"  /console /consoleinstance=_10044_36071950_281
+. 2026-08-12 21:46:24.239 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-12 21:46:24.240 Login time: Wednesday, August 12, 2026 9:46:24 PM
+. 2026-08-12 21:46:24.240 --------------------------------------------------------------------------
+. 2026-08-12 21:46:24.240 Script: Retrospectively logging previous script records:
+> 2026-08-12 21:46:24.240 Script: option batch on
+< 2026-08-12 21:46:24.240 Script: batch           on        
+< 2026-08-12 21:46:24.240 Script: reconnecttime   120       
+> 2026-08-12 21:46:24.240 Script: option confirm off
+< 2026-08-12 21:46:24.240 Script: confirm         off       
+> 2026-08-12 21:46:24.240 Script: option reconnecttime 120
+< 2026-08-12 21:46:24.240 Script: reconnecttime   120       
+> 2026-08-12 21:46:24.240 Script: open sftp://UATBaresGroup:***@uatsftp-turtle13.highradius.com -hostkey="ecdsa-sha2-nistp256 256 28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ" -timeout=15
+. 2026-08-12 21:46:24.240 --------------------------------------------------------------------------
+. 2026-08-12 21:46:24.240 Session name: UATBaresGroup@uatsftp-turtle13.highradius.com (Ad-Hoc site)
+. 2026-08-12 21:46:24.240 Host name: uatsftp-turtle13.highradius.com (Port: 22)
+. 2026-08-12 21:46:24.241 User name: UATBaresGroup (Password: Yes, Key file: No, Passphrase: No)
+. 2026-08-12 21:46:24.241 Tunnel: No
+. 2026-08-12 21:46:24.241 Transfer Protocol: SFTP
+. 2026-08-12 21:46:24.241 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-12 21:46:24.241 Disable Nagle: No
+. 2026-08-12 21:46:24.241 Proxy: None
+. 2026-08-12 21:46:24.241 Send buffer: 262144
+. 2026-08-12 21:46:24.241 Compression: No
+. 2026-08-12 21:46:24.241 Bypass authentication: No
+. 2026-08-12 21:46:24.241 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-12 21:46:24.241 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-12 21:46:24.241 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-12 21:46:24.241 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-12 21:46:24.241 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-12 21:46:24.241 Simple channel: Yes
+. 2026-08-12 21:46:24.241 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-12 21:46:24.241 Shell: default
+. 2026-08-12 21:46:24.241 EOL: LF, UTF: Auto
+. 2026-08-12 21:46:24.241 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-12 21:46:24.241 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-12 21:46:24.241 SFTP Bugs: Auto,Auto
+. 2026-08-12 21:46:24.241 SFTP Server: default
+. 2026-08-12 21:46:24.241 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-12 21:46:24.241 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-12 21:46:24.241 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-12 21:46:24.241 DST mode: Unix
+. 2026-08-12 21:46:24.241 --------------------------------------------------------------------------
+< 2026-08-12 21:46:24.241 Script: Searching for host...
+. 2026-08-12 21:46:24.243 Looking up host "uatsftp-turtle13.highradius.com" for SSH connection
+. 2026-08-12 21:46:24.405 Connecting to 199.46.37.72 port 22
+. 2026-08-12 21:46:24.414 Connected to 199.46.37.72 (from 10.199.13.109:50562)
+< 2026-08-12 21:46:24.416 Script: Connecting to host...
+. 2026-08-12 21:46:24.416 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-12 21:46:24.416 Connected to 199.46.37.72 (from 10.199.13.109:50562)
+. 2026-08-12 21:46:24.437 Remote version: SSH-2.0-OpenSSH_8.7
+. 2026-08-12 21:46:24.437 Using SSH protocol version 2
+. 2026-08-12 21:46:24.437 Have a known host key of type ecdsa-sha2-nistp256
+. 2026-08-12 21:46:24.447 Enabling strict key exchange semantics
+. 2026-08-12 21:46:24.448 Doing ECDH key exchange with curve Curve25519, using hash SHA-256
+. 2026-08-12 21:46:24.511 Server also has rsa-sha2-512/rsa-sha2-256 host keys, but we don't know any of them
+. 2026-08-12 21:46:24.511 Host key fingerprint is:
+. 2026-08-12 21:46:24.511 ecdsa-sha2-nistp256 256 SHA256:28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ
+< 2026-08-12 21:46:24.511 Script: Authenticating...
+. 2026-08-12 21:46:24.511 Host key matches configured key fingerprint
+. 2026-08-12 21:46:24.511 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-12 21:46:24.511 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-12 21:46:24.511 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-12 21:46:24.511 Initialised HMAC-SHA-256 inbound MAC algorithm
+! 2026-08-12 21:46:24.521 Using username "UATBaresGroup".
+< 2026-08-12 21:46:24.521 Script: Using username "UATBaresGroup".
+. 2026-08-12 21:46:24.535 Server offered these authentication methods: publickey,password
+. 2026-08-12 21:46:24.535 Prompt (password, "SSH password", <no instructions>, "&Password: ")
+. 2026-08-12 21:46:24.535 Using stored password.
+< 2026-08-12 21:46:24.535 Script: Authenticating with pre-entered password.
+. 2026-08-12 21:46:24.535 Sent password
+. 2026-08-12 21:46:24.557 Access granted
+. 2026-08-12 21:46:24.557 Opening main session channel
+. 2026-08-12 21:46:24.792 Opened main channel
+. 2026-08-12 21:46:24.805 Started a shell/command
+< 2026-08-12 21:46:24.805 Script: Authenticated.
+. 2026-08-12 21:46:24.805 --------------------------------------------------------------------------
+. 2026-08-12 21:46:24.805 Using SFTP protocol.
+. 2026-08-12 21:46:24.805 Doing startup conversation with host.
+< 2026-08-12 21:46:24.805 Script: Starting the session...
+. 2026-08-12 21:46:24.805 Well known server, allowing SFTP version 6.
+> 2026-08-12 21:46:24.805 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-12 21:46:24.811 Type: SSH_FXP_VERSION, Size: 238, Number: -1
+. 2026-08-12 21:46:24.811 SFTP version 3 negotiated.
+. 2026-08-12 21:46:24.811 Supports extension posix-rename@openssh.com="1"
+. 2026-08-12 21:46:24.811 Supports statvfs@openssh.com extension version 2
+. 2026-08-12 21:46:24.811 Unknown server extension fstatvfs@openssh.com="2"
+. 2026-08-12 21:46:24.811 Supports hardlink@openssh.com extension version 1
+. 2026-08-12 21:46:24.811 Unknown server extension fsync@openssh.com="1"
+. 2026-08-12 21:46:24.811 Unknown server extension lsetstat@openssh.com="1"
+. 2026-08-12 21:46:24.811 Supports limits@openssh.com extension version 1
+. 2026-08-12 21:46:24.811 Unknown server extension expand-path@openssh.com="1"
+. 2026-08-12 21:46:24.811 We believe the server has signed timestamps bug
+. 2026-08-12 21:46:24.811 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+> 2026-08-12 21:46:24.811 Type: SSH_FXP_EXTENDED, Size: 27, Number: 200
+< 2026-08-12 21:46:24.823 Type: SSH_FXP_EXTENDED_REPLY, Size: 37, Number: 200
+. 2026-08-12 21:46:24.823 Limiting packet size to server's limit of 262144 + 4 bytes
+. 2026-08-12 21:46:24.823 Getting current directory name.
+. 2026-08-12 21:46:24.823 Getting real path for '.'
+> 2026-08-12 21:46:24.823 Type: SSH_FXP_REALPATH, Size: 10, Number: 272
+< 2026-08-12 21:46:24.823 Type: SSH_FXP_NAME, Size: 23, Number: 272
+. 2026-08-12 21:46:24.823 Real path is '/'
+. 2026-08-12 21:46:24.823 Startup conversation with host finished.
+< 2026-08-12 21:46:24.823 Script: Session started.
+< 2026-08-12 21:46:24.823 Script: Active session: [1] UATBaresGroup@uatsftp-turtle13.highradius.com
+> 2026-08-12 21:46:25.057 Script: pwd
+< 2026-08-12 21:46:25.057 Script: /
+> 2026-08-12 21:46:25.122 Script: ls -- "//outbound/test//caa//FMG/"
+. 2026-08-12 21:46:25.122 Listing directory "//outbound/test//caa//FMG".
+> 2026-08-12 21:46:25.122 Type: SSH_FXP_OPENDIR, Size: 34, Number: 523
+< 2026-08-12 21:46:25.122 Type: SSH_FXP_HANDLE, Size: 13, Number: 523
+> 2026-08-12 21:46:25.122 Type: SSH_FXP_READDIR, Size: 13, Number: 780
+< 2026-08-12 21:46:25.136 Type: SSH_FXP_NAME, Size: 983, Number: 780
+> 2026-08-12 21:46:25.136 Type: SSH_FXP_READDIR, Size: 13, Number: 1036
+< 2026-08-12 21:46:25.154 Type: SSH_FXP_STATUS, Size: 28, Number: 1036
+< 2026-08-12 21:46:25.154 Status code: 1
+> 2026-08-12 21:46:25.154 Type: SSH_FXP_CLOSE, Size: 13, Number: 1284
+. 2026-08-12 21:46:25.154 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI;-;1916;2026-08-11T14:48:50.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.154 .;d;0;2026-08-11T14:48:50.000Z;4;"4485" [4485];"4485" [4485];rwxr-sr-x;0
+. 2026-08-12 21:46:25.154 ..;d;0;2026-08-11T14:30:29.000Z;4;"4485" [4485];"4485" [4485];rwxrwsr-x;0
+. 2026-08-12 21:46:25.154 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML;-;4178;2026-08-07T15:24:02.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.154 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI;-;2051;2026-08-11T14:36:28.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.154 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML;-;1612;2026-08-07T15:23:54.000Z;4;"4485" [4485];"4485" [4485];rw-r--r--;0
+< 2026-08-12 21:46:25.156 Script: -rw-r--r--   1 4485     4485          1916 Aug 11 14:48:50 2026 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+< 2026-08-12 21:46:25.156 Script: drwxr-sr-x   2 4485     4485          4096 Aug 11 14:48:50 2026 .
+< 2026-08-12 21:46:25.156 Script: drwxrwsr-x   4 4485     4485          4096 Aug 11 14:30:29 2026 ..
+< 2026-08-12 21:46:25.156 Script: -rw-r--r--   1 4485     4485          4178 Aug  7 15:24:02 2026 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+< 2026-08-12 21:46:25.156 Script: -rw-r--r--   1 4485     4485          2051 Aug 11 14:36:28 2026 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+< 2026-08-12 21:46:25.156 Script: -rw-r--r--   1 4485     4485          1612 Aug  7 15:23:54 2026 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+> 2026-08-12 21:46:25.205 Script: get -delete -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI" "E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI"
+. 2026-08-12 21:46:25.205 Listing file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI".
+> 2026-08-12 21:46:25.205 Type: SSH_FXP_LSTAT, Size: 90, Number: 1543
+< 2026-08-12 21:46:25.213 Type: SSH_FXP_STATUS, Size: 24, Number: 1284
+. 2026-08-12 21:46:25.213 Discarding reserved response
+< 2026-08-12 21:46:25.221 Type: SSH_FXP_ATTRS, Size: 37, Number: 1543
+. 2026-08-12 21:46:25.221 HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI;-;1916;2026-08-11T14:48:50.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.221 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 1,916
+. 2026-08-12 21:46:25.221   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+. 2026-08-12 21:46:25.221   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:46:25.221   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:46:25.221 File: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' [2026-08-11T14:48:50.000Z] [1916]
+. 2026-08-12 21:46:25.223 Copying "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI" to local directory started.
+. 2026-08-12 21:46:25.223 Binary transfer mode selected.
+. 2026-08-12 21:46:25.223 Opening remote file.
+> 2026-08-12 21:46:25.223 Type: SSH_FXP_OPEN, Size: 98, Number: 1795
+< 2026-08-12 21:46:25.232 Type: SSH_FXP_HANDLE, Size: 13, Number: 1795
+> 2026-08-12 21:46:25.232 Type: SSH_FXP_FSTAT, Size: 13, Number: 2056
+< 2026-08-12 21:46:25.241 Type: SSH_FXP_ATTRS, Size: 37, Number: 2056
+> 2026-08-12 21:46:25.241 Type: SSH_FXP_READ, Size: 25, Number: 2309
+< 2026-08-12 21:46:25.248 Type: SSH_FXP_DATA, Size: 1925, Number: 2309
+< 2026-08-12 21:46:25.256 Status code: 1
+. 2026-08-12 21:46:25.256 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:46:25.256 Type: SSH_FXP_CLOSE, Size: 13, Number: 2820
+. 2026-08-12 21:46:25.256 Preserving timestamp [2026-08-11T14:48:50.000Z]
+. 2026-08-12 21:46:25.256 Transfer done: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' => 'E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI' [1916]
+. 2026-08-12 21:46:25.256 Deleting file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI".
+> 2026-08-12 21:46:25.256 Type: SSH_FXP_REMOVE, Size: 90, Number: 3085
+< 2026-08-12 21:46:25.262 Type: SSH_FXP_STATUS, Size: 24, Number: 2820
+. 2026-08-12 21:46:25.262 Discarding reserved response
+< 2026-08-12 21:46:25.262 Type: SSH_FXP_STATUS, Size: 24, Number: 3085
+< 2026-08-12 21:46:25.262 Status code: 0
+. 2026-08-12 21:46:25.262 Copying finished: Transferred: 1,916, Elapsed: 0:00:00, CPS: 46,731/s
+> 2026-08-12 21:46:25.262 Script: get -delete -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML" "E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML"
+. 2026-08-12 21:46:25.262 Listing file "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML".
+> 2026-08-12 21:46:25.262 Type: SSH_FXP_LSTAT, Size: 77, Number: 3335
+< 2026-08-12 21:46:25.283 Type: SSH_FXP_ATTRS, Size: 37, Number: 3335
+. 2026-08-12 21:46:25.283 HRCAA-6305_EDI_M3_20260806_0547_52_674.XML;-;4178;2026-08-07T15:24:02.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.283 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 4,178
+. 2026-08-12 21:46:25.283   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+. 2026-08-12 21:46:25.283   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:46:25.283   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:46:25.283 File: '//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' [2026-08-07T15:24:02.000Z] [4178]
+. 2026-08-12 21:46:25.283 Copying "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML" to local directory started.
+. 2026-08-12 21:46:25.283 Binary transfer mode selected.
+. 2026-08-12 21:46:25.283 Opening remote file.
+> 2026-08-12 21:46:25.283 Type: SSH_FXP_OPEN, Size: 85, Number: 3587
+< 2026-08-12 21:46:25.293 Type: SSH_FXP_HANDLE, Size: 13, Number: 3587
+> 2026-08-12 21:46:25.293 Type: SSH_FXP_FSTAT, Size: 13, Number: 3848
+< 2026-08-12 21:46:25.298 Type: SSH_FXP_ATTRS, Size: 37, Number: 3848
+. 2026-08-12 21:46:25.298 Confirming overwriting of file.
+> 2026-08-12 21:46:25.298 Type: SSH_FXP_READ, Size: 25, Number: 4101
+< 2026-08-12 21:46:25.309 Type: SSH_FXP_DATA, Size: 4187, Number: 4101
+< 2026-08-12 21:46:25.309 Status code: 1
+. 2026-08-12 21:46:25.309 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:46:25.309 Type: SSH_FXP_CLOSE, Size: 13, Number: 4612
+. 2026-08-12 21:46:25.309 Preserving timestamp [2026-08-07T15:24:02.000Z]
+. 2026-08-12 21:46:25.309 Transfer done: '//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' => 'E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML' [4178]
+. 2026-08-12 21:46:25.309 Deleting file "//outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML".
+> 2026-08-12 21:46:25.309 Type: SSH_FXP_REMOVE, Size: 77, Number: 4877
+< 2026-08-12 21:46:25.325 Type: SSH_FXP_STATUS, Size: 24, Number: 4612
+. 2026-08-12 21:46:25.325 Discarding reserved response
+< 2026-08-12 21:46:25.361 Type: SSH_FXP_STATUS, Size: 24, Number: 4877
+< 2026-08-12 21:46:25.361 Status code: 0
+. 2026-08-12 21:46:25.361 Copying finished: Transferred: 4,178, Elapsed: 0:00:00, CPS: 53,564/s
+> 2026-08-12 21:46:25.399 Script: get -delete -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI" "E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI"
+. 2026-08-12 21:46:25.399 Listing file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI".
+> 2026-08-12 21:46:25.399 Type: SSH_FXP_LSTAT, Size: 90, Number: 5127
+< 2026-08-12 21:46:25.409 Type: SSH_FXP_ATTRS, Size: 37, Number: 5127
+. 2026-08-12 21:46:25.409 HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI;-;2051;2026-08-11T14:36:28.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.409 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 2,051
+. 2026-08-12 21:46:25.409   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+. 2026-08-12 21:46:25.409   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:46:25.409   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:46:25.409 File: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' [2026-08-11T14:36:28.000Z] [2051]
+. 2026-08-12 21:46:25.409 Copying "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI" to local directory started.
+. 2026-08-12 21:46:25.409 Binary transfer mode selected.
+. 2026-08-12 21:46:25.409 Opening remote file.
+> 2026-08-12 21:46:25.409 Type: SSH_FXP_OPEN, Size: 98, Number: 5379
+< 2026-08-12 21:46:25.417 Type: SSH_FXP_HANDLE, Size: 13, Number: 5379
+> 2026-08-12 21:46:25.417 Type: SSH_FXP_FSTAT, Size: 13, Number: 5640
+< 2026-08-12 21:46:25.421 Type: SSH_FXP_ATTRS, Size: 37, Number: 5640
+> 2026-08-12 21:46:25.421 Type: SSH_FXP_READ, Size: 25, Number: 5893
+< 2026-08-12 21:46:25.421 Type: SSH_FXP_DATA, Size: 2060, Number: 5893
+< 2026-08-12 21:46:25.437 Status code: 1
+. 2026-08-12 21:46:25.437 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:46:25.437 Type: SSH_FXP_CLOSE, Size: 13, Number: 6404
+. 2026-08-12 21:46:25.437 Preserving timestamp [2026-08-11T14:36:28.000Z]
+. 2026-08-12 21:46:25.437 Transfer done: '//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' => 'E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI' [2051]
+. 2026-08-12 21:46:25.437 Deleting file "//outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI".
+> 2026-08-12 21:46:25.437 Type: SSH_FXP_REMOVE, Size: 90, Number: 6669
+< 2026-08-12 21:46:25.448 Type: SSH_FXP_STATUS, Size: 24, Number: 6404
+. 2026-08-12 21:46:25.448 Discarding reserved response
+< 2026-08-12 21:46:25.452 Type: SSH_FXP_STATUS, Size: 24, Number: 6669
+< 2026-08-12 21:46:25.452 Status code: 0
+. 2026-08-12 21:46:25.452 Copying finished: Transferred: 2,051, Elapsed: 0:00:00, CPS: 47,697/s
+> 2026-08-12 21:46:25.470 Script: get -delete -nopermissions -preservetime -transfer="binary"  -- "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML" "E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML"
+. 2026-08-12 21:46:25.470 Listing file "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML".
+> 2026-08-12 21:46:25.470 Type: SSH_FXP_LSTAT, Size: 79, Number: 6919
+< 2026-08-12 21:46:25.479 Type: SSH_FXP_ATTRS, Size: 37, Number: 6919
+. 2026-08-12 21:46:25.479 HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML;-;1612;2026-08-07T15:23:54.000Z;4;"" [4485];"" [4485];rw-r--r--;0
+. 2026-08-12 21:46:25.479 Copying 1 files/directories to local directory "E:\Applications\HighRadius\stage\in\" - total size: 1,612
+. 2026-08-12 21:46:25.479   PrTime: Yes; PrRO: No; Rght: rw-r--r--; PrR: No (No); FnCs: N; RIC: 0001; Resume: S (102400); CalcS: No; Mask: HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+. 2026-08-12 21:46:25.479   TM: B; ClAr: No; RemEOF: No; RemBOM: No; CPS: 0; NewerOnly: No; EncryptNewFiles: Yes; ExcludeHiddenFiles: No; ExcludeEmptyDirectories: No; InclM: ; ResumeL: 0
+. 2026-08-12 21:46:25.479   AscM: *.*html; *.htm; *.txt; *.php; *.php3; *.cgi; *.c; *.cpp; *.h; *.pas; *.bas; *.tex; *.pl; *.js; .htaccess; *.xtml; *.css; *.cfg; *.ini; *.sh; *.xml
+. 2026-08-12 21:46:25.479 File: '//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' [2026-08-07T15:23:54.000Z] [1612]
+. 2026-08-12 21:46:25.479 Copying "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML" to local directory started.
+. 2026-08-12 21:46:25.479 Binary transfer mode selected.
+. 2026-08-12 21:46:25.479 Opening remote file.
+> 2026-08-12 21:46:25.479 Type: SSH_FXP_OPEN, Size: 87, Number: 7171
+< 2026-08-12 21:46:25.489 Type: SSH_FXP_HANDLE, Size: 13, Number: 7171
+> 2026-08-12 21:46:25.489 Type: SSH_FXP_FSTAT, Size: 13, Number: 7432
+< 2026-08-12 21:46:25.492 Type: SSH_FXP_ATTRS, Size: 37, Number: 7432
+. 2026-08-12 21:46:25.492 Confirming overwriting of file.
+> 2026-08-12 21:46:25.492 Type: SSH_FXP_READ, Size: 25, Number: 7685
+< 2026-08-12 21:46:25.500 Type: SSH_FXP_DATA, Size: 1621, Number: 7685
+< 2026-08-12 21:46:25.511 Status code: 1
+. 2026-08-12 21:46:25.511 Skipped 1 SSH_FXP_READ and 1 SSH_FXP_STATUS packets
+> 2026-08-12 21:46:25.511 Type: SSH_FXP_CLOSE, Size: 13, Number: 8196
+. 2026-08-12 21:46:25.511 Preserving timestamp [2026-08-07T15:23:54.000Z]
+. 2026-08-12 21:46:25.511 Transfer done: '//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' => 'E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML' [1612]
+. 2026-08-12 21:46:25.511 Deleting file "//outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML".
+> 2026-08-12 21:46:25.511 Type: SSH_FXP_REMOVE, Size: 79, Number: 8461
+< 2026-08-12 21:46:25.521 Type: SSH_FXP_STATUS, Size: 24, Number: 8196
+. 2026-08-12 21:46:25.521 Discarding reserved response
+< 2026-08-12 21:46:25.523 Type: SSH_FXP_STATUS, Size: 24, Number: 8461
+< 2026-08-12 21:46:25.523 Status code: 0
+. 2026-08-12 21:46:25.523 Copying finished: Transferred: 1,612, Elapsed: 0:00:00, CPS: 36,636/s
+> 2026-08-12 21:46:25.523 Script: exit
+. 2026-08-12 21:46:25.523 Script: Exit code: 0
+. 2026-08-12 21:46:25.523 Closing connection.
+. 2026-08-12 21:46:25.523 Sending special code: 1
+. 2026-08-12 21:46:25.537 Session sent command exit status 0
+. 2026-08-12 21:46:25.537 Main session channel closed
+. 2026-08-12 21:46:25.537 All channels closed
+. 2026-08-12 21:48:18.808 --------------------------------------------------------------------------
+. 2026-08-12 21:48:18.810 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-12 21:48:18.810 Configuration: nul
+. 2026-08-12 21:48:18.812 Log level: Normal
+. 2026-08-12 21:48:18.812 Local account: BG\AKAFG
+. 2026-08-12 21:48:18.812 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-12 21:48:18.812 Process ID: 12008
+. 2026-08-12 21:48:18.817 Ancestor processes: powershell_ise, explorer, ...
+. 2026-08-12 21:48:18.817 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\4\wscp273C.030D408F.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\HighRadius\highradius-get.log"  /console /consoleinstance=_10044_25779081_729
+. 2026-08-12 21:48:18.817 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-12 21:48:18.817 Login time: Wednesday, August 12, 2026 9:48:18 PM
+. 2026-08-12 21:48:18.817 --------------------------------------------------------------------------
+. 2026-08-12 21:48:18.817 Script: Retrospectively logging previous script records:
+> 2026-08-12 21:48:18.817 Script: option batch on
+< 2026-08-12 21:48:18.817 Script: batch           on        
+< 2026-08-12 21:48:18.817 Script: reconnecttime   120       
+> 2026-08-12 21:48:18.817 Script: option confirm off
+< 2026-08-12 21:48:18.817 Script: confirm         off       
+> 2026-08-12 21:48:18.817 Script: option reconnecttime 120
+< 2026-08-12 21:48:18.817 Script: reconnecttime   120       
+> 2026-08-12 21:48:18.817 Script: open sftp://UATBaresGroup:***@uatsftp-turtle13.highradius.com -hostkey="ecdsa-sha2-nistp256 256 28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ" -timeout=15
+. 2026-08-12 21:48:18.817 --------------------------------------------------------------------------
+. 2026-08-12 21:48:18.817 Session name: UATBaresGroup@uatsftp-turtle13.highradius.com (Ad-Hoc site)
+. 2026-08-12 21:48:18.817 Host name: uatsftp-turtle13.highradius.com (Port: 22)
+. 2026-08-12 21:48:18.817 User name: UATBaresGroup (Password: Yes, Key file: No, Passphrase: No)
+. 2026-08-12 21:48:18.817 Tunnel: No
+. 2026-08-12 21:48:18.817 Transfer Protocol: SFTP
+. 2026-08-12 21:48:18.817 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-12 21:48:18.817 Disable Nagle: No
+. 2026-08-12 21:48:18.817 Proxy: None
+. 2026-08-12 21:48:18.817 Send buffer: 262144
+. 2026-08-12 21:48:18.817 Compression: No
+. 2026-08-12 21:48:18.817 Bypass authentication: No
+. 2026-08-12 21:48:18.817 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-12 21:48:18.817 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-12 21:48:18.817 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-12 21:48:18.817 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-12 21:48:18.817 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-12 21:48:18.817 Simple channel: Yes
+. 2026-08-12 21:48:18.817 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-12 21:48:18.817 Shell: default
+. 2026-08-12 21:48:18.817 EOL: LF, UTF: Auto
+. 2026-08-12 21:48:18.817 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-12 21:48:18.817 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-12 21:48:18.817 SFTP Bugs: Auto,Auto
+. 2026-08-12 21:48:18.817 SFTP Server: default
+. 2026-08-12 21:48:18.817 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-12 21:48:18.817 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-12 21:48:18.817 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-12 21:48:18.817 DST mode: Unix
+. 2026-08-12 21:48:18.817 --------------------------------------------------------------------------
+< 2026-08-12 21:48:18.817 Script: Searching for host...
+. 2026-08-12 21:48:18.817 Looking up host "uatsftp-turtle13.highradius.com" for SSH connection
+. 2026-08-12 21:48:18.985 Connecting to 199.46.37.72 port 22
+. 2026-08-12 21:48:18.997 Connected to 199.46.37.72 (from 10.199.13.109:50673)
+< 2026-08-12 21:48:18.997 Script: Connecting to host...
+. 2026-08-12 21:48:18.997 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-12 21:48:18.997 Connected to 199.46.37.72 (from 10.199.13.109:50673)
+. 2026-08-12 21:48:19.019 Remote version: SSH-2.0-OpenSSH_8.7
+. 2026-08-12 21:48:19.019 Using SSH protocol version 2
+. 2026-08-12 21:48:19.019 Have a known host key of type ecdsa-sha2-nistp256
+. 2026-08-12 21:48:19.027 Enabling strict key exchange semantics
+. 2026-08-12 21:48:19.031 Doing ECDH key exchange with curve Curve25519, using hash SHA-256
+. 2026-08-12 21:48:19.092 Server also has rsa-sha2-512/rsa-sha2-256 host keys, but we don't know any of them
+. 2026-08-12 21:48:19.092 Host key fingerprint is:
+. 2026-08-12 21:48:19.092 ecdsa-sha2-nistp256 256 SHA256:28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ
+< 2026-08-12 21:48:19.092 Script: Authenticating...
+. 2026-08-12 21:48:19.092 Host key matches configured key fingerprint
+. 2026-08-12 21:48:19.092 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-12 21:48:19.092 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-12 21:48:19.092 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-12 21:48:19.092 Initialised HMAC-SHA-256 inbound MAC algorithm
+! 2026-08-12 21:48:19.102 Using username "UATBaresGroup".
+< 2026-08-12 21:48:19.102 Script: Using username "UATBaresGroup".
+. 2026-08-12 21:48:19.116 Server offered these authentication methods: publickey,password
+. 2026-08-12 21:48:19.116 Prompt (password, "SSH password", <no instructions>, "&Password: ")
+. 2026-08-12 21:48:19.116 Using stored password.
+< 2026-08-12 21:48:19.116 Script: Authenticating with pre-entered password.
+. 2026-08-12 21:48:19.116 Sent password
+. 2026-08-12 21:48:19.224 Access granted
+. 2026-08-12 21:48:19.225 Opening main session channel
+. 2026-08-12 21:48:19.731 Opened main channel
+. 2026-08-12 21:48:19.748 Started a shell/command
+< 2026-08-12 21:48:19.748 Script: Authenticated.
+. 2026-08-12 21:48:19.750 --------------------------------------------------------------------------
+. 2026-08-12 21:48:19.750 Using SFTP protocol.
+. 2026-08-12 21:48:19.750 Doing startup conversation with host.
+< 2026-08-12 21:48:19.750 Script: Starting the session...
+. 2026-08-12 21:48:19.750 Well known server, allowing SFTP version 6.
+> 2026-08-12 21:48:19.750 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-12 21:48:19.758 Type: SSH_FXP_VERSION, Size: 238, Number: -1
+. 2026-08-12 21:48:19.758 SFTP version 3 negotiated.
+. 2026-08-12 21:48:19.758 Supports extension posix-rename@openssh.com="1"
+. 2026-08-12 21:48:19.758 Supports statvfs@openssh.com extension version 2
+. 2026-08-12 21:48:19.758 Unknown server extension fstatvfs@openssh.com="2"
+. 2026-08-12 21:48:19.758 Supports hardlink@openssh.com extension version 1
+. 2026-08-12 21:48:19.758 Unknown server extension fsync@openssh.com="1"
+. 2026-08-12 21:48:19.758 Unknown server extension lsetstat@openssh.com="1"
+. 2026-08-12 21:48:19.758 Supports limits@openssh.com extension version 1
+. 2026-08-12 21:48:19.758 Unknown server extension expand-path@openssh.com="1"
+. 2026-08-12 21:48:19.758 We believe the server has signed timestamps bug
+. 2026-08-12 21:48:19.758 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+> 2026-08-12 21:48:19.758 Type: SSH_FXP_EXTENDED, Size: 27, Number: 200
+< 2026-08-12 21:48:19.766 Type: SSH_FXP_EXTENDED_REPLY, Size: 37, Number: 200
+. 2026-08-12 21:48:19.766 Limiting packet size to server's limit of 262144 + 4 bytes
+. 2026-08-12 21:48:19.766 Getting current directory name.
+. 2026-08-12 21:48:19.766 Getting real path for '.'
+> 2026-08-12 21:48:19.766 Type: SSH_FXP_REALPATH, Size: 10, Number: 272
+< 2026-08-12 21:48:19.770 Type: SSH_FXP_NAME, Size: 23, Number: 272
+. 2026-08-12 21:48:19.770 Real path is '/'
+. 2026-08-12 21:48:19.770 Startup conversation with host finished.
+< 2026-08-12 21:48:19.770 Script: Session started.
+< 2026-08-12 21:48:19.770 Script: Active session: [1] UATBaresGroup@uatsftp-turtle13.highradius.com
+> 2026-08-12 21:48:20.479 Script: pwd
+< 2026-08-12 21:48:20.479 Script: /
+> 2026-08-12 21:48:20.544 Script: ls -- "//outbound/test//caa//FMG/"
+. 2026-08-12 21:48:20.544 Listing directory "//outbound/test//caa//FMG".
+> 2026-08-12 21:48:20.544 Type: SSH_FXP_OPENDIR, Size: 34, Number: 523
+< 2026-08-12 21:48:20.544 Type: SSH_FXP_HANDLE, Size: 13, Number: 523
+> 2026-08-12 21:48:20.544 Type: SSH_FXP_READDIR, Size: 13, Number: 780
+< 2026-08-12 21:48:20.565 Type: SSH_FXP_NAME, Size: 207, Number: 780
+> 2026-08-12 21:48:20.565 Type: SSH_FXP_READDIR, Size: 13, Number: 1036
+< 2026-08-12 21:48:20.573 Type: SSH_FXP_STATUS, Size: 28, Number: 1036
+< 2026-08-12 21:48:20.573 Status code: 1
+> 2026-08-12 21:48:20.573 Type: SSH_FXP_CLOSE, Size: 13, Number: 1284
+. 2026-08-12 21:48:20.573 .;d;0;2026-08-12T21:46:25.000Z;4;"4485" [4485];"4485" [4485];rwxr-sr-x;0
+. 2026-08-12 21:48:20.573 ..;d;0;2026-08-11T14:30:29.000Z;4;"4485" [4485];"4485" [4485];rwxrwsr-x;0
+< 2026-08-12 21:48:20.573 Script: drwxr-sr-x   2 4485     4485          4096 Aug 12 21:46:25 2026 .
+< 2026-08-12 21:48:20.575 Script: drwxrwsr-x   4 4485     4485          4096 Aug 11 14:30:29 2026 ..
+> 2026-08-12 21:48:20.604 Script: exit
+. 2026-08-12 21:48:20.604 Script: Exit code: 0
+. 2026-08-12 21:48:20.604 Closing connection.
+. 2026-08-12 21:48:20.604 Sending special code: 1
+. 2026-08-12 21:48:20.620 Session sent command exit status 0
+. 2026-08-12 21:48:20.620 Main session channel closed
+. 2026-08-12 21:48:20.620 All channels closed
+. 2026-08-12 21:50:50.571 --------------------------------------------------------------------------
+. 2026-08-12 21:50:50.574 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-12 21:50:50.574 Configuration: nul
+. 2026-08-12 21:50:50.574 Log level: Normal
+. 2026-08-12 21:50:50.574 Local account: BG\AKAFG
+. 2026-08-12 21:50:50.574 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-12 21:50:50.574 Process ID: 12376
+. 2026-08-12 21:50:50.582 Ancestor processes: powershell_ise, explorer, ...
+. 2026-08-12 21:50:50.582 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\4\wscp273C.03096011.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\HighRadius\highradius-get.log"  /console /consoleinstance=_10044_13329264_129
+. 2026-08-12 21:50:50.582 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-12 21:50:50.582 Login time: Wednesday, August 12, 2026 9:50:50 PM
+. 2026-08-12 21:50:50.582 --------------------------------------------------------------------------
+. 2026-08-12 21:50:50.582 Script: Retrospectively logging previous script records:
+> 2026-08-12 21:50:50.582 Script: option batch on
+< 2026-08-12 21:50:50.582 Script: batch           on        
+< 2026-08-12 21:50:50.582 Script: reconnecttime   120       
+> 2026-08-12 21:50:50.582 Script: option confirm off
+< 2026-08-12 21:50:50.582 Script: confirm         off       
+> 2026-08-12 21:50:50.582 Script: option reconnecttime 120
+< 2026-08-12 21:50:50.582 Script: reconnecttime   120       
+> 2026-08-12 21:50:50.582 Script: open sftp://UATBaresGroup:***@uatsftp-turtle13.highradius.com -hostkey="ecdsa-sha2-nistp256 256 28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ" -timeout=15
+. 2026-08-12 21:50:50.582 --------------------------------------------------------------------------
+. 2026-08-12 21:50:50.582 Session name: UATBaresGroup@uatsftp-turtle13.highradius.com (Ad-Hoc site)
+. 2026-08-12 21:50:50.582 Host name: uatsftp-turtle13.highradius.com (Port: 22)
+. 2026-08-12 21:50:50.582 User name: UATBaresGroup (Password: Yes, Key file: No, Passphrase: No)
+. 2026-08-12 21:50:50.582 Tunnel: No
+. 2026-08-12 21:50:50.582 Transfer Protocol: SFTP
+. 2026-08-12 21:50:50.582 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-12 21:50:50.582 Disable Nagle: No
+. 2026-08-12 21:50:50.582 Proxy: None
+. 2026-08-12 21:50:50.582 Send buffer: 262144
+. 2026-08-12 21:50:50.582 Compression: No
+. 2026-08-12 21:50:50.582 Bypass authentication: No
+. 2026-08-12 21:50:50.582 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-12 21:50:50.582 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-12 21:50:50.582 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-12 21:50:50.582 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-12 21:50:50.584 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-12 21:50:50.584 Simple channel: Yes
+. 2026-08-12 21:50:50.584 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-12 21:50:50.584 Shell: default
+. 2026-08-12 21:50:50.584 EOL: LF, UTF: Auto
+. 2026-08-12 21:50:50.584 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-12 21:50:50.584 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-12 21:50:50.584 SFTP Bugs: Auto,Auto
+. 2026-08-12 21:50:50.584 SFTP Server: default
+. 2026-08-12 21:50:50.584 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-12 21:50:50.584 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-12 21:50:50.584 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-12 21:50:50.584 DST mode: Unix
+. 2026-08-12 21:50:50.584 --------------------------------------------------------------------------
+< 2026-08-12 21:50:50.584 Script: Searching for host...
+. 2026-08-12 21:50:50.584 Looking up host "uatsftp-turtle13.highradius.com" for SSH connection
+. 2026-08-12 21:50:50.753 Connecting to 199.46.37.72 port 22
+. 2026-08-12 21:50:50.762 Connected to 199.46.37.72 (from 10.199.13.109:50778)
+< 2026-08-12 21:50:50.762 Script: Connecting to host...
+. 2026-08-12 21:50:50.762 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-12 21:50:50.762 Connected to 199.46.37.72 (from 10.199.13.109:50778)
+. 2026-08-12 21:50:50.788 Remote version: SSH-2.0-OpenSSH_8.7
+. 2026-08-12 21:50:50.788 Using SSH protocol version 2
+. 2026-08-12 21:50:50.791 Have a known host key of type ecdsa-sha2-nistp256
+. 2026-08-12 21:50:50.800 Enabling strict key exchange semantics
+. 2026-08-12 21:50:50.800 Doing ECDH key exchange with curve Curve25519, using hash SHA-256
+. 2026-08-12 21:50:50.864 Server also has rsa-sha2-512/rsa-sha2-256 host keys, but we don't know any of them
+. 2026-08-12 21:50:50.864 Host key fingerprint is:
+. 2026-08-12 21:50:50.864 ecdsa-sha2-nistp256 256 SHA256:28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ
+< 2026-08-12 21:50:50.866 Script: Authenticating...
+. 2026-08-12 21:50:50.866 Host key matches configured key fingerprint
+. 2026-08-12 21:50:50.866 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-12 21:50:50.866 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-12 21:50:50.866 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-12 21:50:50.866 Initialised HMAC-SHA-256 inbound MAC algorithm
+! 2026-08-12 21:50:50.875 Using username "UATBaresGroup".
+< 2026-08-12 21:50:50.875 Script: Using username "UATBaresGroup".
+. 2026-08-12 21:50:50.899 Server offered these authentication methods: publickey,password
+. 2026-08-12 21:50:50.899 Prompt (password, "SSH password", <no instructions>, "&Password: ")
+. 2026-08-12 21:50:50.899 Using stored password.
+< 2026-08-12 21:50:50.899 Script: Authenticating with pre-entered password.
+. 2026-08-12 21:50:50.899 Sent password
+. 2026-08-12 21:50:50.985 Access granted
+. 2026-08-12 21:50:50.985 Opening main session channel
+. 2026-08-12 21:50:51.272 Opened main channel
+. 2026-08-12 21:50:51.287 Started a shell/command
+< 2026-08-12 21:50:51.287 Script: Authenticated.
+. 2026-08-12 21:50:51.287 --------------------------------------------------------------------------
+. 2026-08-12 21:50:51.287 Using SFTP protocol.
+. 2026-08-12 21:50:51.287 Doing startup conversation with host.
+< 2026-08-12 21:50:51.287 Script: Starting the session...
+. 2026-08-12 21:50:51.287 Well known server, allowing SFTP version 6.
+> 2026-08-12 21:50:51.287 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-12 21:50:51.291 Type: SSH_FXP_VERSION, Size: 238, Number: -1
+. 2026-08-12 21:50:51.291 SFTP version 3 negotiated.
+. 2026-08-12 21:50:51.291 Supports extension posix-rename@openssh.com="1"
+. 2026-08-12 21:50:51.291 Supports statvfs@openssh.com extension version 2
+. 2026-08-12 21:50:51.291 Unknown server extension fstatvfs@openssh.com="2"
+. 2026-08-12 21:50:51.291 Supports hardlink@openssh.com extension version 1
+. 2026-08-12 21:50:51.291 Unknown server extension fsync@openssh.com="1"
+. 2026-08-12 21:50:51.291 Unknown server extension lsetstat@openssh.com="1"
+. 2026-08-12 21:50:51.291 Supports limits@openssh.com extension version 1
+. 2026-08-12 21:50:51.291 Unknown server extension expand-path@openssh.com="1"
+. 2026-08-12 21:50:51.291 We believe the server has signed timestamps bug
+. 2026-08-12 21:50:51.291 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+> 2026-08-12 21:50:51.291 Type: SSH_FXP_EXTENDED, Size: 27, Number: 200
+< 2026-08-12 21:50:51.303 Type: SSH_FXP_EXTENDED_REPLY, Size: 37, Number: 200
+. 2026-08-12 21:50:51.303 Limiting packet size to server's limit of 262144 + 4 bytes
+. 2026-08-12 21:50:51.303 Getting current directory name.
+. 2026-08-12 21:50:51.303 Getting real path for '.'
+> 2026-08-12 21:50:51.303 Type: SSH_FXP_REALPATH, Size: 10, Number: 272
+< 2026-08-12 21:50:51.303 Type: SSH_FXP_NAME, Size: 23, Number: 272
+. 2026-08-12 21:50:51.303 Real path is '/'
+. 2026-08-12 21:50:51.303 Startup conversation with host finished.
+< 2026-08-12 21:50:51.303 Script: Session started.
+< 2026-08-12 21:50:51.303 Script: Active session: [1] UATBaresGroup@uatsftp-turtle13.highradius.com
+> 2026-08-12 21:50:51.414 Script: pwd
+< 2026-08-12 21:50:51.414 Script: /
+> 2026-08-12 21:50:51.479 Script: ls -- "//outbound/test//caa//FMG/"
+. 2026-08-12 21:50:51.480 Listing directory "//outbound/test//caa//FMG".
+> 2026-08-12 21:50:51.480 Type: SSH_FXP_OPENDIR, Size: 34, Number: 523
+< 2026-08-12 21:50:51.480 Type: SSH_FXP_HANDLE, Size: 13, Number: 523
+> 2026-08-12 21:50:51.480 Type: SSH_FXP_READDIR, Size: 13, Number: 780
+< 2026-08-12 21:50:51.493 Type: SSH_FXP_NAME, Size: 207, Number: 780
+> 2026-08-12 21:50:51.493 Type: SSH_FXP_READDIR, Size: 13, Number: 1036
+< 2026-08-12 21:50:51.510 Type: SSH_FXP_STATUS, Size: 28, Number: 1036
+< 2026-08-12 21:50:51.511 Status code: 1
+> 2026-08-12 21:50:51.511 Type: SSH_FXP_CLOSE, Size: 13, Number: 1284
+. 2026-08-12 21:50:51.511 .;d;0;2026-08-12T21:46:25.000Z;4;"4485" [4485];"4485" [4485];rwxr-sr-x;0
+. 2026-08-12 21:50:51.511 ..;d;0;2026-08-11T14:30:29.000Z;4;"4485" [4485];"4485" [4485];rwxrwsr-x;0
+< 2026-08-12 21:50:51.511 Script: drwxr-sr-x   2 4485     4485          4096 Aug 12 21:46:25 2026 .
+< 2026-08-12 21:50:51.511 Script: drwxrwsr-x   4 4485     4485          4096 Aug 11 14:30:29 2026 ..
+> 2026-08-12 21:50:51.543 Script: exit
+. 2026-08-12 21:50:51.543 Script: Exit code: 0
+. 2026-08-12 21:50:51.543 Closing connection.
+. 2026-08-12 21:50:51.543 Sending special code: 1
+. 2026-08-12 21:50:51.557 Session sent command exit status 0
+. 2026-08-12 21:50:51.557 Main session channel closed
+. 2026-08-12 21:50:51.557 All channels closed

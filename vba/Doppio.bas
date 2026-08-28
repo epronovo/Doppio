@@ -79,7 +79,7 @@ Public pivoted As Boolean
 Public currentPid As String
 Public b_AddingSheet As Boolean  ' guard flag set True around programmatic sheet adds to suppress Workbook_NewSheet
 
-Public m_OriginalSheet As Worksheet
+Public m_OriginalSheetName As String  ' name, not object ref, so a stale sheet can't be Activate'd
 
 Sub Curl_Build(ByVal main_url As String, ByVal mi_path As String, ByVal mi_url As String, ByVal body As String, apiType As String, ByRef script As String)
     Dim curlPrefix As String
@@ -3855,7 +3855,7 @@ Sub SettingsSheet()
     On Error GoTo ErrorHandler
     
     ' Remember the current sheet before switching
-    Set m_OriginalSheet = ActiveSheet
+    m_OriginalSheetName = ActiveSheet.name
     
     Set ws = ThisWorkbook.Sheets("Settings")
     

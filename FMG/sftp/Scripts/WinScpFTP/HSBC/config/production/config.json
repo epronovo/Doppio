@@ -1,0 +1,9 @@
+﻿{
+    "App_Environment": "production",
+    "App_HostName": "ecom-sftp.fguk-prd2.hsbc.com",
+    "App_UserName": "CT000011501_88233",
+    "App_SSHKey": "ssh-rsa 4096 smrAQqLcN5jfr+VPiKEResIH3fIaGIan8/bwVYbml9w",
+    "App_KeyPassPhraseLocation": "E:\\Scripts\\WinScpFTP\\HSBC\\config\\production\\passphrase2.txt",
+    "App_KeyPath": "E:\\KeysEncryptions\\HSBC\\SSH\\id_rsa_hsbcbank_private.ppk",
+	"File_Key": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+}

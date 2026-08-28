@@ -1,0 +1,11 @@
+{
+	"App_Environment": "stage",
+	"App_DataDirectory": "E:\\Applications\\HSBC\\stage\\",
+	"App_ProcessedPath": "E:\\Applications\\HSBC\\stage\\processed\\",
+	"App_AcknowledgmentPath": "E:\\Applications\\HSBC\\stage\\acknowledgments\\",
+	"App_AcknowledgmentDecryptedPath": "E:\\Applications\\HSBC\\stage\\acknowledgments\\Decrypted\\",
+	"App_KeyPassPhraseLocation": "E:\\Applications\\HSBC\\configuration\\passphrase.txt",
+	"App_ApOutFileLocations":[
+		"\\\\RAUSMSRV0002.RA.bg1857.net\\ASR\\AP-Bank\\HSBC\\out"
+	]
+}

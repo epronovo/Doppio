@@ -24,18 +24,28 @@ Uses only the Python standard library.
 """
 
 import glob
+import io
 import json
 import os
+import shutil
 import sqlite3
 import sys
+import tempfile
 import threading
 import time
 import urllib.parse
 import urllib.request
+import zipfile
 import zlib
 from collections import deque
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+# The zip files dropped on the status page are M3 Grid Access binary table
+# exports (the same format m3_unpacker.py reads). Reuse its parser so the
+# on-wire decoding stays in one place. m3_unpacker.py lives next to this file.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import m3_unpacker as m3
 
 # ---------------------------------------------------------------- settings
 DB_PATH = "/Users/ericpronovost/sqlite/etl.db"
@@ -91,6 +101,13 @@ _RUN_EVENT = threading.Event()
 _NOW_EVENT = threading.Event()
 # Set by Stop to interrupt a cycle that's already in flight.
 _ABORT_EVENT = threading.Event()
+# Set while a dropped zip is being loaded into the database. Blocks Start and
+# further uploads so a bulk load and the tracking loop never write at once.
+_LOADING_EVENT = threading.Event()
+# Object IDs (dl_ids) the user asked to force-load via the webpage. Consumed by
+# the run loop on its own thread/connection; only accepted while running.
+_FORCE_EVENT = threading.Event()
+_FORCE_QUEUE = deque()
 _SELECTED_CFG = None
 # One-shot override for the next cycle's "since" cutoff; cleared once used.
 _SINCE_OVERRIDE = None
@@ -338,6 +355,17 @@ def etl_list_dataobjects(base, token, since):
     return objects
 
 
+def etl_get_object_meta(base, token, dl_id):
+    """Look up one data object's metadata by dl_id (used by the force-load
+    feature to discover the object's target table, dl_document_name). Returns
+    the metadata dict or None if the id isn't found."""
+    flt = urllib.parse.quote(f'dl_id eq "{dl_id}"')
+    url = f"{base}/dataobjects?filter={flt}&page=1&records=1"
+    data = json.loads(etl_get(url, token).decode())
+    fields = data.get("fields", [])
+    return fields[0] if fields else None
+
+
 # ------------------------------------------------- step 5: download details
 def etl_download_details(base, token, dl_id):
     """Download one data object; returns a list of dict records (NDJSON)."""
@@ -478,8 +506,231 @@ def etl_load_records(conn, table, records, cfg, token):
     return inserted
 
 
+def etl_force_load_records(conn, table, records, cfg, token):
+    """Load records from a user-forced Object ID. Unlike the normal cycle (which
+    appends a new version row per change), a forced object UPDATES the existing
+    records in place: for each incoming row the current row(s) for the same
+    business key are replaced, so re-forcing an object never leaves duplicate
+    rows behind. Business keys come from MNS120MI -- the same keys the {table}00
+    latest-row view uses. If the keys can't be resolved, falls back to the
+    normal append load."""
+    if not records:
+        return 0
+    table = "".join(c for c in table if c.isalnum() or c == "_")
+
+    existing = etl_table_columns(conn, table)
+    if not existing:  # create table from the columns of the first record
+        cols = ", ".join(f'"{k}" {etl_sql_type(v)}' for k, v in records[0].items())
+        conn.execute(f'CREATE TABLE "{table}" ({cols})')
+        existing = etl_table_columns(conn, table)
+
+    for rec in records:  # add any columns not yet in the table
+        for k, v in rec.items():
+            if k not in existing:
+                conn.execute(f'ALTER TABLE "{table}" ADD COLUMN "{k}" {etl_sql_type(v)}')
+                existing.append(k)
+
+    try:
+        keys = etl_get_table_keys(cfg, token, table)
+    except Exception as e:
+        etl_log(f"  Could not look up keys for {table}: {e}")
+        keys = []
+    keys = [k for k in keys if k in existing]
+    if not keys:
+        etl_log(f"  No key columns for {table}; appending forced rows instead of updating.")
+        return etl_load_records(conn, table, records, cfg, token)
+
+    loaded = 0
+    for rec in records:
+        cols = list(rec.keys())
+        # Replace any existing row(s) for this business key, then insert the
+        # fresh one -- i.e. update in place rather than adding a new version row.
+        where = " AND ".join(f'"{k}" = ?' for k in keys)
+        conn.execute(f'DELETE FROM "{table}" WHERE {where}',
+                     [etl_sql_value(rec.get(k)) for k in keys])
+        sql = (f'INSERT INTO "{table}" ({", ".join(f_quote(cols))}) '
+               f'VALUES ({", ".join("?" * len(cols))})')
+        conn.execute(sql, [etl_sql_value(rec[k]) for k in cols])
+        loaded += 1
+    conn.commit()
+
+    etl_ensure_latest_view(conn, table, cfg, token)
+    etl_log(f"  {table}: updated {loaded} record(s) in place (forced load, keys: {', '.join(keys)})")
+    return loaded
+
+
 def f_quote(keys):
     return [f'"{k}"' for k in keys]
+
+
+# ---------------------------------------------- initial load from a dropped zip
+#
+# The status page lets the user drop a zip of M3 Grid Access binary table
+# exports (one file per table, plus a TABLE_INFO companion) while the routine is
+# stopped. Each table is decoded with m3_unpacker, given the four trailing audit
+# fields the Data Lake feed carries, then loaded as a fresh baseline: the target
+# table is truncated first (the zip is the most accurate current version) and
+# every row is inserted with variationNumber 0. The Data Lake loop then keeps
+# tracking changes on top of that baseline going forward.
+
+# States in which no cycle is running and no load is in flight, so a zip may be
+# loaded. Everything else means the routine is busy.
+_UPLOAD_OK_STATES = {"waiting-for-selection", "stopped", "error", "idle"}
+
+
+def etl_upload_allowed():
+    """True only while the routine is inactive (not cycling, not sleeping, not
+    already loading a zip). Uploads are refused otherwise so a bulk load never
+    races the tracking loop."""
+    if _RUN_EVENT.is_set() or _NOW_EVENT.is_set() or _LOADING_EVENT.is_set():
+        return False
+    status, _ = etl_status_snapshot()
+    return status["state"] in _UPLOAD_OK_STATES
+
+
+def etl_parse_m3_binary(data, table_info_counts, table_name):
+    """Decode one M3 binary table export (bytes) into (field_names, records)
+    using m3_unpacker. fill=True so inherited values and numeric defaults are
+    materialised — i.e. the full current snapshot of every row."""
+    fields, types, widths, scales, start = m3.parse_field_defs(data)
+    data_section = data[start:]
+    expected = (table_info_counts or {}).get(table_name)
+    if expected == 0:
+        return fields, []
+    if m3.detect_format(data_section) == "ffe0":
+        records = m3.parse_records_ffe0_style(data_section, len(fields))
+    else:
+        records = m3.parse_records_bitmap_style(
+            data_section, len(fields), field_types=types, field_widths=widths,
+            field_scales=scales, expected_count=expected, fill=True,
+        )
+        if expected and len(records) > expected:
+            records = records[:expected]
+    return fields, records
+
+
+def etl_build_accounting_entity(cono, divi):
+    """CONO (a 3-digit company) rendered as a zero-padded alpha string, e.g.
+    1 -> "001", joined to DIVI with "_" when a division is present, else CONO
+    alone."""
+    cono = str(cono or "").strip()
+    cono3 = cono.zfill(3) if cono else ""
+    divi = str(divi or "").strip()
+    return f"{cono3}_{divi}" if divi else cono3
+
+
+def etl_load_table_full(conn, table, raw_fields, records):
+    """Truncate `table` and fully load it from a parsed M3 export.
+
+    The binary field names carry M3's 2-char file mnemonic (e.g. IDCONO on
+    CIDMAS); the Data Lake feed drops that prefix (CONO), so strip it here too
+    so the baseline and the ongoing feed share one set of column names. Each
+    row then gets the four trailing audit fields:
+        accountingEntity  CONO (3-digit alpha) [+ "_" + DIVI if present]
+        variationNumber   0    (baseline version)
+        timestamp         current UTC time, e.g. 2026-05-04T07:48:30.015Z
+        deleted           0
+    """
+    table = "".join(c for c in table if c.isalnum() or c == "_")
+    if not records:
+        etl_log(f"  {table}: 0 records in zip; skipped")
+        return 0
+
+    cols = [f[2:] if len(f) > 2 else f for f in raw_fields]
+    has_divi = "DIVI" in cols
+    ts = etl_utcnow_iso()
+
+    dict_records = []
+    for row in records:
+        rec = dict(zip(cols, row))
+        rec["accountingEntity"] = etl_build_accounting_entity(
+            rec.get("CONO"), rec.get("DIVI") if has_divi else "")
+        rec["variationNumber"] = 0
+        rec["timestamp"] = ts
+        rec["deleted"] = 0
+        dict_records.append(rec)
+
+    all_cols = list(dict_records[0].keys())
+
+    existing = etl_table_columns(conn, table)
+    if not existing:  # first time we see this table -> create it
+        coldefs = ", ".join(
+            f'"{k}" {etl_sql_type(dict_records[0][k])}' for k in all_cols)
+        conn.execute(f'CREATE TABLE "{table}" ({coldefs})')
+        existing = etl_table_columns(conn, table)
+    else:
+        for k in all_cols:  # add any columns the existing table is missing
+            if k not in existing:
+                conn.execute(
+                    f'ALTER TABLE "{table}" ADD COLUMN "{k}" '
+                    f'{etl_sql_type(dict_records[0][k])}')
+                existing.append(k)
+
+    # A baseline sets every row's variationNumber to 0, which collides with the
+    # one-row-per-variationNumber unique index the tracking loop may have built.
+    # Drop it before loading; etl_load_records re-attempts it on the next cycle
+    # (and simply logs if the zeros keep it from being recreated).
+    uq = f"{table}_variationNumber_uq"
+    if etl_index_exists(conn, uq):
+        conn.execute(f'DROP INDEX "{uq}"')
+
+    conn.execute(f'DELETE FROM "{table}"')  # truncate: zip is the source of truth
+
+    inserted = 0
+    for rec in dict_records:
+        keys = list(rec.keys())
+        sql = (f'INSERT INTO "{table}" ({", ".join(f_quote(keys))}) '
+               f'VALUES ({", ".join("?" * len(keys))})')
+        conn.execute(sql, [etl_sql_value(rec[k]) for k in keys])
+        inserted += 1
+    conn.commit()
+    etl_log(f"  {table}: truncated and loaded {inserted} row(s)")
+    return inserted
+
+
+def etl_load_zip(zip_bytes):
+    """Load every table in a dropped zip as a fresh baseline. Returns a list of
+    (table_name, rows_loaded). Runs on its own SQLite connection (the web
+    handler's thread) — safe because uploads are only accepted while the
+    tracking loop is idle."""
+    tmp = tempfile.mkdtemp(prefix="etl_zip_")
+    try:
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+            zf.extractall(tmp)
+
+        ti_counts, table_paths = {}, []
+        for root, _, files in os.walk(tmp):
+            for fn in files:
+                path = os.path.join(root, fn)
+                if fn == "TABLE_INFO":
+                    ti_counts = m3.parse_table_info(path)
+                elif not fn.startswith(".") and not fn.endswith(".csv"):
+                    table_paths.append(path)
+
+        if not table_paths:
+            raise ValueError("no table files found in zip")
+        if ti_counts:
+            etl_log(f"TABLE_INFO: {ti_counts}")
+
+        conn = sqlite3.connect(DB_PATH)
+        results = []
+        try:
+            for path in sorted(table_paths):
+                table = os.path.basename(path)
+                with open(path, "rb") as fh:
+                    data = fh.read()
+                try:
+                    fields, records = etl_parse_m3_binary(data, ti_counts, table)
+                    n = etl_load_table_full(conn, table, fields, records)
+                    results.append((table, n))
+                except Exception as e:
+                    etl_log(f"  {table}: FAILED ({e})")
+                    results.append((table, -1))
+        finally:
+            conn.close()
+        return results
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
 
 
 # --------------------------------------------------------- step 7: status page
@@ -500,37 +751,93 @@ _STATUS_PAGE_HTML = """<!doctype html>
   .state-error { background: #722; }
   .state-processing, .state-authenticating, .state-pinging,
   .state-listing-objects, .state-checking-version, .state-starting,
-  .state-waiting-for-selection, .state-stopping { background: #552; }
+  .state-waiting-for-selection, .state-stopping, .state-loading-zip { background: #552; }
   #log { background: #000; color: #9f9; font-family: monospace; font-size: 0.85rem;
          padding: 1rem; height: 400px; overflow-y: auto; white-space: pre-wrap; }
   #controls { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   #controls select, #controls input, #controls button { font-size: 1rem; padding: 4px 8px; }
   #controls input[type=number] { width: 6rem; }
   #controls button:disabled { opacity: 0.4; }
+  #upload { margin-bottom: 1.5rem; }
+  #dropArea { border: 2px dashed #555; border-radius: 6px; padding: 1.2rem;
+              text-align: center; color: #aaa; background: #181818; cursor: pointer; }
+  #dropArea.dragover { border-color: #9f9; color: #9f9; background: #1c221c; }
+  #dropArea.disabled { opacity: 0.4; cursor: not-allowed; }
+  #dropArea input[type=file] { display: none; }
+  #uploadRow { margin-top: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #uploadRow button { font-size: 1rem; padding: 4px 8px; }
+  #uploadRow button:disabled { opacity: 0.4; }
+  #zipName { color: #9cf; }
+  #uploadMsg { color: #cc9; }
+  #tabBar { display: flex; gap: 4px; margin-bottom: 1rem; border-bottom: 1px solid #333; }
+  .tabBtn { font-size: 1rem; padding: 6px 14px; background: #1a1a1a; color: #aaa;
+            border: 1px solid #333; border-bottom: none; border-radius: 6px 6px 0 0;
+            cursor: pointer; }
+  .tabBtn.active { background: #222; color: #eee; }
+  .tabPanel { display: none; }
+  .tabPanel.active { display: block; }
 </style>
 </head>
 <body>
 <h1>ETL Data Lake &rarr; SQLite</h1>
-<div id="controls">
-  <label>Environment <select id="envSelect"></select></label>
-  <label>Poll interval (s) <input type="number" id="intervalInput" min="5" step="1"></label>
-  <button id="applyIntervalBtn">Apply interval</button>
-  <label>Since override (UTC) <input type="datetime-local" id="sinceInput" step="1"></label>
-  <button id="applySinceBtn">Apply since</button>
-  <button id="clearSinceBtn">Clear since</button>
-  <button id="startBtn">Start</button>
-  <button id="nowBtn">Now</button>
-  <button id="stopBtn">Stop</button>
+<div id="tabBar">
+  <button class="tabBtn active" data-tab="main">Main</button>
+  <button class="tabBtn" data-tab="loaddb">Load DB</button>
 </div>
-<table id="fields"></table>
-<div id="log"></div>
+<div id="tab-main" class="tabPanel active">
+  <div id="controls">
+    <label>Environment <select id="envSelect"></select></label>
+    <label>Poll interval (s) <input type="number" id="intervalInput" min="5" step="1"></label>
+    <button id="applyIntervalBtn">Apply interval</button>
+    <label>Since override (UTC) <input type="datetime-local" id="sinceInput" step="1"></label>
+    <button id="applySinceBtn">Apply since</button>
+    <button id="clearSinceBtn">Clear since</button>
+    <button id="startBtn">Start</button>
+    <button id="nowBtn">Now</button>
+    <button id="stopBtn">Stop</button>
+  </div>
+  <table id="fields"></table>
+  <div id="log"></div>
+</div>
+<div id="tab-loaddb" class="tabPanel">
+  <div id="controls">
+    <label>Force object ID <input type="text" id="objectIdInput" placeholder="dl_id" size="28"></label>
+    <button id="loadObjectBtn">Load object</button>
+  </div>
+  <div id="upload">
+    <div id="dropArea">
+      Drop a table export <b>.zip</b> here, or <u>click to browse</u>
+      <input type="file" id="zipInput" accept=".zip,application/zip">
+    </div>
+    <div id="uploadRow">
+      <button id="uploadBtn" disabled>Load zip into database</button>
+      <span id="zipName"></span>
+      <span id="uploadMsg"></span>
+    </div>
+    <div style="color:#777;font-size:0.85rem;margin-top:4px;">
+      Only available while the routine is stopped. Loading truncates each table in
+      the zip and reloads it as the current baseline; tracking resumes on Start.
+    </div>
+  </div>
+</div>
 <script>
+document.querySelectorAll(".tabBtn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tabBtn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".tabPanel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
+  };
+});
 function fmt(v) { return v === null || v === undefined ? "-" : v; }
 
 const RUNNING_STATES = ["starting", "authenticating", "pinging", "checking-version",
-                         "listing-objects", "processing", "sleeping", "stopping"];
+                         "listing-objects", "processing", "sleeping", "stopping",
+                         "loading-zip"];
 
 let controlsPopulated = false;
+let selectedZip = null;
+let uploading = false;
 
 function populateControls(s) {
   const select = document.getElementById("envSelect");
@@ -560,6 +867,12 @@ document.getElementById("nowBtn").onclick = () => {
   postForm("/now", `environment=${encodeURIComponent(env)}`);
 };
 document.getElementById("stopBtn").onclick = () => postForm("/stop", "");
+document.getElementById("loadObjectBtn").onclick = () => {
+  const obj = document.getElementById("objectIdInput").value.trim();
+  if (!obj) return;
+  postForm("/loadobject", `object_id=${encodeURIComponent(obj)}`);
+  document.getElementById("objectIdInput").value = "";
+};
 document.getElementById("applyIntervalBtn").onclick = () => {
   const interval = document.getElementById("intervalInput").value;
   postForm("/interval", `interval=${encodeURIComponent(interval)}`);
@@ -573,11 +886,78 @@ document.getElementById("clearSinceBtn").onclick = () => {
   postForm("/since", "since=");
 };
 
+// ---- zip upload (drag/drop or browse) ----
+const dropArea = document.getElementById("dropArea");
+const zipInput = document.getElementById("zipInput");
+
+function setSelectedZip(file) {
+  if (dropArea.classList.contains("disabled")) return;
+  selectedZip = file || null;
+  document.getElementById("zipName").textContent = selectedZip ? selectedZip.name : "";
+  document.getElementById("uploadMsg").textContent = "";
+  refresh();
+}
+
+dropArea.onclick = () => { if (!dropArea.classList.contains("disabled")) zipInput.click(); };
+zipInput.onchange = () => setSelectedZip(zipInput.files[0]);
+dropArea.addEventListener("dragover", e => {
+  e.preventDefault();
+  if (!dropArea.classList.contains("disabled")) dropArea.classList.add("dragover");
+});
+dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
+dropArea.addEventListener("drop", e => {
+  e.preventDefault();
+  dropArea.classList.remove("dragover");
+  if (dropArea.classList.contains("disabled")) return;
+  if (e.dataTransfer.files && e.dataTransfer.files.length) setSelectedZip(e.dataTransfer.files[0]);
+});
+
+document.getElementById("uploadBtn").onclick = async () => {
+  if (!selectedZip || uploading) return;
+  uploading = true;
+  document.getElementById("uploadMsg").textContent = "Loading… this can take a while for large tables.";
+  refresh();
+  try {
+    const buf = await selectedZip.arrayBuffer();
+    const res = await fetch("/upload", {
+      method: "POST",
+      headers: {"Content-Type": "application/zip", "X-Filename": selectedZip.name},
+      body: buf,
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const parts = data.results.map(r => `${r.table}: ${r.rows < 0 ? "FAILED" : r.rows + " rows"}`);
+      document.getElementById("uploadMsg").textContent = "Loaded — " + parts.join(", ");
+      selectedZip = null;
+      zipInput.value = "";
+      document.getElementById("zipName").textContent = "";
+    } else {
+      document.getElementById("uploadMsg").textContent = "Error: " + (data.error || "upload failed");
+    }
+  } catch (err) {
+    document.getElementById("uploadMsg").textContent = "Error: " + err;
+  } finally {
+    uploading = false;
+    refresh();
+  }
+};
+
 function updateDashboard(s, log) {
   const running = RUNNING_STATES.includes(s.state);
   document.getElementById("envSelect").disabled = running;
-  document.getElementById("startBtn").disabled = running;
+  document.getElementById("startBtn").disabled = running || uploading;
   document.getElementById("stopBtn").disabled = !running;
+
+  // Force-load a single object is only available while the routine is running
+  // (continuous mode), and never during a zip load.
+  const etlRunning = running && s.state !== "loading-zip";
+  document.getElementById("objectIdInput").disabled = !etlRunning;
+  document.getElementById("loadObjectBtn").disabled = !etlRunning;
+
+  // Uploads are only allowed while the routine is inactive.
+  const canUpload = !running && !uploading;
+  dropArea.classList.toggle("disabled", !canUpload);
+  document.getElementById("uploadBtn").disabled = !canUpload || !selectedZip;
 
   const rows = [
     ["Environment", fmt(s.environment)],
@@ -658,6 +1038,10 @@ class _StatusHandler(BaseHTTPRequestHandler):
             self._handle_interval()
         elif self.path.startswith("/since"):
             self._handle_since()
+        elif self.path.startswith("/upload"):
+            self._handle_upload()
+        elif self.path.startswith("/loadobject"):
+            self._handle_load_object()
         else:
             self._respond(404, b"not found", "text/plain")
 
@@ -666,6 +1050,9 @@ class _StatusHandler(BaseHTTPRequestHandler):
         name = (params.get("environment") or [""])[0]
         raw_interval = (params.get("interval") or [""])[0]
 
+        if _LOADING_EVENT.is_set():
+            self._respond(400, b'{"ok": false, "error": "loading a zip"}', "application/json")
+            return
         status, _ = etl_status_snapshot()
         if status["state"] not in ("waiting-for-selection", "stopped", "error"):
             self._respond(400, b'{"ok": false, "error": "already running"}', "application/json")
@@ -719,6 +1106,57 @@ class _StatusHandler(BaseHTTPRequestHandler):
             return
         etl_set_since_override(since)
         self._respond(200, b'{"ok": true}', "application/json")
+
+    def _handle_load_object(self):
+        """Queue a pasted object id (dl_id) for immediate load. Only accepted
+        while the routine is running (continuous mode)."""
+        if not _RUN_EVENT.is_set():
+            self._respond(409, b'{"ok": false, "error": "routine is not running; '
+                          b'start it before forcing an object load"}', "application/json")
+            return
+        params = self._read_params()
+        dl_id = (params.get("object_id") or [""])[0].strip()
+        if not dl_id:
+            self._respond(400, b'{"ok": false, "error": "missing object id"}', "application/json")
+            return
+        etl_queue_force_object(dl_id)
+        self._respond(200, b'{"ok": true}', "application/json")
+
+    def _handle_upload(self):
+        """Accept a dropped zip (raw bytes as the POST body) and load each table
+        as a fresh baseline. Refused unless the routine is inactive."""
+        if not etl_upload_allowed():
+            self._respond(409, b'{"ok": false, "error": "routine is active; '
+                          b'stop it before loading a zip"}', "application/json")
+            return
+        length = int(self.headers.get("Content-Length", 0))
+        if length <= 0:
+            self._respond(400, b'{"ok": false, "error": "empty upload"}', "application/json")
+            return
+
+        body = self.rfile.read(length)
+        prev_state, _ = etl_status_snapshot()
+        prev_state = prev_state["state"]
+        _LOADING_EVENT.set()
+        etl_set_status(state="loading-zip", last_error=None)
+        fname = self.headers.get("X-Filename", "upload.zip")
+        etl_log(f"Loading dropped zip: {fname} ({length} bytes)")
+        try:
+            results = etl_load_zip(body)
+            payload = json.dumps({
+                "ok": True,
+                "results": [{"table": t, "rows": n} for t, n in results],
+            }).encode()
+            loaded = sum(n for _, n in results if n >= 0)
+            etl_log(f"Zip load complete: {len(results)} table(s), {loaded} row(s) total.")
+            self._respond(200, payload, "application/json")
+        except Exception as e:
+            etl_log(f"Zip load failed: {e}")
+            payload = json.dumps({"ok": False, "error": str(e)}).encode()
+            self._respond(400, payload, "application/json")
+        finally:
+            _LOADING_EVENT.clear()
+            etl_set_status(state=prev_state)
 
 
 def etl_start_web_server():
@@ -788,6 +1226,53 @@ def etl_run_cycle(cfg, conn):
     etl_log(f"Cycle complete. {total} rows loaded. LastRun set to {cycle_start}")
 
 
+# --------------------------------------------------- force-load a single object
+def etl_queue_force_object(dl_id):
+    """Called from the web handler; queues a dl_id for the run loop to load out
+    of band. Only meaningful while the routine is running."""
+    with _STATE_LOCK:
+        _FORCE_QUEUE.append(dl_id)
+    _FORCE_EVENT.set()
+    etl_log(f"Force load requested for object {dl_id}")
+
+
+def etl_process_forced_objects(cfg, conn):
+    """Drain the force queue: for each dl_id, authenticate, resolve its table
+    from the object metadata, download it and load it via etl_force_load_records
+    -- which UPDATES the existing records in place (replacing each row by its
+    business key) rather than appending new version rows. Runs on the run loop's
+    thread/connection so it never races the tracking writes."""
+    while True:
+        with _STATE_LOCK:
+            if not _FORCE_QUEUE:
+                _FORCE_EVENT.clear()
+                return
+            dl_id = _FORCE_QUEUE.popleft()
+
+        etl_set_status(state="processing")
+        try:
+            token = etl_authenticate(cfg)
+            base = etl_base_url(cfg)
+            meta = etl_get_object_meta(base, token, dl_id)
+            if not meta:
+                etl_log(f"Force load: object {dl_id} not found.")
+                etl_set_status(last_error=f"object {dl_id} not found")
+                continue
+            table = meta.get("dl_document_name")
+            if not table:
+                etl_log(f"Force load: object {dl_id} has no document name.")
+                etl_set_status(last_error=f"object {dl_id} has no table name")
+                continue
+            recs = etl_download_details(base, token, dl_id)
+            n = etl_force_load_records(conn, table, recs, cfg, token)
+            with _STATE_LOCK:
+                STATUS["rows_loaded_total"] += n
+            etl_log(f"Force load: {dl_id} -> {table}: {n} rows")
+        except Exception as e:
+            etl_log(f"Force load {dl_id} FAILED: {e}")
+            etl_set_status(last_error=str(e))
+
+
 def etl_run_loop(conn):
     """Waits for Start or Now (via the webpage), runs cycles until Stop is
     pressed or a ping failure pauses the routine, then waits again.
@@ -826,6 +1311,9 @@ def etl_run_loop(conn):
         etl_log(f"Sleeping up to {interval} seconds...")
         slept = 0
         while slept < interval and _RUN_EVENT.is_set() and not _NOW_EVENT.is_set():
+            if _FORCE_EVENT.is_set():   # user pasted an object id to force-load
+                etl_process_forced_objects(cfg, conn)
+                etl_set_status(state="sleeping")
             time.sleep(1)
             slept += 1
             interval = etl_status_snapshot()[0]["poll_interval_seconds"]  # pick up live changes

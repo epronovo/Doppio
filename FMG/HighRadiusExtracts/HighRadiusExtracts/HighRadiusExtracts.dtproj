@@ -1,0 +1,1999 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DeploymentModel>Project</DeploymentModel>
+  <ProductVersion>16.0.5467.0</ProductVersion>
+  <SchemaVersion>9.0.1.0</SchemaVersion>
+  <State>$base64$PFNvdXJjZUNvbnRyb2xJbmZvIHhtbG5zOnhzZD0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEiIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zOmRkbDI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yIiB4bWxuczpkZGwyXzI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yLzIiIHhtbG5zOmRkbDEwMF8xMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDA4L2VuZ2luZS8xMDAvMTAwIiB4bWxuczpkZGwyMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAiIHhtbG5zOmRkbDIwMF8yMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAvMjAwIiB4bWxuczpkZGwzMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDExL2VuZ2luZS8zMDAiIHhtbG5zOmRkbDMwMF8zMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDExL2VuZ2luZS8zMDAvMzAwIiB4bWxuczpkZGw0MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEyL2VuZ2luZS80MDAiIHhtbG5zOmRkbDQwMF80MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEyL2VuZ2luZS80MDAvNDAwIiB4bWxuczpkZGw1MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEzL2VuZ2luZS81MDAiIHhtbG5zOmRkbDUwMF81MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEzL2VuZ2luZS81MDAvNTAwIiB4bWxuczpkd2Q9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vRGF0YVdhcmVob3VzZS9EZXNpZ25lci8xLjAiPg0KICA8RW5hYmxlZD5mYWxzZTwvRW5hYmxlZD4NCiAgPFByb2plY3ROYW1lPjwvUHJvamVjdE5hbWU+DQogIDxBdXhQYXRoPjwvQXV4UGF0aD4NCiAgPExvY2FsUGF0aD48L0xvY2FsUGF0aD4NCiAgPFByb3ZpZGVyPjwvUHJvdmlkZXI+DQo8L1NvdXJjZUNvbnRyb2xJbmZvPg==</State>
+  <Database>
+    <Name>HighRadiusExtracts.database</Name>
+    <FullPath>HighRadiusExtracts.database</FullPath>
+  </Database>
+  <DataSources />
+  <DataSourceViews />
+  <DeploymentModelSpecificContent>
+    <Manifest>
+      <SSIS:Project SSIS:ProtectionLevel="EncryptSensitiveWithPassword" xmlns:SSIS="www.microsoft.com/SqlServer/SSIS">
+        <SSIS:Properties>
+          <SSIS:Property SSIS:Name="ID">{aba5c5a6-3123-4816-a03a-4df4679a0ad5}</SSIS:Property>
+          <SSIS:Property SSIS:Name="Name">HighRadiusExtracts</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionMajor">0</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionBuild">0</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionComments">
+          </SSIS:Property>
+          <SSIS:Property SSIS:Name="CreationDate">2019-02-13T10:40:49.5574158-05:00</SSIS:Property>
+          <SSIS:Property SSIS:Name="CreatorName">BARNESGRP\cperry</SSIS:Property>
+          <SSIS:Property SSIS:Name="CreatorComputerName">ASGH-MIS-01</SSIS:Property>
+          <SSIS:Property SSIS:Name="Description">
+          </SSIS:Property>
+          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1" SSIS:Salt="SpSTJiZet6k=" SSIS:IV="8QGWb7JInUuuDxWi1uxXgw==" SSIS:Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc">VTEeU2PzMFvEDbni/W5z0e18UUSpFTiBe6NrDdH42BUKPBTrLCVrY2A4DDAjJwhRvSd57Rdr9Ytqjiy7HlcbLJtI84Svr3qYaXUsCpp9QTQ7+AOVtYU+Q8tDHK+ie5Oc2w5ETP31dSreIYdf79Spu3CdiWD6duWA8Am5Bzk4XdGOjiBnwQy+eBmtVMZtLUke</SSIS:Property>
+          <SSIS:Property SSIS:Name="FormatVersion">1</SSIS:Property>
+        </SSIS:Properties>
+        <SSIS:Packages>
+          <SSIS:Package SSIS:Name="HighRadiusExtracts.dtsx" SSIS:EntryPoint="1" />
+          <SSIS:Package SSIS:Name="HighRadiusInvoiceExtract.dtsx" SSIS:EntryPoint="1" />
+          <SSIS:Package SSIS:Name="EDISendToJBA.dtsx" SSIS:EntryPoint="1" />
+        </SSIS:Packages>
+        <SSIS:ConnectionManagers />
+        <SSIS:DeploymentInfo>
+          <SSIS:ProjectConnectionParameters />
+          <SSIS:PackageInfo>
+            <SSIS:PackageMetaData SSIS:Name="HighRadiusExtracts.dtsx">
+              <SSIS:Properties>
+                <SSIS:Property SSIS:Name="ID">{DD8DB1FA-3B0D-4B63-A1FD-732EF51EED94}</SSIS:Property>
+                <SSIS:Property SSIS:Name="Name">HighRadiusExtracts</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMajor">1</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionBuild">396</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionComments">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionGUID">{49D3DAF1-98FA-47E2-9618-709DC34667CD}</SSIS:Property>
+                <SSIS:Property SSIS:Name="PackageFormatVersion">8</SSIS:Property>
+                <SSIS:Property SSIS:Name="Description">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="ProtectionLevel">2</SSIS:Property>
+              </SSIS:Properties>
+              <SSIS:Parameters>
+                <SSIS:Parameter SSIS:Name="FF_ARCASH">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{2CCB510B-696A-4B0B-91C2-992366E41CE5}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\ARCASH.TXT</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FF_ARCUST">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{303E3386-99FF-44B2-895A-0E8EA8D70411}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\ARCUST.TXT</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FF_ARMAST">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{DB8E6B40-3132-483A-8104-0C68529EAF3A}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\ARMAST.TXT</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="temp_folder">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{339174F3-4C4A-4AB6-BB63-4DD1D8D73635}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\temp</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.AlwaysCheckForRowDelimiters">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.CodePage">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">65001</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.ColumnNamesInFirstDataRow">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.DataRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.Format">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">Delimited</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.HeaderRowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property xml:space="preserve" SSIS:Name="Value">
+</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.HeaderRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.LocaleID">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1033</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.RowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.TextQualifier">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">"</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCASH.Unicode">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.AlwaysCheckForRowDelimiters">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.CodePage">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">65001</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.ColumnNamesInFirstDataRow">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.DataRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.Format">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">Delimited</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.HeaderRowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property xml:space="preserve" SSIS:Name="Value">
+</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.HeaderRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.LocaleID">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1033</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.RowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.TextQualifier">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">"</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARCUST.Unicode">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.AlwaysCheckForRowDelimiters">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.CodePage">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">65001</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.ColumnNamesInFirstDataRow">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.DataRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.Format">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">Delimited</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.HeaderRowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property xml:space="preserve" SSIS:Name="Value">
+</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.HeaderRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.LocaleID">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1033</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.RowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.TextQualifier">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">"</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.ARMAST.Unicode">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.DW_BGI_Opdata.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.DW_BGI_Opdata.ConnectUsingManagedIdentity">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.DW_BGI_Opdata.Password">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">1</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.DW_BGI_Opdata.RetainSameConnection">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.DW_BGI_Opdata.ServerName">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">ngusmsrv0031.ng.bg1857.net</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.DW_BGI_Opdata.UserName">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+              </SSIS:Parameters>
+            </SSIS:PackageMetaData>
+            <SSIS:PackageMetaData SSIS:Name="HighRadiusInvoiceExtract.dtsx">
+              <SSIS:Properties>
+                <SSIS:Property SSIS:Name="ID">{EFD4F32A-9379-4E1C-94F9-5D99CF6448CD}</SSIS:Property>
+                <SSIS:Property SSIS:Name="Name">HighRadiusInvoiceExtract</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMajor">1</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionBuild">404</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionComments">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionGUID">{7E927D1D-9342-47DD-9D2E-056F781EADA5}</SSIS:Property>
+                <SSIS:Property SSIS:Name="PackageFormatVersion">8</SSIS:Property>
+                <SSIS:Property SSIS:Name="Description">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="ProtectionLevel">2</SSIS:Property>
+              </SSIS:Properties>
+              <SSIS:Parameters>
+                <SSIS:Parameter SSIS:Name="InvoicesFolderLocation">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{7DFACA6F-CAED-483A-9E9C-170BCA5BADAB}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\invoices</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+              </SSIS:Parameters>
+            </SSIS:PackageMetaData>
+            <SSIS:PackageMetaData SSIS:Name="EDISendToJBA.dtsx">
+              <SSIS:Properties>
+                <SSIS:Property SSIS:Name="ID">{1FF16EC5-3805-4C0C-AF50-A9C2165F71B9}</SSIS:Property>
+                <SSIS:Property SSIS:Name="Name">EDISendToJBA</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMajor">1</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionBuild">142</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionComments">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionGUID">{2154B891-0F1E-4339-91B7-0ABAE35657B0}</SSIS:Property>
+                <SSIS:Property SSIS:Name="PackageFormatVersion">8</SSIS:Property>
+                <SSIS:Property SSIS:Name="Description">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="ProtectionLevel">2</SSIS:Property>
+              </SSIS:Properties>
+              <SSIS:Parameters>
+                <SSIS:Parameter SSIS:Name="varEDI820Table">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{8F0E3A1F-3C9B-4C4B-89EC-26999E604921}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">"QUAMODSF4"."HRADIUS820"</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="varEDI823Table">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{14CB3F2C-86E3-49A8-8B32-B7E29DDADAE4}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">"QUAMODSF4"."HRADIUS823"</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="varFlatFileFolder">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{DF21172B-3161-41A4-8A82-458CCE525070}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\HighRadius\stage\in\SendToJBA</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.ConnectRetryCount">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.ConnectRetryInterval">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">5</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.ConnectUsingManagedIdentity">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.InitialCatalog">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">DB2LOCAL</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.Password">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">1</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.RetainSameConnection">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.ServerName">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">172.16.101.19</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.AS400_OLEDB_BI_PCSRVR2.UserName">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">PCSRVR2</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.AlwaysCheckForRowDelimiters">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.CodePage">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1252</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.ColumnNamesInFirstDataRow">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.DataRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.Format">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">Delimited</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.HeaderRowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property xml:space="preserve" SSIS:Name="Value">
+</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.HeaderRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.LocaleID">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1033</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.RowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.TextQualifier">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">&lt;none&gt;</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile820.Unicode">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.AlwaysCheckForRowDelimiters">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">true</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.CodePage">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1252</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.ColumnNamesInFirstDataRow">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.DataRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.Format">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">Delimited</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.HeaderRowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property xml:space="preserve" SSIS:Name="Value">
+</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.HeaderRowsToSkip">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.LocaleID">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1033</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.RowDelimiter">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.TextQualifier">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">&lt;none&gt;</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.FlatFile823.Unicode">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+              </SSIS:Parameters>
+            </SSIS:PackageMetaData>
+          </SSIS:PackageInfo>
+        </SSIS:DeploymentInfo>
+      </SSIS:Project>
+    </Manifest>
+  </DeploymentModelSpecificContent>
+  <ControlFlowParts />
+  <Miscellaneous />
+  <Configurations>
+    <Configuration>
+      <Name>Development</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2019</TargetServerVersion>
+        <AzureMode>false</AzureMode>
+        <LinkedAzureTenantId />
+        <LinkedAzureAccountId />
+        <LinkedAzureSSISIR />
+        <LinkedAzureStorage />
+        <RemoteExecutionFolder />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2026-08-19T21:56:46.1857368Z</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{99B2FD58-7B0F-4769-8E41-D768288895AA}</Id>
+            <Name>BarnesAerospaceExtracts::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c E:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{78A8A95D-8C1C-41B8-86C5-6D29FAB30118}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP1\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{EF3DBF30-A20F-4F40-9A17-668E7628762F}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP1\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0A209287-06E4-4B2C-AE55-31AD57AB54CF}</Id>
+            <Name>BarnesAerospaceExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP1\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{69E4AD22-8785-4FA2-98A3-BB9F80C4F4E2}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP1\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{1BCF9D86-5999-41C4-8E63-8AA58990A0BC}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP1\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2efe1f24-3732-4634-941a-b0f287b8fc59}</Id>
+            <Name>Project::ConnectionStringsFile</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0031.ng.bg1857.net\common\ConnectionStrings.config</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C33CCA31-7997-4DBB-BF1C-1E1837EFAF03}</Id>
+            <Name>EpicorExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP5\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5FC0BE31-55BC-487E-A888-542F6F475F58}</Id>
+            <Name>EpicorExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP5\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{4E91CB1D-A611-4A10-995A-083E27961A82}</Id>
+            <Name>EpicorExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP5\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0580121A-B17D-48A3-B53B-7893E5490A34}</Id>
+            <Name>EpicorExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP5\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F0263989-2084-4C16-90B8-DD52EFEF3839}</Id>
+            <Name>Raymond Cforia Extracts_old::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c E:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B7BFB484-421B-4AAE-A042-8900698AD833}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{3AA397BB-2792-4742-9B6C-51B26F6CAC2C}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{263C22FF-C62E-4600-B037-3F8C8C1C8ACD}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_AREXTTI</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\AREXTTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{49D13893-21C8-4B49-ACD0-2857D3FE4C7D}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E33509D8-6B2F-4818-8316-0D1712AA040A}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{303E3386-99FF-44B2-895A-0E8EA8D70411}</Id>
+            <Name>HighRadiusExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">C:\temp\HighRadius\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DB8E6B40-3132-483A-8104-0C68529EAF3A}</Id>
+            <Name>HighRadiusExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">C:\temp\HighRadius\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{071F43C4-2394-444D-A345-3ABA317A772C}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c E:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{CC90E229-4C93-4F1C-B7BB-E2688D8E721F}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP3\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{1F113FC1-0E00-4C97-8F2A-DD224DDAA571}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP3\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5C7F09E8-4C70-427B-8B20-073664447A03}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_AREXTTI</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP3\AREXTTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0FFDE384-D300-4D70-8994-3D517EFAB06D}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP3\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{06FBE98C-5867-4C76-AAFC-4B836280B029}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP3\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F1D26FDB-2A22-4EB9-AFCC-D2D87891C5B7}</Id>
+            <Name>RaymondExtracts::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c E:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5363000E-F7EF-4311-941F-364ED1F41BCA}</Id>
+            <Name>RaymondExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{BE16BD2E-D64E-4CD7-A154-0891DD5A1E46}</Id>
+            <Name>RaymondExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{95CD9A39-87C8-43FB-B78D-B2C18F54864B}</Id>
+            <Name>RaymondExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E9186D76-53C5-45C6-AB79-1E761B134B6A}</Id>
+            <Name>RaymondExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C3A236E6-30E8-45B5-BF73-113463AA6E6C}</Id>
+            <Name>RaymondExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP4\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{554ACA75-B3EA-4407-AECC-200CE580D99C}</Id>
+            <Name>EpicorExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">E:\CForia\GPCOMP5\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{339174F3-4C4A-4AB6-BB63-4DD1D8D73635}</Id>
+            <Name>HighRadiusExtracts::temp_folder</Name>
+            <Value xsi:type="xsd:string">C:\temp\HighRadius\tmp</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{7DFACA6F-CAED-483A-9E9C-170BCA5BADAB}</Id>
+            <Name>HighRadiusInvoiceExtract::InvoicesFolderLocation</Name>
+            <Value xsi:type="xsd:string">C:\Temp\HighRadius\invoices</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2CCB510B-696A-4B0B-91C2-992366E41CE5}</Id>
+            <Name>HighRadiusExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">C:\temp\HighRadius\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{f8d61696-5ad6-48ee-9fea-7a03ff6d1d5a}</Id>
+            <Name>Project::ConnectionName</Name>
+            <Value xsi:type="xsd:string">SQL_FMG_DataWarehouse_ADO</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{8F0E3A1F-3C9B-4C4B-89EC-26999E604921}</Id>
+            <Name>EDISendToJBA::varEDI820Table</Name>
+            <Value xsi:type="xsd:string">"QUAMODSF4"."HRADIUS820"</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{14CB3F2C-86E3-49A8-8B32-B7E29DDADAE4}</Id>
+            <Name>EDISendToJBA::varEDI823Table</Name>
+            <Value xsi:type="xsd:string">"QUAMODSF4"."HRADIUS823"</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DF21172B-3161-41A4-8A82-458CCE525070}</Id>
+            <Name>EDISendToJBA::varFlatFileFolder</Name>
+            <Value xsi:type="xsd:string">C:\Temp\HighRadius\SendToJba</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+    <Configuration>
+      <Name>Production</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2019</TargetServerVersion>
+        <AzureMode>false</AzureMode>
+        <LinkedAzureTenantId />
+        <LinkedAzureAccountId />
+        <LinkedAzureSSISIR />
+        <LinkedAzureStorage />
+        <RemoteExecutionFolder />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2026-08-19T21:56:46.1867341Z</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{99B2FD58-7B0F-4769-8E41-D768288895AA}</Id>
+            <Name>BarnesAerospaceExtracts::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c D:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{78A8A95D-8C1C-41B8-86C5-6D29FAB30118}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP1\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{EF3DBF30-A20F-4F40-9A17-668E7628762F}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP1\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0A209287-06E4-4B2C-AE55-31AD57AB54CF}</Id>
+            <Name>BarnesAerospaceExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP1\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{69E4AD22-8785-4FA2-98A3-BB9F80C4F4E2}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP1\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{1BCF9D86-5999-41C4-8E63-8AA58990A0BC}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP1\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2efe1f24-3732-4634-941a-b0f287b8fc59}</Id>
+            <Name>Project::ConnectionStringsFile</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0030.bg.bg1857.net\common\ConnectionStrings.config</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C33CCA31-7997-4DBB-BF1C-1E1837EFAF03}</Id>
+            <Name>EpicorExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP5\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5FC0BE31-55BC-487E-A888-542F6F475F58}</Id>
+            <Name>EpicorExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP5\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{4E91CB1D-A611-4A10-995A-083E27961A82}</Id>
+            <Name>EpicorExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP5\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0580121A-B17D-48A3-B53B-7893E5490A34}</Id>
+            <Name>EpicorExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP5\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F0263989-2084-4C16-90B8-DD52EFEF3839}</Id>
+            <Name>Raymond Cforia Extracts_old::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c D:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B7BFB484-421B-4AAE-A042-8900698AD833}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP4\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{3AA397BB-2792-4742-9B6C-51B26F6CAC2C}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP4\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{263C22FF-C62E-4600-B037-3F8C8C1C8ACD}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_AREXTTI</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP4\AREXTTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{49D13893-21C8-4B49-ACD0-2857D3FE4C7D}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP4\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E33509D8-6B2F-4818-8316-0D1712AA040A}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP4\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{303E3386-99FF-44B2-895A-0E8EA8D70411}</Id>
+            <Name>HighRadiusExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\production\out\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DB8E6B40-3132-483A-8104-0C68529EAF3A}</Id>
+            <Name>HighRadiusExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\production\out\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{071F43C4-2394-444D-A345-3ABA317A772C}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c D:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{CC90E229-4C93-4F1C-B7BB-E2688D8E721F}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP3\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{1F113FC1-0E00-4C97-8F2A-DD224DDAA571}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP3\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5C7F09E8-4C70-427B-8B20-073664447A03}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_AREXTTI</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP3\AREXTTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0FFDE384-D300-4D70-8994-3D517EFAB06D}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP3\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{06FBE98C-5867-4C76-AAFC-4B836280B029}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">D:\CForia\GPCOMP3\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F1D26FDB-2A22-4EB9-AFCC-D2D87891C5B7}</Id>
+            <Name>RaymondExtracts::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c D:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5363000E-F7EF-4311-941F-364ED1F41BCA}</Id>
+            <Name>RaymondExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP4\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{BE16BD2E-D64E-4CD7-A154-0891DD5A1E46}</Id>
+            <Name>RaymondExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP4\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{95CD9A39-87C8-43FB-B78D-B2C18F54864B}</Id>
+            <Name>RaymondExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP4\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E9186D76-53C5-45C6-AB79-1E761B134B6A}</Id>
+            <Name>RaymondExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP4\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C3A236E6-30E8-45B5-BF73-113463AA6E6C}</Id>
+            <Name>RaymondExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP4\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{554ACA75-B3EA-4407-AECC-200CE580D99C}</Id>
+            <Name>EpicorExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">\\bguss0014.corporate.local\GPCOMP5\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{339174F3-4C4A-4AB6-BB63-4DD1D8D73635}</Id>
+            <Name>HighRadiusExtracts::temp_folder</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\production\temp</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{7DFACA6F-CAED-483A-9E9C-170BCA5BADAB}</Id>
+            <Name>HighRadiusInvoiceExtract::InvoicesFolderLocation</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\production\out\invoices</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2CCB510B-696A-4B0B-91C2-992366E41CE5}</Id>
+            <Name>HighRadiusExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\production\out\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{f8d61696-5ad6-48ee-9fea-7a03ff6d1d5a}</Id>
+            <Name>Project::ConnectionName</Name>
+            <Value xsi:type="xsd:string">SQL_FMG_DataWarehouse_ADO</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{8F0E3A1F-3C9B-4C4B-89EC-26999E604921}</Id>
+            <Name>EDISendToJBA::varEDI820Table</Name>
+            <Value xsi:type="xsd:string">"PRDMODSF4"."HRADIUS820"</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{14CB3F2C-86E3-49A8-8B32-B7E29DDADAE4}</Id>
+            <Name>EDISendToJBA::varEDI823Table</Name>
+            <Value xsi:type="xsd:string">"PRDMODSF4"."HRADIUS823"</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DF21172B-3161-41A4-8A82-458CCE525070}</Id>
+            <Name>EDISendToJBA::varFlatFileFolder</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\HighRadius\production\in\SendToJBA</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+    <Configuration>
+      <Name>Stage</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2019</TargetServerVersion>
+        <AzureMode>false</AzureMode>
+        <LinkedAzureTenantId />
+        <LinkedAzureAccountId />
+        <LinkedAzureSSISIR />
+        <LinkedAzureStorage />
+        <RemoteExecutionFolder />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2026-08-19T21:56:46.1877351Z</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{99B2FD58-7B0F-4769-8E41-D768288895AA}</Id>
+            <Name>BarnesAerospaceExtracts::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c \\bgusmsrv0019.bg.bg1857.net\Stage\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{78A8A95D-8C1C-41B8-86C5-6D29FAB30118}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP1\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{EF3DBF30-A20F-4F40-9A17-668E7628762F}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP1\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0A209287-06E4-4B2C-AE55-31AD57AB54CF}</Id>
+            <Name>BarnesAerospaceExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP1\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{69E4AD22-8785-4FA2-98A3-BB9F80C4F4E2}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP1\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{1BCF9D86-5999-41C4-8E63-8AA58990A0BC}</Id>
+            <Name>BarnesAerospaceExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP1\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2efe1f24-3732-4634-941a-b0f287b8fc59}</Id>
+            <Name>Project::ConnectionStringsFile</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0031.ng.bg1857.net\common\ConnectionStrings.config</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C33CCA31-7997-4DBB-BF1C-1E1837EFAF03}</Id>
+            <Name>EpicorExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP5\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5FC0BE31-55BC-487E-A888-542F6F475F58}</Id>
+            <Name>EpicorExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP5\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{4E91CB1D-A611-4A10-995A-083E27961A82}</Id>
+            <Name>EpicorExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP5\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0580121A-B17D-48A3-B53B-7893E5490A34}</Id>
+            <Name>EpicorExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP5\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F0263989-2084-4C16-90B8-DD52EFEF3839}</Id>
+            <Name>Raymond Cforia Extracts_old::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c \\bgusmsrv0019.bg.bg1857.net\Stage\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B7BFB484-421B-4AAE-A042-8900698AD833}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{3AA397BB-2792-4742-9B6C-51B26F6CAC2C}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{263C22FF-C62E-4600-B037-3F8C8C1C8ACD}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_AREXTTI</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\AREXTTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{49D13893-21C8-4B49-ACD0-2857D3FE4C7D}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E33509D8-6B2F-4818-8316-0D1712AA040A}</Id>
+            <Name>Raymond Cforia Extracts_old::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{303E3386-99FF-44B2-895A-0E8EA8D70411}</Id>
+            <Name>HighRadiusExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DB8E6B40-3132-483A-8104-0C68529EAF3A}</Id>
+            <Name>HighRadiusExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{071F43C4-2394-444D-A345-3ABA317A772C}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c \\bgusmsrv0019.bg.bg1857.net\Stage\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{CC90E229-4C93-4F1C-B7BB-E2688D8E721F}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP3\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{1F113FC1-0E00-4C97-8F2A-DD224DDAA571}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP3\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5C7F09E8-4C70-427B-8B20-073664447A03}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_AREXTTI</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP3\AREXTTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0FFDE384-D300-4D70-8994-3D517EFAB06D}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP3\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{06FBE98C-5867-4C76-AAFC-4B836280B029}</Id>
+            <Name>BI_ CForia Extracts_3_delete_this_later::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP3\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F1D26FDB-2A22-4EB9-AFCC-D2D87891C5B7}</Id>
+            <Name>RaymondExtracts::CF_copyfiles</Name>
+            <Value xsi:type="xsd:string">/c E:\Processes\Autonomy\copyfiles.bat</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{5363000E-F7EF-4311-941F-364ED1F41BCA}</Id>
+            <Name>RaymondExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{BE16BD2E-D64E-4CD7-A154-0891DD5A1E46}</Id>
+            <Name>RaymondExtracts::FF_ARCUST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARCUST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{95CD9A39-87C8-43FB-B78D-B2C18F54864B}</Id>
+            <Name>RaymondExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E9186D76-53C5-45C6-AB79-1E761B134B6A}</Id>
+            <Name>RaymondExtracts::FF_ARMAST</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARMAST.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C3A236E6-30E8-45B5-BF73-113463AA6E6C}</Id>
+            <Name>RaymondExtracts::FF_ARTRAN</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP4\ARTRAN.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{554ACA75-B3EA-4407-AECC-200CE580D99C}</Id>
+            <Name>EpicorExtracts::FF_AREXTI</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Stage\CForia\GPCOMP5\AREXTI.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{339174F3-4C4A-4AB6-BB63-4DD1D8D73635}</Id>
+            <Name>HighRadiusExtracts::temp_folder</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\temp</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{7DFACA6F-CAED-483A-9E9C-170BCA5BADAB}</Id>
+            <Name>HighRadiusInvoiceExtract::InvoicesFolderLocation</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\invoices</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2CCB510B-696A-4B0B-91C2-992366E41CE5}</Id>
+            <Name>HighRadiusExtracts::FF_ARCASH</Name>
+            <Value xsi:type="xsd:string">\\NGUSMSRV0019.ng.bg1857.net\Applications\HighRadius\stage\out\ARCASH.TXT</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{f8d61696-5ad6-48ee-9fea-7a03ff6d1d5a}</Id>
+            <Name>Project::ConnectionName</Name>
+            <Value xsi:type="xsd:string">SQL_FMG_DataWarehouse_ADO</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{8F0E3A1F-3C9B-4C4B-89EC-26999E604921}</Id>
+            <Name>EDISendToJBA::varEDI820Table</Name>
+            <Value xsi:type="xsd:string">"QUAMODSF4"."HRADIUS820"</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{14CB3F2C-86E3-49A8-8B32-B7E29DDADAE4}</Id>
+            <Name>EDISendToJBA::varEDI823Table</Name>
+            <Value xsi:type="xsd:string">"QUAMODSF4"."HRADIUS823"</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DF21172B-3161-41A4-8A82-458CCE525070}</Id>
+            <Name>EDISendToJBA::varFlatFileFolder</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\HighRadius\stage\in\SendToJBA</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+  </Configurations>
+</Project>

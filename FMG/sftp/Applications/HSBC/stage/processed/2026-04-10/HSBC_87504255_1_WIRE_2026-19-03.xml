@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document>
+	<CstmrCdtTrfInitn>
+		<GrpHdr>
+			<MsgId>87504255_2</MsgId>
+			<CreDtTm>2026-03-16T04:22:59.861Z</CreDtTm>
+			<Authstn>
+				<Cd>AUTH</Cd>
+			</Authstn>
+			<NbOfTxs>9</NbOfTxs>
+			<CtrlSum>16453.81</CtrlSum>
+			<InitgPty>
+				<Id>
+					<OrgId>
+						<Othr>
+							<Id>A859D8A0</Id>
+							<SchmeNm>
+								<Cd>CUST</Cd>
+							</SchmeNm>
+						</Othr>
+					</OrgId>
+				</Id>
+			</InitgPty>
+		</GrpHdr>
+		<PmtInf>
+			<PmtInfId>87504255_2</PmtInfId>
+			<PmtMtd>TRF</PmtMtd>
+			<PmtTpInf>
+				<SvcLvl>
+					<Cd>URGP</Cd>
+				</SvcLvl>
+			</PmtTpInf>
+			<ReqdExctnDt>2026-03-16</ReqdExctnDt>
+			<Dbtr>
+				<Nm>Maumee (PRD 910/088)</Nm>
+				<PstlAdr>
+					<StrtNm>370 W Dussel Dr., Ste. A Maumee OH 43537 Maumee OH</StrtNm>
+					<PstCd>43537</PstCd>
+					<TwnNm>Maumee</TwnNm>
+					<CtrySubDvsn>OH</CtrySubDvsn>
+					<Ctry>US</Ctry>
+				</PstlAdr>
+			</Dbtr>
+			<DbtrAcct>
+				<Id>
+					<Othr>
+						<Id>797025154</Id>
+					</Othr>
+				</Id>
+				<Ccy>USD</Ccy>
+			</DbtrAcct>
+			<DbtrAgt>
+				<FinInstnId>
+					<BIC>MRMDUS33</BIC>
+					<PstlAdr>
+						<Ctry>US</Ctry>
+					</PstlAdr>
+				</FinInstnId>
+			</DbtrAgt>
+			<ChrgBr>DEBT</ChrgBr>
+			<CdtTrfTxInf>
+				<PmtId>
+					<InstrId>00001_20001</InstrId>
+					<EndToEndId>87504255_00001_20001</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="USD">580.69</InstdAmt>
+				</Amt>
+				<CdtrAgt>
+					<FinInstnId>
+						<BIC>HSBCHKHHHKH</BIC>
+						<Nm>RAINBOW METAL SPRING CO., LTD.</Nm>
+					</FinInstnId>
+				</CdtrAgt>
+				<Cdtr>
+					<Nm>RAINBOW METAL SPRING CO., LTD.</Nm>
+					<PstlAdr>
+						<StrtNm>BL. 6-7, XIAYUAN CENTER, HUANG PU </StrtNm>
+						<PstCd/>
+						<TwnNm>GUANGZHOU</TwnNm>
+						<CtrySubDvsn/>
+						<Ctry>CN</Ctry>
+					</PstlAdr>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<Othr>
+							<Id>033726613838</Id>
+						</Othr>
+					</Id>
+					<Tp>
+						<Cd>CASH</Cd>
+					</Tp>
+				</CdtrAcct>
+				<RmtInf>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>KD028746</Nb>
+							<RltdDt>2025-12-12</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">323.29</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">323.29</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>KD028746</Ref>
+						</CdtrRefInf>
+					</Strd>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>KD029139</Nb>
+							<RltdDt>2025-11-20</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">144.90</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">144.90</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>KD029139</Ref>
+						</CdtrRefInf>
+					</Strd>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>KD029178</Nb>
+							<RltdDt>2025-11-24</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">112.50</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">112.50</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>KD029178</Ref>
+						</CdtrRefInf>
+					</Strd>
+				</RmtInf>
+			</CdtTrfTxInf>
+			<CdtTrfTxInf>
+				<PmtId>
+					<InstrId>00002_20002</InstrId>
+					<EndToEndId>87504255_00002_20002</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="USD">4804.20</InstdAmt>
+				</Amt>
+				<CdtrAgt>
+					<FinInstnId>
+						<BIC>HBUKGB4B</BIC>
+						<Nm>INDUSTRIAL GAS SPRINGS LTD</Nm>
+					</FinInstnId>
+				</CdtrAgt>
+				<Cdtr>
+					<Nm>INDUSTRIAL GAS SPRINGS LTD</Nm>
+					<PstlAdr>
+						<StrtNm>22 WATES WAY </StrtNm>
+						<PstCd>CR44H4</PstCd>
+						<TwnNm>MITCHAM</TwnNm>
+						<CtrySubDvsn/>
+						<Ctry>GB</Ctry>
+					</PstlAdr>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<IBAN>GB62HBUK40127692512460</IBAN>
+					</Id>
+					<Tp>
+						<Cd>CASH</Cd>
+					</Tp>
+				</CdtrAcct>
+				<RmtInf>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>83787</Nb>
+							<RltdDt>2025-12-02</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">119.60</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">119.60</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>83787</Ref>
+						</CdtrRefInf>
+					</Strd>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>83788</Nb>
+							<RltdDt>2025-12-02</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">3087.40</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">3087.40</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>83788</Ref>
+						</CdtrRefInf>
+					</Strd>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>84045</Nb>
+							<RltdDt>2026-01-30</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">1597.20</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">1597.20</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>84045</Ref>
+						</CdtrRefInf>
+					</Strd>
+				</RmtInf>
+			</CdtTrfTxInf>
+			<CdtTrfTxInf>
+				<PmtId>
+					<InstrId>00003_20003</InstrId>
+					<EndToEndId>87504255_00003_20003</EndToEndId>
+				</PmtId>
+				<Amt>
+					<InstdAmt Ccy="USD">11068.92</InstdAmt>
+				</Amt>
+				<CdtrAgt>
+					<FinInstnId>
+						<BIC>BKNBCN2NXXX</BIC>
+						<Nm>Ningbo Lipinge Mach Industry Co Ltd</Nm>
+					</FinInstnId>
+				</CdtrAgt>
+				<Cdtr>
+					<Nm>Ningbo Lipinge Mach Industry Co Ltd</Nm>
+					<PstlAdr>
+						<StrtNm>Ji'er Village </StrtNm>
+						<PstCd>315528</PstCd>
+						<TwnNm>Fenghua City</TwnNm>
+						<CtrySubDvsn/>
+						<Ctry>CN</Ctry>
+					</PstlAdr>
+				</Cdtr>
+				<CdtrAcct>
+					<Id>
+						<Othr>
+							<Id>83060120101010937</Id>
+						</Othr>
+					</Id>
+					<Tp>
+						<Cd>CASH</Cd>
+					</Tp>
+				</CdtrAcct>
+				<RmtInf>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>LPG25C1213-11</Nb>
+							<RltdDt>2025-12-15</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">1880.00</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">1880.00</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>LPG25C1213-11</Ref>
+						</CdtrRefInf>
+					</Strd>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>LPG25C1213-12-2</Nb>
+							<RltdDt>2025-12-15</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">455.00</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">455.00</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>LPG25C1213-12-2</Ref>
+						</CdtrRefInf>
+					</Strd>
+					<Strd>
+						<RfrdDocInf>
+							<Tp>
+								<CdOrPrtry>
+									<Cd>CINV</Cd>
+								</CdOrPrtry>
+							</Tp>
+							<Nb>LPG25C1213-13-1</Nb>
+							<RltdDt>2025-12-15</RltdDt>
+						</RfrdDocInf>
+						<RfrdDocAmt>
+							<DuePyblAmt Ccy="USD">8733.92</DuePyblAmt>
+							<DscntApldAmt Ccy="USD">0.00</DscntApldAmt>
+							<RmtdAmt Ccy="USD">8733.92</RmtdAmt>
+						</RfrdDocAmt>
+						<CdtrRefInf>
+							<Ref>LPG25C1213-13-1</Ref>
+						</CdtrRefInf>
+					</Strd>
+				</RmtInf>
+			</CdtTrfTxInf>
+		</PmtInf>
+	</CstmrCdtTrfInitn>
+</Document>

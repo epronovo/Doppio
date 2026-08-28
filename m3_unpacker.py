@@ -298,8 +298,11 @@ def parse_records_bitmap_style(data_section, n_fields, field_types=None,
             ftype    = field_types[i] if field_types and i < len(field_types) else ''
 
             if not present:
-                # Field not stored on this record.
-                values.append(last_value[i] if fill else None)
+                # Field not stored on this record: use the type's display
+                # default, not the carry-forward value — carry-forward only
+                # applies to the explicit LPS "inherit" marker (bit set,
+                # length 0), a distinct wire state from bit-clear.
+                values.append(default_for_type(ftype) if fill else None)
                 continue
 
             if short_decimal[i]:

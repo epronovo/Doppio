@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.33927.289
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{159641D6-6404-4A2A-AE62-294DE0FE8301}") = "BGIDW_Aurora", "BGIDW_Aurora\BGIDW_Aurora.dtproj", "{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Default = Development|Default
+		Production|Default = Production|Default
+		Stage|Default = Stage|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}.Development|Default.ActiveCfg = Development
+		{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}.Development|Default.Build.0 = Development
+		{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}.Production|Default.ActiveCfg = Production
+		{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}.Production|Default.Build.0 = Production
+		{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}.Stage|Default.ActiveCfg = Stage
+		{2541C1E9-FFC4-4A3F-9362-3D3E967F9109}.Stage|Default.Build.0 = Stage
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7D29C611-D9D8-47E0-A66D-AFF150385897}
+	EndGlobalSection
+EndGlobal

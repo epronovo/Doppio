@@ -1,0 +1,274 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260817183115
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -file  E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1 
+Process ID: 1524
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PS>TerminatingError(GetFiles): "A parameter cannot be found that matches parameter name 'RemotePath'."
+>> TerminatingError(GetFiles): "A parameter cannot be found that matches parameter name 'RemotePath'."
+main : A parameter cannot be found that matches parameter name 'RemotePath'.
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:29 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+main : A parameter cannot be found that matches parameter name 'RemotePath'.
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:29 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+
+**********************
+Windows PowerShell transcript end
+End time: 20260817183115
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260817183202
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -file  E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1 
+Process ID: 13200
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Get files from /out/ saving the files to E:\Applications\ConcurImport\stage
+Connecting to Concur
+Connected to Concur /out/
+PS>$global:?
+True
+**********************
+Windows PowerShell transcript end
+End time: 20260817183205
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260817185126
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -file  E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1 
+Process ID: 5020
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\ConcurImport\_scripts\concurget.log
+PS>TerminatingError(): "At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:73 char:20
++         [string]$SavePath
++                          ~
+Missing ')' in function parameter list.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:70 char:19
++ function GetFiles {
++                   ~
+Missing closing '}' in statement block or type definition.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:75 char:2
++     )
++     ~
+Unexpected token ')' in expression or statement.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:91 char:1
++ }
++ ~
+Unexpected token '}' in expression or statement."
+main : At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:73 char:20
++         [string]$SavePath
++                          ~
+Missing ')' in function parameter list.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:70 char:19
++ function GetFiles {
++                   ~
+Missing closing '}' in statement block or type definition.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:75 char:2
++     )
++     ~
+Unexpected token ')' in expression or statement.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:91 char:1
++ }
++ ~
+Unexpected token '}' in expression or statement.
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:40 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+main : At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:73 char:20
++         [string]$SavePath
++                          ~
+Missing ')' in function parameter list.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:70 char:19
++ function GetFiles {
++                   ~
+Missing closing '}' in statement block or type definition.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:75 char:2
++     )
++     ~
+Unexpected token ')' in expression or statement.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:91 char:1
++ }
++ ~
+Unexpected token '}' in expression or statement.
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:40 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+
+**********************
+Windows PowerShell transcript end
+End time: 20260817185126
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260817185324
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 5124
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\ConcurImport\_scripts\concurget.log
+PS>TerminatingError(): "At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:73 char:20
++         [string]$SavePath
++                          ~
+Missing ')' in function parameter list.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:70 char:19
++ function GetFiles {
++                   ~
+Missing closing '}' in statement block or type definition.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:75 char:2
++     )
++     ~
+Unexpected token ')' in expression or statement.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:91 char:1
++ }
++ ~
+Unexpected token '}' in expression or statement."
+main : At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:73 char:20
++         [string]$SavePath
++                          ~
+Missing ')' in function parameter list.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:70 char:19
++ function GetFiles {
++                   ~
+Missing closing '}' in statement block or type definition.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:75 char:2
++     )
++     ~
+Unexpected token ')' in expression or statement.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:91 char:1
++ }
++ ~
+Unexpected token '}' in expression or statement.
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:40 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+main : At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:73 char:20
++         [string]$SavePath
++                          ~
+Missing ')' in function parameter list.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:70 char:19
++ function GetFiles {
++                   ~
+Missing closing '}' in statement block or type definition.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:75 char:2
++     )
++     ~
+Unexpected token ')' in expression or statement.
+
+At E:\Scripts\WinScpFTP\Concur\ConcurConnect.ps1:91 char:1
++ }
++ ~
+Unexpected token '}' in expression or statement.
+At E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1:40 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+
+**********************
+Windows PowerShell transcript end
+End time: 20260817185324
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260817185536
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -file  E:\Applications\ConcurImport\_scripts\ConcurGetFiles.ps1 
+Process ID: 2424
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\ConcurImport\_scripts\concurget.log
+Get files from /out/ saving the files to E:\Applications\ConcurImport\stage
+Connecting to Concur
+Connected to Concur /out/
+PS>$global:?
+True
+**********************
+Windows PowerShell transcript end
+End time: 20260817185540
+**********************

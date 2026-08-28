@@ -1,0 +1,281 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20260812210547
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+PS>TerminatingError(GetFiles): "The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+>> TerminatingError(GetFiles): "The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+main : The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable 
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At E:\Applications\HighRadius\_scripts\GetFiles.ps1:136 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+main : The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At E:\Applications\HighRadius\_scripts\GetFiles.ps1:136 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+
+**********************
+Windows PowerShell transcript end
+End time: 20260812210547
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260812210638
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+PS>TerminatingError(GetFiles): "The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+>> TerminatingError(GetFiles): "The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again."
+main : The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable 
+program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At E:\Applications\HighRadius\_scripts\GetFiles.ps1:136 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+main : The term 'Get-SecretValue' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path
+was included, verify that the path is correct and try again.
+At E:\Applications\HighRadius\_scripts\GetFiles.ps1:136 char:1
++ main
++ ~~~~
+    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException
+    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,main
+
+**********************
+Windows PowerShell transcript end
+End time: 20260812210638
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260812212335
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+Get files from //outbound/test//caa//FMG saving the files to E:\Applications\HighRadius\stage\in\
+Connecting to HighRadius
+Connected to HighRadius //outbound/test//caa//FMG
+Preparing to download file: HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+Remote file : //outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Remote file : //outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+Remote file : //outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Remote file : //outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML to M3
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML to M3
+Send To JBA E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+Send To JBA E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+**********************
+Windows PowerShell transcript end
+End time: 20260812212338
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260812213900
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+Get files from //outbound/test//caa//FMG saving the files to E:\Applications\HighRadius\stage\in\
+Connecting to HighRadius
+Connected to HighRadius //outbound/test//caa//FMG
+Preparing to download file: HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+Remote file : //outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Remote file : //outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+Remote file : //outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Remote file : //outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+SendToFileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML to M3
+SendToFileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML to M3
+Send To JBA E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+Send To JBA E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+**********************
+Windows PowerShell transcript end
+End time: 20260812213902
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260812214624
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+Get files from //outbound/test//caa//FMG saving the files to E:\Applications\HighRadius\stage\in\
+Connecting to HighRadius
+Connected to HighRadius //outbound/test//caa//FMG
+Preparing to download file: HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+Remote file : //outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Remote file : //outbound/test//caa//FMG/HRCAA-6305_EDI_M3_20260806_0547_52_674.XML moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+Remote file : //outbound/test//caa//FMG/HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+Preparing to download file: HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Remote file : //outbound/test//caa//FMG/HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML moving to Save Directory E:\Applications\HighRadius\stage\in\/
+Download complete!
+====== Processing Files =====
+Processing File HRCAA-6305_CHECK_M3_20260806_0550_39_958
+Send To FileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML to M3
+Processing File HRCAA-6305_EDI_M3_20260806_0547_52_674
+Send To FileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML to M3
+Processing File HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921
+Send To JBA : E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI820_20260807_1012_44_921.EDI
+Processing File HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728
+Send To JBA : E:\Applications\HighRadius\stage\in\HRCAA-7093_AURORA_BarnesEDI823_20260811_0947_21_728.EDI
+**********************
+Windows PowerShell transcript end
+End time: 20260812214625
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260812214818
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+Get files from //outbound/test//caa//FMG saving the files to E:\Applications\HighRadius\stage\in\
+Connecting to HighRadius
+Connected to HighRadius //outbound/test//caa//FMG
+====== Processing Files =====
+Processing File HRCAA-6305_CHECK_M3_20260806_0550_39_958
+Send To FileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML to
+Processing File HRCAA-6305_EDI_M3_20260806_0547_52_674
+Send To FileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML to
+**********************
+Windows PowerShell transcript end
+End time: 20260812214820
+**********************
+**********************
+Windows PowerShell transcript start
+Start time: 20260812215050
+Username: BG\AKAFG
+RunAs User: BG\AKAFG
+Configuration Name: 
+Machine: NGUSMSRV0019 (Microsoft Windows NT 10.0.26100.0)
+Host Application: C:\Windows\system32\WindowsPowerShell\v1.0\PowerShell_ISE.exe
+Process ID: 10044
+PSVersion: 5.1.26100.33296
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.33296
+BuildVersion: 10.0.26100.33296
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is E:\Applications\HighRadius\_scripts\get_log.log
+Get files from //outbound/test//caa//FMG saving the files to E:\Applications\HighRadius\stage\in\
+Connecting to HighRadius
+Connected to HighRadius //outbound/test//caa//FMG
+====== Processing Files =====
+Processing File HRCAA-6305_CHECK_M3_20260806_0550_39_958
+Send To FileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_CHECK_M3_20260806_0550_39_958.XML to \\RAUSMSRV0002.RA.bg1857.net\ASR\AR-Bank\in
+Processing File HRCAA-6305_EDI_M3_20260806_0547_52_674
+Send To FileShare : M3 File E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML
+Copy E:\Applications\HighRadius\stage\in\HRCAA-6305_EDI_M3_20260806_0547_52_674.XML to \\RAUSMSRV0002.RA.bg1857.net\ASR\AR-Bank\in
+**********************
+Windows PowerShell transcript end
+End time: 20260812215051
+**********************

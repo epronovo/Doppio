@@ -7,7 +7,6 @@
  * 20260728  EPRONOVOST            Added UpdDelivery transaction to access MHDISH table
  */
 
-// import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -28,10 +27,8 @@ public class UpdDelivery extends ExtendM3Transaction {
 	}
 
 	/**
-	 * Main method
-	 *
-	 * @param
-	 * @return
+	 * Entry point. Reads CONO, INOU, DLIX, and RLTD from the input parameters
+	 * and updates the corresponding record in MHDISH.
 	 */
 	public void main() {
 		String rawCONO = mi.inData.get("CONO") ?: ""
@@ -44,12 +41,48 @@ public class UpdDelivery extends ExtendM3Transaction {
 		iDLIX = rawDLIX.isBlank() ? "" : rawDLIX
 		iRLTD = rawRLTD.isBlank() ? "" : rawRLTD
 
+		if (!validateInput()) {
+			return
+		}
+
 		updRecord()
 	}
 
 	/**
-	 * Update the record in MHDISH table
-	 *
+	 * Validates the numeric business rules for CONO, INOU, DLIX, and RLTD.
+	 * Reports an error and returns false on the first rule violated.
+	 */
+	private boolean validateInput() {
+		if (iCONO.toInteger() == 0) {
+			mi.error("CONO must not be 0")
+			return false
+		}
+
+		int inou = iINOU.toInteger()
+		if (inou < 1 || inou > 4) {
+			mi.error("INOU must be between 1 and 4")
+			return false
+		}
+
+		if (iDLIX.toInteger() == 0) {
+			mi.error("DLIX must not be 0")
+			return false
+		}
+
+		if (!iRLTD.isBlank() && iRLTD.trim() != "?") {
+			int rltd = iRLTD.toInteger()
+			if (rltd != 0 && rltd != 1) {
+				mi.error("RLTD must be 0 or 1")
+				return false
+			}
+		}
+
+		return true
+	}
+
+	/**
+	 * Looks up the MHDISH record by CONO/INOU/DLIX and locks it for update
+	 * via updateCallBack. Reports an error if no matching record exists.
 	 */
 	private void updRecord() {
 		DBAction action = database.table("MHDISH").index("00").build()
@@ -65,14 +98,14 @@ public class UpdDelivery extends ExtendM3Transaction {
 	}
 
 	/**
-	 * Closure for MHDISH Update
-	 *
+	 * Applies the update to the locked MHDISH record: sets RLTD (if provided),
+	 * refreshes OQLMDT/OQCHID, and increments OQCHNO (wrapping to 1 after 999).
 	 */
 	Closure <?> updateCallBack = {
 		LockedResult lockedResult ->
 
 		int changeNumber = lockedResult.get("OQCHNO")
-		int newChangeNumber = changeNumber + 1
+	    int newChangeNumber = changeNumber >= 999 ? 1 : changeNumber + 1
 
 		if (!iRLTD.isBlank()) {
 			if (iRLTD.trim() == "?") {iRLTD = "0"}

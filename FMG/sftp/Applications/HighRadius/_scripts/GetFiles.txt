@@ -1,0 +1,40 @@
+param (
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("stage","production")]
+    [string]$Environment
+)
+
+$basePath = Split-Path -Path $PSScriptRoot -Parent
+$configPath = Join-Path $basePath "\configuration\$Environment.json"
+write-host $configPath
+if (-not (Test-Path $configPath)) {
+    Write-Error "Config file not found: $configPath"
+    exit 1
+}
+
+$config = Get-Content $configPath | ConvertFrom-Json
+
+
+Start-Transcript -Path "$PSScriptRoot\get_log.log" -Append
+
+function Get_Files {
+
+
+}
+
+
+function main {
+    try{
+        Get_Files        
+    }
+    catch{
+        Write-Error $_
+        Stop-Transcript
+        exit 1
+    }
+}
+
+
+main
+
+Stop-Transcript -ErrorAction SilentlyContinue

@@ -1,0 +1,8 @@
+{
+	"App_IncomingSavePath":"E:\\Applications\\ConcurImport\\stage",
+
+	"_comment_pgp":"App_PgpPassPhraseLocation must point at the passphrase for the BARNES PGP SECRET key. That key does not exist yet - concur_exported_key_pair.key is an SSH key, not PGP, and keyphrase.txt is the SSH passphrase. Leave this empty until a Barnes PGP key pair is generated and its public half is registered with Concur. Empty = gpg is invoked with no passphrase, which is correct for a key with no passphrase and fails cleanly otherwise.",
+	"App_PgpPassPhraseLocation":"",
+
+	"App_EncryptedArchivePath":"E:\\Applications\\ConcurImport\\stage\\encrypted"
+}

@@ -1,0 +1,8 @@
+﻿{
+    "App_Environment": "production",
+    "App_HostName": "sftp-cloud13.highradius.com",
+    "App_UserName": "BarnesGroupProd",
+    "App_SSHKey": "ssh-ed25519 255 eyA9SOa4PZm47rr8aIkLQRXQUcCJTPwc3JCvhFLfjnk",
+    "App_KeyPassPhrase": "eyA9SOa4PZm47rr8",
+    "App_KeyPath": "E:\\KeysEncryptions\\HighRadius\\_ProdHighRadius.ppk"	
+}

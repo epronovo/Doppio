@@ -1,0 +1,8 @@
+﻿{
+    "App_Environment": "stage",
+    "App_HostName": "uatsftp-turtle13.highradius.com",
+    "App_UserName": "UATBaresGroup",
+    "App_SSHKey": "ecdsa-sha2-nistp256 256 28RojzHkUL9pCh/Z4tlgjuUAKlUDghX4/oIQhzHIqDQ",
+    "App_KeyPassPhrase": "aGsUm1(20Td#x",
+	"App_KeyPath": ""	
+}

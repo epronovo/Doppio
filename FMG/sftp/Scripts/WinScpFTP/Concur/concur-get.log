@@ -1,0 +1,258 @@
+. 2026-08-17 18:32:02.571 --------------------------------------------------------------------------
+. 2026-08-17 18:32:02.573 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-17 18:32:02.573 Configuration: nul
+. 2026-08-17 18:32:02.573 Log level: Normal
+. 2026-08-17 18:32:02.573 Local account: BG\AKAFG
+. 2026-08-17 18:32:02.573 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-17 18:32:02.573 Process ID: 9288
+. 2026-08-17 18:32:02.581 Ancestor processes: powershell, explorer, ...
+. 2026-08-17 18:32:02.581 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\6\wscp3390.03148200.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\Concur\concur-get.log"  /console /consoleinstance=_13200_27574816_436
+. 2026-08-17 18:32:02.583 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-17 18:32:02.583 Login time: Monday, August 17, 2026 6:32:02 PM
+. 2026-08-17 18:32:02.583 --------------------------------------------------------------------------
+. 2026-08-17 18:32:02.583 Script: Retrospectively logging previous script records:
+> 2026-08-17 18:32:02.583 Script: option batch on
+< 2026-08-17 18:32:02.583 Script: batch           on        
+< 2026-08-17 18:32:02.583 Script: reconnecttime   120       
+> 2026-08-17 18:32:02.583 Script: option confirm off
+< 2026-08-17 18:32:02.583 Script: confirm         off       
+> 2026-08-17 18:32:02.583 Script: option reconnecttime 120
+< 2026-08-17 18:32:02.583 Script: reconnecttime   120       
+> 2026-08-17 18:32:02.583 Script: open sftp://t1209783x4lw@mft-us2.concursolutions.com:22 -hostkey="ssh-rsa 3072 A+6pVvfQpGaSZfwvDenRBatqA9GE5YAbFOiKJASC7wI" -privatekey="E:\KeysEncryptions\Concur\Dev\DevConcurSFTP_private.ppk" -timeout=15 -passphrase=***
+. 2026-08-17 18:32:02.583 --------------------------------------------------------------------------
+. 2026-08-17 18:32:02.583 Session name: t1209783x4lw@mft-us2.concursolutions.com (Ad-Hoc site)
+. 2026-08-17 18:32:02.583 Host name: mft-us2.concursolutions.com (Port: 22)
+. 2026-08-17 18:32:02.583 User name: t1209783x4lw (Password: No, Key file: Yes, Passphrase: Yes)
+. 2026-08-17 18:32:02.583 Tunnel: No
+. 2026-08-17 18:32:02.583 Transfer Protocol: SFTP
+. 2026-08-17 18:32:02.583 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-17 18:32:02.583 Disable Nagle: No
+. 2026-08-17 18:32:02.583 Proxy: None
+. 2026-08-17 18:32:02.583 Send buffer: 262144
+. 2026-08-17 18:32:02.583 Compression: No
+. 2026-08-17 18:32:02.583 Bypass authentication: No
+. 2026-08-17 18:32:02.583 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-17 18:32:02.583 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-17 18:32:02.583 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-17 18:32:02.583 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-17 18:32:02.583 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-17 18:32:02.583 Simple channel: Yes
+. 2026-08-17 18:32:02.583 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-17 18:32:02.583 Shell: default
+. 2026-08-17 18:32:02.583 EOL: LF, UTF: Auto
+. 2026-08-17 18:32:02.583 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-17 18:32:02.583 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-17 18:32:02.583 SFTP Bugs: Auto,Auto
+. 2026-08-17 18:32:02.583 SFTP Server: default
+. 2026-08-17 18:32:02.583 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-17 18:32:02.583 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-17 18:32:02.583 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-17 18:32:02.583 DST mode: Unix
+. 2026-08-17 18:32:02.583 --------------------------------------------------------------------------
+< 2026-08-17 18:32:02.584 Script: Searching for host...
+. 2026-08-17 18:32:02.585 Looking up host "mft-us2.concursolutions.com" for SSH connection
+. 2026-08-17 18:32:02.739 Connecting to 35.81.194.197 port 22
+. 2026-08-17 18:32:02.829 Connected to 35.81.194.197 (from 10.199.13.109:62447)
+< 2026-08-17 18:32:02.833 Script: Connecting to host...
+. 2026-08-17 18:32:02.833 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-17 18:32:02.833 Connected to 35.81.194.197 (from 10.199.13.109:62447)
+. 2026-08-17 18:32:02.937 Remote version: SSH-2.0-AWS_SFTP_1.2
+. 2026-08-17 18:32:02.937 Using SSH protocol version 2
+. 2026-08-17 18:32:02.937 Have a known host key of type rsa2
+. 2026-08-17 18:32:03.019 Doing ECDH key exchange with curve nistp256, using hash SHA-256
+. 2026-08-17 18:32:03.186 Host key fingerprint is:
+. 2026-08-17 18:32:03.186 ssh-rsa 3072 SHA256:A+6pVvfQpGaSZfwvDenRBatqA9GE5YAbFOiKJASC7wI
+< 2026-08-17 18:32:03.186 Script: Authenticating...
+. 2026-08-17 18:32:03.189 Host key matches configured key fingerprint
+. 2026-08-17 18:32:03.189 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-17 18:32:03.189 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-17 18:32:03.189 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-17 18:32:03.189 Initialised HMAC-SHA-256 inbound MAC algorithm
+. 2026-08-17 18:32:03.268 Reading key file "E:\KeysEncryptions\Concur\Dev\DevConcurSFTP_private.ppk"
+! 2026-08-17 18:32:03.271 Using username "t1209783x4lw".
+< 2026-08-17 18:32:03.271 Script: Using username "t1209783x4lw".
+. 2026-08-17 18:32:03.364 Server offered these authentication methods: publickey
+. 2026-08-17 18:32:03.364 Offered public key
+. 2026-08-17 18:32:03.453 Offer of public key accepted
+! 2026-08-17 18:32:03.453 Authenticating with public key "DevConcurSFTP"
+< 2026-08-17 18:32:03.453 Script: Authenticating with public key "DevConcurSFTP".
+. 2026-08-17 18:32:03.453 Prompt (passphrase, "SSH key passphrase", <no instructions>, "Passphrase for key "DevConcurSFTP": ")
+. 2026-08-17 18:32:03.453 Using configured passphrase.
+. 2026-08-17 18:32:04.182 Sent public key signature
+. 2026-08-17 18:32:04.266 Access granted
+. 2026-08-17 18:32:04.266 Opening main session channel
+. 2026-08-17 18:32:04.334 Remote debug message: SFTP: key options: agent-forwarding port-forwarding pty user-rc x11-forwarding
+. 2026-08-17 18:32:04.334 Remote debug message: SFTP: key options: agent-forwarding port-forwarding pty user-rc x11-forwarding
+. 2026-08-17 18:32:04.461 Opened main channel
+. 2026-08-17 18:32:04.547 Started a shell/command
+< 2026-08-17 18:32:04.547 Script: Authenticated.
+. 2026-08-17 18:32:04.547 --------------------------------------------------------------------------
+. 2026-08-17 18:32:04.547 Using SFTP protocol.
+. 2026-08-17 18:32:04.547 Doing startup conversation with host.
+< 2026-08-17 18:32:04.547 Script: Starting the session...
+. 2026-08-17 18:32:04.547 Not well known server, limiting to safe SFTP version 3.
+> 2026-08-17 18:32:04.547 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-17 18:32:04.619 Type: SSH_FXP_VERSION, Size: 5, Number: -1
+. 2026-08-17 18:32:04.619 SFTP version 3 negotiated.
+. 2026-08-17 18:32:04.619 We believe the server has signed timestamps bug
+. 2026-08-17 18:32:04.619 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+. 2026-08-17 18:32:04.619 Getting current directory name.
+. 2026-08-17 18:32:04.619 Getting real path for '.'
+> 2026-08-17 18:32:04.619 Type: SSH_FXP_REALPATH, Size: 10, Number: 16
+< 2026-08-17 18:32:04.715 Type: SSH_FXP_NAME, Size: 22, Number: 16
+. 2026-08-17 18:32:04.715 Real path is '/'
+. 2026-08-17 18:32:04.715 Startup conversation with host finished.
+< 2026-08-17 18:32:04.715 Script: Session started.
+< 2026-08-17 18:32:04.715 Script: Active session: [1] t1209783x4lw@mft-us2.concursolutions.com
+> 2026-08-17 18:32:05.018 Script: pwd
+< 2026-08-17 18:32:05.018 Script: /
+> 2026-08-17 18:32:05.087 Script: ls -- "/out/"
+. 2026-08-17 18:32:05.087 Listing directory "/out".
+> 2026-08-17 18:32:05.087 Type: SSH_FXP_OPENDIR, Size: 13, Number: 267
+< 2026-08-17 18:32:05.235 Type: SSH_FXP_HANDLE, Size: 10, Number: 267
+> 2026-08-17 18:32:05.235 Type: SSH_FXP_READDIR, Size: 10, Number: 524
+< 2026-08-17 18:32:05.351 Type: SSH_FXP_STATUS, Size: 55, Number: 524
+< 2026-08-17 18:32:05.351 Status code: 1
+. 2026-08-17 18:32:05.351 Listing file "/out/..".
+> 2026-08-17 18:32:05.351 Type: SSH_FXP_LSTAT, Size: 16, Number: 775
+< 2026-08-17 18:32:05.431 Type: SSH_FXP_ATTRS, Size: 29, Number: 775
+. 2026-08-17 18:32:05.431 ..;D;0;1970-01-01T00:00:00.000Z;4;"" [0];"" [0];rwxr--r--;0
+> 2026-08-17 18:32:05.431 Type: SSH_FXP_CLOSE, Size: 10, Number: 1028
+. 2026-08-17 18:32:05.431 ..;D;0;1970-01-01T00:00:00.000Z;4;"" [0];"" [0];rwxr--r--;0
+< 2026-08-17 18:32:05.431 Script: Drwxr--r--   0                           0 Jan  1  0:00:00 1970 ..
+> 2026-08-17 18:32:05.568 Script: exit
+. 2026-08-17 18:32:05.568 Script: Exit code: 0
+. 2026-08-17 18:32:05.568 Closing connection.
+. 2026-08-17 18:32:05.568 Sending special code: 1
+. 2026-08-17 18:32:05.732 Session sent command exit status 0
+. 2026-08-17 18:32:05.732 Main session channel closed
+. 2026-08-17 18:32:05.732 All channels closed
+. 2026-08-17 18:55:37.176 --------------------------------------------------------------------------
+. 2026-08-17 18:55:37.180 WinSCP Version 6.5 (Build 16288 2025-03-31) (OS 10.0.26100 – Windows Server 2025 Datacenter)
+. 2026-08-17 18:55:37.180 Configuration: nul
+. 2026-08-17 18:55:37.180 Log level: Normal
+. 2026-08-17 18:55:37.180 Local account: BG\AKAFG
+. 2026-08-17 18:55:37.180 Working directory: C:\Program Files (x86)\WinSCP
+. 2026-08-17 18:55:37.180 Process ID: 5840
+. 2026-08-17 18:55:37.189 Ancestor processes: powershell, explorer, ...
+. 2026-08-17 18:55:37.189 Command-line: "C:\Program Files (x86)\WinSCP\winscp.exe" /xmllog="C:\Users\AKAFG\AppData\Local\Temp\6\wscp0978.01201BD1.tmp" /xmlgroups /xmllogrequired /nointeractiveinput /stdout /stdin /dotnet=6.5.0  /ini=nul /log="E:\Scripts\WinScpFTP\Concur\concur-get.log"  /console /consoleinstance=_2424_19109393_347
+. 2026-08-17 18:55:37.189 Time zone: Current: GMT+0 (Coordinated Universal Time), No DST
+. 2026-08-17 18:55:37.189 Login time: Monday, August 17, 2026 6:55:37 PM
+. 2026-08-17 18:55:37.189 --------------------------------------------------------------------------
+. 2026-08-17 18:55:37.189 Script: Retrospectively logging previous script records:
+> 2026-08-17 18:55:37.189 Script: option batch on
+< 2026-08-17 18:55:37.189 Script: batch           on        
+< 2026-08-17 18:55:37.189 Script: reconnecttime   120       
+> 2026-08-17 18:55:37.189 Script: option confirm off
+< 2026-08-17 18:55:37.189 Script: confirm         off       
+> 2026-08-17 18:55:37.189 Script: option reconnecttime 120
+< 2026-08-17 18:55:37.189 Script: reconnecttime   120       
+> 2026-08-17 18:55:37.189 Script: open sftp://t1209783x4lw@mft-us2.concursolutions.com:22 -hostkey="ssh-rsa 3072 A+6pVvfQpGaSZfwvDenRBatqA9GE5YAbFOiKJASC7wI" -privatekey="E:\KeysEncryptions\Concur\Dev\DevConcurSFTP_private.ppk" -timeout=15 -passphrase=***
+. 2026-08-17 18:55:37.189 --------------------------------------------------------------------------
+. 2026-08-17 18:55:37.189 Session name: t1209783x4lw@mft-us2.concursolutions.com (Ad-Hoc site)
+. 2026-08-17 18:55:37.189 Host name: mft-us2.concursolutions.com (Port: 22)
+. 2026-08-17 18:55:37.189 User name: t1209783x4lw (Password: No, Key file: Yes, Passphrase: Yes)
+. 2026-08-17 18:55:37.189 Tunnel: No
+. 2026-08-17 18:55:37.189 Transfer Protocol: SFTP
+. 2026-08-17 18:55:37.189 Ping type: Off, Ping interval: 30 sec; Timeout: 15 sec
+. 2026-08-17 18:55:37.189 Disable Nagle: No
+. 2026-08-17 18:55:37.189 Proxy: None
+. 2026-08-17 18:55:37.189 Send buffer: 262144
+. 2026-08-17 18:55:37.189 Compression: No
+. 2026-08-17 18:55:37.189 Bypass authentication: No
+. 2026-08-17 18:55:37.189 Try agent: Yes; Agent forwarding: No; KI: Yes; GSSAPI: Yes
+. 2026-08-17 18:55:37.189 GSSAPI: KEX: No; Forwarding: No; Libs: gssapi32,sspi,custom; Custom: 
+. 2026-08-17 18:55:37.189 Ciphers: aes,chacha20,aesgcm,3des,WARN,des,blowfish,arcfour; Ssh2DES: No
+. 2026-08-17 18:55:37.189 KEX: ntru-curve25519,mlkem-curve25519,mlkem-nist,ecdh,dh-gex-sha1,dh-group18-sha512,dh-group17-sha512,dh-group16-sha512,dh-group15-sha512,dh-group14-sha1,rsa,WARN,dh-group1-sha1
+. 2026-08-17 18:55:37.189 SSH Bugs: Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto
+. 2026-08-17 18:55:37.189 Simple channel: Yes
+. 2026-08-17 18:55:37.189 Return code variable: Autodetect; Lookup user groups: Auto
+. 2026-08-17 18:55:37.189 Shell: default
+. 2026-08-17 18:55:37.189 EOL: LF, UTF: Auto
+. 2026-08-17 18:55:37.189 Clear aliases: Yes, Unset nat.vars: Yes, Resolve symlinks: Yes; Follow directory symlinks: No
+. 2026-08-17 18:55:37.189 LS: ls -la, Ign LS warn: Yes, Scp1 Comp: No; Exit code 1 is error: No
+. 2026-08-17 18:55:37.189 SFTP Bugs: Auto,Auto
+. 2026-08-17 18:55:37.189 SFTP Server: default
+. 2026-08-17 18:55:37.189 Local directory: default, Remote directory: home, Update: Yes, Cache: Yes
+. 2026-08-17 18:55:37.189 Cache directory changes: Yes, Permanent: Yes
+. 2026-08-17 18:55:37.189 Recycle bin: Delete to: No, Overwritten to: No, Bin path: 
+. 2026-08-17 18:55:37.189 DST mode: Unix
+. 2026-08-17 18:55:37.189 --------------------------------------------------------------------------
+< 2026-08-17 18:55:37.189 Script: Searching for host...
+. 2026-08-17 18:55:37.191 Looking up host "mft-us2.concursolutions.com" for SSH connection
+. 2026-08-17 18:55:37.394 Connecting to 34.216.251.54 port 22
+. 2026-08-17 18:55:37.487 Connected to 34.216.251.54 (from 10.199.13.109:56073)
+< 2026-08-17 18:55:37.487 Script: Connecting to host...
+. 2026-08-17 18:55:37.487 We claim version: SSH-2.0-WinSCP_release_6.5
+. 2026-08-17 18:55:37.487 Connected to 34.216.251.54 (from 10.199.13.109:56073)
+. 2026-08-17 18:55:37.597 Remote version: SSH-2.0-AWS_SFTP_1.2
+. 2026-08-17 18:55:37.597 Using SSH protocol version 2
+. 2026-08-17 18:55:37.597 Have a known host key of type rsa2
+. 2026-08-17 18:55:37.699 Doing ECDH key exchange with curve nistp256, using hash SHA-256
+. 2026-08-17 18:55:37.883 Host key fingerprint is:
+. 2026-08-17 18:55:37.883 ssh-rsa 3072 SHA256:A+6pVvfQpGaSZfwvDenRBatqA9GE5YAbFOiKJASC7wI
+< 2026-08-17 18:55:37.883 Script: Authenticating...
+. 2026-08-17 18:55:37.883 Host key matches configured key fingerprint
+. 2026-08-17 18:55:37.883 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] outbound encryption
+. 2026-08-17 18:55:37.883 Initialised HMAC-SHA-256 outbound MAC algorithm
+. 2026-08-17 18:55:37.883 Initialised AES-256 SDCTR (AES-NI accelerated) [aes256-ctr] inbound encryption
+. 2026-08-17 18:55:37.883 Initialised HMAC-SHA-256 inbound MAC algorithm
+. 2026-08-17 18:55:37.963 Reading key file "E:\KeysEncryptions\Concur\Dev\DevConcurSFTP_private.ppk"
+! 2026-08-17 18:55:37.966 Using username "t1209783x4lw".
+< 2026-08-17 18:55:37.966 Script: Using username "t1209783x4lw".
+. 2026-08-17 18:55:38.054 Server offered these authentication methods: publickey
+. 2026-08-17 18:55:38.054 Offered public key
+. 2026-08-17 18:55:38.153 Offer of public key accepted
+! 2026-08-17 18:55:38.153 Authenticating with public key "DevConcurSFTP"
+< 2026-08-17 18:55:38.153 Script: Authenticating with public key "DevConcurSFTP".
+. 2026-08-17 18:55:38.167 Prompt (passphrase, "SSH key passphrase", <no instructions>, "Passphrase for key "DevConcurSFTP": ")
+. 2026-08-17 18:55:38.167 Using configured passphrase.
+. 2026-08-17 18:55:38.905 Sent public key signature
+. 2026-08-17 18:55:38.995 Access granted
+. 2026-08-17 18:55:38.995 Opening main session channel
+. 2026-08-17 18:55:39.074 Remote debug message: SFTP: key options: agent-forwarding port-forwarding pty user-rc x11-forwarding
+. 2026-08-17 18:55:39.074 Remote debug message: SFTP: key options: agent-forwarding port-forwarding pty user-rc x11-forwarding
+. 2026-08-17 18:55:39.196 Opened main channel
+. 2026-08-17 18:55:39.275 Started a shell/command
+< 2026-08-17 18:55:39.275 Script: Authenticated.
+. 2026-08-17 18:55:39.275 --------------------------------------------------------------------------
+. 2026-08-17 18:55:39.275 Using SFTP protocol.
+. 2026-08-17 18:55:39.275 Doing startup conversation with host.
+< 2026-08-17 18:55:39.275 Script: Starting the session...
+. 2026-08-17 18:55:39.275 Not well known server, limiting to safe SFTP version 3.
+> 2026-08-17 18:55:39.275 Type: SSH_FXP_INIT, Size: 5, Number: -1
+< 2026-08-17 18:55:39.378 Type: SSH_FXP_VERSION, Size: 5, Number: -1
+. 2026-08-17 18:55:39.378 SFTP version 3 negotiated.
+. 2026-08-17 18:55:39.378 We believe the server has signed timestamps bug
+. 2026-08-17 18:55:39.378 We will use UTF-8 strings until server sends an invalid UTF-8 string as with SFTP version 3 and older UTF-8 strings are not mandatory
+. 2026-08-17 18:55:39.378 Getting current directory name.
+. 2026-08-17 18:55:39.378 Getting real path for '.'
+> 2026-08-17 18:55:39.378 Type: SSH_FXP_REALPATH, Size: 10, Number: 16
+< 2026-08-17 18:55:39.458 Type: SSH_FXP_NAME, Size: 22, Number: 16
+. 2026-08-17 18:55:39.458 Real path is '/'
+. 2026-08-17 18:55:39.458 Startup conversation with host finished.
+< 2026-08-17 18:55:39.458 Script: Session started.
+< 2026-08-17 18:55:39.458 Script: Active session: [1] t1209783x4lw@mft-us2.concursolutions.com
+> 2026-08-17 18:55:39.639 Script: pwd
+< 2026-08-17 18:55:39.639 Script: /
+> 2026-08-17 18:55:39.710 Script: ls -- "/out/"
+. 2026-08-17 18:55:39.710 Listing directory "/out".
+> 2026-08-17 18:55:39.710 Type: SSH_FXP_OPENDIR, Size: 13, Number: 267
+< 2026-08-17 18:55:39.855 Type: SSH_FXP_HANDLE, Size: 10, Number: 267
+> 2026-08-17 18:55:39.855 Type: SSH_FXP_READDIR, Size: 10, Number: 524
+< 2026-08-17 18:55:39.970 Type: SSH_FXP_STATUS, Size: 55, Number: 524
+< 2026-08-17 18:55:39.970 Status code: 1
+. 2026-08-17 18:55:39.970 Listing file "/out/..".
+> 2026-08-17 18:55:39.970 Type: SSH_FXP_LSTAT, Size: 16, Number: 775
+< 2026-08-17 18:55:40.043 Type: SSH_FXP_ATTRS, Size: 29, Number: 775
+. 2026-08-17 18:55:40.051 ..;D;0;1970-01-01T00:00:00.000Z;4;"" [0];"" [0];rwxr--r--;0
+> 2026-08-17 18:55:40.051 Type: SSH_FXP_CLOSE, Size: 10, Number: 1028
+. 2026-08-17 18:55:40.051 ..;D;0;1970-01-01T00:00:00.000Z;4;"" [0];"" [0];rwxr--r--;0
+< 2026-08-17 18:55:40.051 Script: Drwxr--r--   0                           0 Jan  1  0:00:00 1970 ..
+> 2026-08-17 18:55:40.164 Script: exit
+. 2026-08-17 18:55:40.164 Script: Exit code: 0
+. 2026-08-17 18:55:40.164 Closing connection.
+. 2026-08-17 18:55:40.164 Sending special code: 1
+. 2026-08-17 18:55:40.324 Session sent command exit status 0
+. 2026-08-17 18:55:40.324 Main session channel closed
+. 2026-08-17 18:55:40.332 All channels closed

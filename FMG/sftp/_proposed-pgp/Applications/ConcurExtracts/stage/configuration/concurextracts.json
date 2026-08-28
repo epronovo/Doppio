@@ -1,0 +1,13 @@
+{
+	"App_Environment":"stage",
+
+	"_comment_data":"Where the ConcurExtracts SSIS PurchaseOrder package drops its output. CONFIRM - PurchaseOrder.dtsx's destination has not been traced yet, and Applications\\ConcurExtracts\\stage\\ConcurPurchaseOrder is empty.",
+	"App_DataDirectory":"E:\\Applications\\ConcurExtracts\\stage\\ConcurPurchaseOrder",
+	"App_ProcessedPath":"E:\\Applications\\ConcurExtracts\\stage\\ConcurPurchaseOrder\\processed",
+
+	"_comment_recipient":"SAP Concur's PGP public key, from KeysEncryptions\\Concur\\Dev\\concursolutions.asc - rsa4096, created 2024-05-09, no expiry, uid 'concursolutions.asc <sapconcur-file-transfer@sap.com>'. Pinned by full fingerprint rather than address so a second key with the same uid cannot be picked by mistake. Import it into the NG\\M0042 keyring and gpg --lsign-key it, or --batch encrypt will fail on trust.",
+	"App_PgpRecipient":"2584FD81F647ECBFAA1EE1DDBAA83C168C51C89E",
+
+	"_comment_remote":"UNCONFIRMED. Concur's inbound path - ask Concur before the first run. Their outbound is /out/, so /in/ is the likely convention, not an observed fact.",
+	"App_SendRemotePath":"/in/"
+}

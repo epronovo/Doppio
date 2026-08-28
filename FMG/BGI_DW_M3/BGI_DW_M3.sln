@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.34601.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{C9674DCB-5085-4A16-B785-4C70DD1589BD}") = "BGIDW_M3_DW", "BGI_DW_M3\BGIDW_M3_DW.dtproj", "{F410EE4C-B312-41F4-A515-B6A389CA1661}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Default = Development|Default
+		Production|Default = Production|Default
+		Stage|Default = Stage|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F410EE4C-B312-41F4-A515-B6A389CA1661}.Development|Default.ActiveCfg = Development
+		{F410EE4C-B312-41F4-A515-B6A389CA1661}.Development|Default.Build.0 = Development
+		{F410EE4C-B312-41F4-A515-B6A389CA1661}.Production|Default.ActiveCfg = Production
+		{F410EE4C-B312-41F4-A515-B6A389CA1661}.Production|Default.Build.0 = Production
+		{F410EE4C-B312-41F4-A515-B6A389CA1661}.Stage|Default.ActiveCfg = Stage
+		{F410EE4C-B312-41F4-A515-B6A389CA1661}.Stage|Default.Build.0 = Stage
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {47EF1799-EC0A-4A32-BDDB-92DA95AD1D3E}
+	EndGlobalSection
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = False
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
+EndGlobal

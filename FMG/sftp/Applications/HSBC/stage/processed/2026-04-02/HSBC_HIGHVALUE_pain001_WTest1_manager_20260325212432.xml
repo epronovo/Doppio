@@ -1,0 +1,417 @@
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
+  <CstmrCdtTrfInitn>
+    <GrpHdr>
+      <MsgId>WTest1-20260325212432</MsgId>
+      <CreDtTm>2026-03-25T21:24:32</CreDtTm>
+      <Authstn>
+        <Cd>FDET</Cd>
+      </Authstn>
+      <NbOfTxs>6</NbOfTxs>
+      <CtrlSum>36717.67</CtrlSum>
+      <InitgPty>
+        <Id>
+          <OrgId>
+            <Othr>
+              <Id>ABC65397001</Id>
+            </Othr>
+          </OrgId>
+        </Id>
+      </InitgPty>
+    </GrpHdr>
+    <PmtInf>
+      <PmtInfId>WTest1</PmtInfId>
+      <PmtMtd>TRF</PmtMtd>
+      <PmtTpInf>
+        <SvcLvl>
+          <Cd>URGP</Cd>
+        </SvcLvl>
+      </PmtTpInf>
+      <ReqdExctnDt>2026-03-16</ReqdExctnDt>
+      <Dbtr>
+        <Nm>HSBC DISBURSEMENTS</Nm>
+        <PstlAdr>
+          <StrtNm>452 Fifth Ave</StrtNm>
+          <PstCd>10018</PstCd>
+          <TwnNm>NY</TwnNm>
+          <CtrySubDvsn>NY</CtrySubDvsn>
+          <Ctry>US</Ctry>
+        </PstlAdr>
+      </Dbtr>
+      <DbtrAcct>
+        <Id>
+          <Othr>
+            <Id>797025120</Id>
+          </Othr>
+        </Id>
+        <Ccy>USD</Ccy>
+      </DbtrAcct>
+      <DbtrAgt>
+        <FinInstnId>
+          <ClrSysMmbId>
+            <MmbId>022000020</MmbId>
+          </ClrSysMmbId>
+          <Nm>HSBC Bank USA</Nm>
+          <PstlAdr>
+            <StrtNm>452 Fifth Ave</StrtNm>
+            <PstCd>10018</PstCd>
+            <TwnNm>NY</TwnNm>
+            <CtrySubDvsn>NY</CtrySubDvsn>
+            <Ctry>US</Ctry>
+          </PstlAdr>
+        </FinInstnId>
+      </DbtrAgt>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>H286864</InstrId>
+          <EndToEndId>E2E286864</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">27770.18</InstdAmt>
+        </Amt>
+        <ChrgBr>SHAR</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>ABOCCNBJ103</BIC>
+            <ClrSysMmbId>
+              <MmbId>ABC_SZ</MmbId>
+            </ClrSysMmbId>
+            <Nm>Agricultural Bank of China</Nm>
+            <PstlAdr>
+              <Ctry>CN</Ctry>
+            </PstlAdr>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>SYNVENTIVE MOLDING SOLUTIONS-CHINA</Nm>
+          <PstlAdr>
+            <StrtNm>(SUZHOU) CO., LTD.</StrtNm>
+            <PstCd>215126</PstCd>
+            <TwnNm>SUZHOU</TwnNm>
+            <CtrySubDvsn>JIANGSU</CtrySubDvsn>
+            <Ctry>CN</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>10550814040000091</Id>
+            </Othr>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>GroupID: WTest1</Ustrd>
+          <Ustrd>HeadNum: 286864</Ustrd>
+          <Ustrd>Supplier: 610</Ustrd>
+          <Ustrd>INV 241082</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>241082</Nb>
+              <RltdDt>2025-04-03</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>241082</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>H286865</InstrId>
+          <EndToEndId>E2E286865</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">5297.53</InstdAmt>
+        </Amt>
+        <ChrgBr>SHAR</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>ABOCCNBJ103</BIC>
+            <ClrSysMmbId>
+              <MmbId>ABC_SZ</MmbId>
+            </ClrSysMmbId>
+            <Nm>Agricultural Bank of China</Nm>
+            <PstlAdr>
+              <Ctry>CN</Ctry>
+            </PstlAdr>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>SUZHOU DELTEK MECHANICAL AND ELECTRICAL CO LTD</Nm>
+          <PstlAdr>
+            <StrtNm>SHENGDUN VILLAGE</StrtNm>
+            <PstCd></PstCd>
+            <TwnNm>SUZHOU</TwnNm>
+            <CtrySubDvsn>JIANGSU</CtrySubDvsn>
+            <Ctry>CN</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>10547614040016204</Id>
+            </Othr>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>GroupID: WTest1</Ustrd>
+          <Ustrd>HeadNum: 286865</Ustrd>
+          <Ustrd>Supplier: 13346</Ustrd>
+          <Ustrd>INV SUSA 50303</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>SUSA 50303</Nb>
+              <RltdDt>2025-03-03</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>SUSA 50303</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>H286866</InstrId>
+          <EndToEndId>E2E286866</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">544.76</InstdAmt>
+        </Amt>
+        <ChrgBr>SHAR</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>PCBCCNBJJSS</BIC>
+            <ClrSysMmbId>
+              <MmbId>CCB_SZ</MmbId>
+            </ClrSysMmbId>
+            <Nm>China Construction Bank</Nm>
+            <PstlAdr>
+              <Ctry>CN</Ctry>
+            </PstlAdr>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>SUZHOU HAOXIN PRECISION TECHNOLOGY</Nm>
+          <PstlAdr>
+            <StrtNm>NO 3 FUHANG RD</StrtNm>
+            <PstCd>215155</PstCd>
+            <TwnNm>SUZHOU CITY</TwnNm>
+            <CtrySubDvsn>JIANGSU PROVINCE</CtrySubDvsn>
+            <Ctry>CN</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>32214006600220110683</Id>
+            </Othr>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>GroupID: WTest1</Ustrd>
+          <Ustrd>HeadNum: 286866</Ustrd>
+          <Ustrd>Supplier: 13378</Ustrd>
+          <Ustrd>INV SV250221</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>SV250221</Nb>
+              <RltdDt>2025-02-21</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>SV250221</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>H286867</InstrId>
+          <EndToEndId>E2E286867</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">2373.20</InstdAmt>
+        </Amt>
+        <ChrgBr>SHAR</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>BCITITMM</BIC>
+            <ClrSysMmbId>
+              <MmbId>ISP_ROME</MmbId>
+            </ClrSysMmbId>
+            <Nm>INTESA SANPAOLO SPA VIA ROMA</Nm>
+            <PstlAdr>
+              <Ctry>IT</Ctry>
+            </PstlAdr>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>THERMOPLAY S.P.A</Nm>
+          <PstlAdr>
+            <StrtNm>VIA CARLO VIOLA 74</StrtNm>
+            <PstCd>11026</PstCd>
+            <TwnNm>PONT SAINT MARTIN (AOSTA)</TwnNm>
+            <CtrySubDvsn>ITALY</CtrySubDvsn>
+            <Ctry>IT</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <IBAN>IT58I0306931570100000015621</IBAN>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>GroupID: WTest1</Ustrd>
+          <Ustrd>HeadNum: 286867</Ustrd>
+          <Ustrd>Supplier: 800</Ustrd>
+          <Ustrd>INV V-25004077</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>V-25004077</Nb>
+              <RltdDt>2025-04-02</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>V-25004077</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>H286868</InstrId>
+          <EndToEndId>E2E286868</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">564.00</InstdAmt>
+        </Amt>
+        <ChrgBr>SHAR</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>PCBCCNBJJSS</BIC>
+            <ClrSysMmbId>
+              <MmbId>CCB_SZ</MmbId>
+            </ClrSysMmbId>
+            <Nm>China Construction Bank</Nm>
+            <PstlAdr>
+              <Ctry>CN</Ctry>
+            </PstlAdr>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>SUZHOU INDUSTRIAL PARK</Nm>
+          <PstlAdr>
+            <StrtNm>EVT TECHNOLOGY CO LTD</StrtNm>
+            <PstCd>215000</PstCd>
+            <TwnNm>JIANGSU</TwnNm>
+            <CtrySubDvsn>CHINA</CtrySubDvsn>
+            <Ctry>CN</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>32250198823609014220</Id>
+            </Othr>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>GroupID: WTest1</Ustrd>
+          <Ustrd>HeadNum: 286868</Ustrd>
+          <Ustrd>Supplier: 24255</Ustrd>
+          <Ustrd>INV YWT-202504280044</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>YWT-202504280044</Nb>
+              <RltdDt>2025-04-28</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>YWT-202504280044</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+      <CdtTrfTxInf>
+        <PmtId>
+          <InstrId>H286869</InstrId>
+          <EndToEndId>E2E286869</EndToEndId>
+        </PmtId>
+        <Amt>
+          <InstdAmt Ccy="USD">168.00</InstdAmt>
+        </Amt>
+        <ChrgBr>SHAR</ChrgBr>
+        <CdtrAgt>
+          <FinInstnId>
+            <BIC>BKCHCNBJ95B</BIC>
+            <ClrSysMmbId>
+              <MmbId>BOC_SZ</MmbId>
+            </ClrSysMmbId>
+            <Nm>BANK OF CHINA</Nm>
+            <PstlAdr>
+              <Ctry>CN</Ctry>
+            </PstlAdr>
+          </FinInstnId>
+        </CdtrAgt>
+        <Cdtr>
+          <Nm>SUZHOU EN DI KE MACHINERY</Nm>
+          <PstlAdr>
+            <StrtNm>88 QINGSHA ROAD LUZHI TOWN</StrtNm>
+            <PstCd></PstCd>
+            <TwnNm>SUZHOU CITY</TwnNm>
+            <CtrySubDvsn>JIANGSU PROVIDENCE</CtrySubDvsn>
+            <Ctry>CN</Ctry>
+          </PstlAdr>
+        </Cdtr>
+        <CdtrAcct>
+          <Id>
+            <Othr>
+              <Id>494976941920</Id>
+            </Othr>
+          </Id>
+        </CdtrAcct>
+        <RmtInf>
+          <Ustrd>GroupID: WTest1</Ustrd>
+          <Ustrd>HeadNum: 286869</Ustrd>
+          <Ustrd>Supplier: 24372</Ustrd>
+          <Ustrd>INV 308010</Ustrd>
+          <Strd>
+            <RfrdDocInf>
+              <Tp>
+                <CdOrPrtry>
+                  <Cd>CINV</Cd>
+                </CdOrPrtry>
+              </Tp>
+              <Nb>308010</Nb>
+              <RltdDt>2025-02-10</RltdDt>
+            </RfrdDocInf>
+            <CdtrRefInf>
+              <Ref>308010</Ref>
+            </CdtrRefInf>
+          </Strd>
+        </RmtInf>
+      </CdtTrfTxInf>
+    </PmtInf>
+  </CstmrCdtTrfInitn>
+</Document>

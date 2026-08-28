@@ -1,0 +1,787 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <DeploymentModel>Project</DeploymentModel>
+  <ProductVersion>16.0.5467.0</ProductVersion>
+  <SchemaVersion>9.0.1.0</SchemaVersion>
+  <State>$base64$PFNvdXJjZUNvbnRyb2xJbmZvIHhtbG5zOnhzZD0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEiIHhtbG5zOnhzaT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEtaW5zdGFuY2UiIHhtbG5zOmRkbDI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yIiB4bWxuczpkZGwyXzI9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDAzL2VuZ2luZS8yLzIiIHhtbG5zOmRkbDEwMF8xMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDA4L2VuZ2luZS8xMDAvMTAwIiB4bWxuczpkZGwyMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAiIHhtbG5zOmRkbDIwMF8yMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEwL2VuZ2luZS8yMDAvMjAwIiB4bWxuczpkZGwzMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDExL2VuZ2luZS8zMDAiIHhtbG5zOmRkbDMwMF8zMDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDExL2VuZ2luZS8zMDAvMzAwIiB4bWxuczpkZGw0MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEyL2VuZ2luZS80MDAiIHhtbG5zOmRkbDQwMF80MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEyL2VuZ2luZS80MDAvNDAwIiB4bWxuczpkZGw1MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEzL2VuZ2luZS81MDAiIHhtbG5zOmRkbDUwMF81MDA9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vYW5hbHlzaXNzZXJ2aWNlcy8yMDEzL2VuZ2luZS81MDAvNTAwIiB4bWxuczpkd2Q9Imh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vRGF0YVdhcmVob3VzZS9EZXNpZ25lci8xLjAiPg0KICA8RW5hYmxlZD5mYWxzZTwvRW5hYmxlZD4NCiAgPFByb2plY3ROYW1lPjwvUHJvamVjdE5hbWU+DQogIDxBdXhQYXRoPjwvQXV4UGF0aD4NCiAgPExvY2FsUGF0aD48L0xvY2FsUGF0aD4NCiAgPFByb3ZpZGVyPjwvUHJvdmlkZXI+DQo8L1NvdXJjZUNvbnRyb2xJbmZvPg==</State>
+  <Database>
+    <Name>ConcurExtracts.database</Name>
+    <FullPath>ConcurExtracts.database</FullPath>
+  </Database>
+  <DataSources />
+  <DataSourceViews />
+  <DeploymentModelSpecificContent>
+    <Manifest>
+      <SSIS:Project SSIS:ProtectionLevel="EncryptSensitiveWithPassword" xmlns:SSIS="www.microsoft.com/SqlServer/SSIS">
+        <SSIS:Properties>
+          <SSIS:Property SSIS:Name="ID">{3e208694-66cc-4c82-a341-e4b925db13f4}</SSIS:Property>
+          <SSIS:Property SSIS:Name="Name">ConcurExtracts</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionMajor">0</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionBuild">0</SSIS:Property>
+          <SSIS:Property SSIS:Name="VersionComments">
+          </SSIS:Property>
+          <SSIS:Property SSIS:Name="CreationDate">2024-01-29T18:41:47.0989442-05:00</SSIS:Property>
+          <SSIS:Property SSIS:Name="CreatorName">BG\UKAFG</SSIS:Property>
+          <SSIS:Property SSIS:Name="CreatorComputerName">BGUSC1126</SSIS:Property>
+          <SSIS:Property SSIS:Name="Description">
+          </SSIS:Property>
+          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1" SSIS:Salt="3972vMOugA==" SSIS:IV="7vISr+iprcE=">lv9/Js6xi3debMHz2+P94Se8mi7mJN0assYGlFhNWTRKvqNXbBqLQ8Ahplkcvn3qYcqFoHkw0DleQIbFwHENJAeFPSI5XrzlEFsemvPh0FLcvvqlVgOjhtDVV7P6/28wrZOapzmC3fDzCrxN9ReIpWl5W+FaiG8pCAn32vt8NYfCgqTn8DBoXQ==</SSIS:Property>
+          <SSIS:Property SSIS:Name="FormatVersion">1</SSIS:Property>
+        </SSIS:Properties>
+        <SSIS:Packages>
+          <SSIS:Package SSIS:Name="PurchaseOrder.dtsx" SSIS:EntryPoint="1" />
+        </SSIS:Packages>
+        <SSIS:ConnectionManagers />
+        <SSIS:DeploymentInfo>
+          <SSIS:ProjectConnectionParameters />
+          <SSIS:PackageInfo>
+            <SSIS:PackageMetaData SSIS:Name="PurchaseOrder.dtsx">
+              <SSIS:Properties>
+                <SSIS:Property SSIS:Name="ID">{0F59D267-0079-46F7-B24F-937B83E4F53C}</SSIS:Property>
+                <SSIS:Property SSIS:Name="Name">PurchaseOrder</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMajor">1</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionBuild">146</SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionComments">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="VersionGUID">{749E1377-5B32-4424-8EA3-053C6DF3587D}</SSIS:Property>
+                <SSIS:Property SSIS:Name="PackageFormatVersion">8</SSIS:Property>
+                <SSIS:Property SSIS:Name="Description">
+                </SSIS:Property>
+                <SSIS:Property SSIS:Name="ProtectionLevel">2</SSIS:Property>
+              </SSIS:Properties>
+              <SSIS:Parameters>
+                <SSIS:Parameter SSIS:Name="FF_POInvoice">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{2886EB84-C2EB-4A57-8100-719968827A06}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\purchase_order_import_[entitycode]_.txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FF_POReceipt">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{0C62CDF3-221D-4BF1-BB4F-164847D6D6D5}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\purchase_order_receipt_import_[entitycode]_.txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FF_Vendor">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{77CBE6C4-A9D8-4CE5-A187-C2B7E20FD65F}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\payment_vendor_import_[entitycode]_.txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FLATFILE_Allreceipts">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{B37FF081-E180-439C-9231-56F3A2E279BA}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\Allreceipts.txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FLATFILE_PODetail">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{9D23DE94-C4B0-4FC9-A309-DA008BF34431}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\PODetails.Txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FLATFILE_POHeader">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{953F0E20-E37A-4974-AB84-D564B67D3F39}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\POHeader.Txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="FLATFILE_Vendor">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{A55ECE70-7E37-41FA-AAAE-14475A901C7B}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\vendor.txt</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="varEntityCode">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{343D4385-3753-4E27-88D4-B56E5C45DF71}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">p0010945e24e</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="varExtractID">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">{6843F54A-C881-4646-B6A0-03BC69CF10DC}</SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">21</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.ConnectByProxy">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.ConnectRetryCount">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">1</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.ConnectRetryInterval">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">5</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.ConnectUsingManagedIdentity">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.Password">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">1</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.RetainSameConnection">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">false</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.ServerName">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Value">ngusmsrv0031.ng.bg1857.net</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+                <SSIS:Parameter SSIS:Name="CM.App_Concur.UserName">
+                  <SSIS:Properties>
+                    <SSIS:Property SSIS:Name="ID">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="CreationName">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="Description">
+                    </SSIS:Property>
+                    <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
+                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
+                  </SSIS:Properties>
+                </SSIS:Parameter>
+              </SSIS:Parameters>
+            </SSIS:PackageMetaData>
+          </SSIS:PackageInfo>
+        </SSIS:DeploymentInfo>
+      </SSIS:Project>
+    </Manifest>
+  </DeploymentModelSpecificContent>
+  <ControlFlowParts />
+  <Miscellaneous />
+  <Configurations>
+    <Configuration>
+      <Name>Development</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2016</TargetServerVersion>
+        <AzureMode>false</AzureMode>
+        <LinkedAzureTenantId />
+        <LinkedAzureAccountId />
+        <LinkedAzureSSISIR />
+        <LinkedAzureStorage />
+        <RemoteExecutionFolder />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>{0ab2ffc5-fd5d-4e81-a966-81ef725a7c57}</Id>
+            <Name>Project::ConnectionStringsFile</Name>
+            <Value xsi:type="xsd:string">F:\common\ConnectionStrings.config</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2026-08-18T19:53:50.7507182Z</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E0C9FFA3-D0C3-4454-A739-384EAFD9EEF2}</Id>
+            <Name>EpicorExtracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{3DA6FC1C-BDE7-48F5-BE09-7E89130A409E}</Id>
+            <Name>EpicorExtracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{27BB9D3A-22BF-4EEC-9812-F26A18CE1E5E}</Id>
+            <Name>EpicorExtracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{6CDCFC59-7E95-4586-9875-D23B56C25313}</Id>
+            <Name>EpicorExtracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{546118AA-9E3D-4F33-9268-A602CF03B1E8}</Id>
+            <Name>M3Extracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DC18B75E-3F53-4D1A-8685-56B7D3FD75C6}</Id>
+            <Name>M3Extracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{88684C34-CB7C-45EF-A6C0-E94A0A7AA8E6}</Id>
+            <Name>M3Extracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F93F9095-F251-46C5-B225-28CC8519FC17}</Id>
+            <Name>M3Extracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{7A4C275D-A9B2-4E82-9942-0A6140CF4CF9}</Id>
+            <Name>BarnesAerospaceExtracts::Extract_ID</Name>
+            <Value xsi:type="xsd:string">15</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{81A69E55-20EC-47C8-B60F-ECF8C1810EE9}</Id>
+            <Name>BarnesAerospaceExtracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\PODetails.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F25FB740-B322-46F4-BB6F-2C99FB858674}</Id>
+            <Name>BarnesAerospaceExtracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\POHeader.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B0A00920-DB38-4732-8D6B-E802CF056809}</Id>
+            <Name>BarnesAerospaceExtracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\AllReceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{CA367FDB-C2C2-491F-82C2-3304C8B06C44}</Id>
+            <Name>BarnesAerospaceExtracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{953F0E20-E37A-4974-AB84-D564B67D3F39}</Id>
+            <Name>PurchaseOrder::FLATFILE_POHeader</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{9D23DE94-C4B0-4FC9-A309-DA008BF34431}</Id>
+            <Name>PurchaseOrder::FLATFILE_PODetail</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{A55ECE70-7E37-41FA-AAAE-14475A901C7B}</Id>
+            <Name>PurchaseOrder::FLATFILE_Vendor</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B37FF081-E180-439C-9231-56F3A2E279BA}</Id>
+            <Name>PurchaseOrder::FLATFILE_Allreceipts</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2886EB84-C2EB-4A57-8100-719968827A06}</Id>
+            <Name>PurchaseOrder::FF_POInvoice</Name>
+            <Value xsi:type="xsd:string">C:\temp\ConcurInvoice\purchase_order_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0C62CDF3-221D-4BF1-BB4F-164847D6D6D5}</Id>
+            <Name>PurchaseOrder::FF_POReceipt</Name>
+            <Value xsi:type="xsd:string">C:\temp\ConcurInvoice\purchase_order_receipt_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{77CBE6C4-A9D8-4CE5-A187-C2B7E20FD65F}</Id>
+            <Name>PurchaseOrder::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">C:\temp\ConcurInvoice\payment_vendor_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{343D4385-3753-4E27-88D4-B56E5C45DF71}</Id>
+            <Name>PurchaseOrder::varEntityCode</Name>
+            <Value xsi:type="xsd:string">t1209783x4lw</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{6843F54A-C881-4646-B6A0-03BC69CF10DC}</Id>
+            <Name>PurchaseOrder::varExtractID</Name>
+            <Value xsi:type="xsd:string">21</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{39CFD5D7-95DD-463F-8341-E881D80B7976}</Id>
+            <Name>M3Extracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C9DFF631-E3EA-4B04-BA3F-AA68DBE84B15}</Id>
+            <Name>M3Extracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{40B092FD-BF23-44E9-8E61-084201F5018A}</Id>
+            <Name>M3Extracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{61917F21-8CB8-4E15-A6B7-96D51A166DEB}</Id>
+            <Name>M3Extracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">C:\temp\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+    <Configuration>
+      <Name>Stage</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2016</TargetServerVersion>
+        <AzureMode>false</AzureMode>
+        <LinkedAzureTenantId />
+        <LinkedAzureAccountId />
+        <LinkedAzureSSISIR />
+        <LinkedAzureStorage />
+        <RemoteExecutionFolder />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>{0ab2ffc5-fd5d-4e81-a966-81ef725a7c57}</Id>
+            <Name>Project::ConnectionStringsFile</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0031.bg.bg1857.net\common\ConnectionStrings.config</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2026-08-18T19:53:50.7517215Z</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E0C9FFA3-D0C3-4454-A739-384EAFD9EEF2}</Id>
+            <Name>EpicorExtracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{3DA6FC1C-BDE7-48F5-BE09-7E89130A409E}</Id>
+            <Name>EpicorExtracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{27BB9D3A-22BF-4EEC-9812-F26A18CE1E5E}</Id>
+            <Name>EpicorExtracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{6CDCFC59-7E95-4586-9875-D23B56C25313}</Id>
+            <Name>EpicorExtracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{546118AA-9E3D-4F33-9268-A602CF03B1E8}</Id>
+            <Name>M3Extracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\stage\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DC18B75E-3F53-4D1A-8685-56B7D3FD75C6}</Id>
+            <Name>M3Extracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\stage\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{88684C34-CB7C-45EF-A6C0-E94A0A7AA8E6}</Id>
+            <Name>M3Extracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\stage\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F93F9095-F251-46C5-B225-28CC8519FC17}</Id>
+            <Name>M3Extracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\stage\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{7A4C275D-A9B2-4E82-9942-0A6140CF4CF9}</Id>
+            <Name>BarnesAerospaceExtracts::Extract_ID</Name>
+            <Value xsi:type="xsd:string">15</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{81A69E55-20EC-47C8-B60F-ECF8C1810EE9}</Id>
+            <Name>BarnesAerospaceExtracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F25FB740-B322-46F4-BB6F-2C99FB858674}</Id>
+            <Name>BarnesAerospaceExtracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B0A00920-DB38-4732-8D6B-E802CF056809}</Id>
+            <Name>BarnesAerospaceExtracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{CA367FDB-C2C2-491F-82C2-3304C8B06C44}</Id>
+            <Name>BarnesAerospaceExtracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019-te.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{953F0E20-E37A-4974-AB84-D564B67D3F39}</Id>
+            <Name>PurchaseOrder::FLATFILE_POHeader</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{9D23DE94-C4B0-4FC9-A309-DA008BF34431}</Id>
+            <Name>PurchaseOrder::FLATFILE_PODetail</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{A55ECE70-7E37-41FA-AAAE-14475A901C7B}</Id>
+            <Name>PurchaseOrder::FLATFILE_Vendor</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B37FF081-E180-439C-9231-56F3A2E279BA}</Id>
+            <Name>PurchaseOrder::FLATFILE_Allreceipts</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2886EB84-C2EB-4A57-8100-719968827A06}</Id>
+            <Name>PurchaseOrder::FF_POInvoice</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\purchase_order_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0C62CDF3-221D-4BF1-BB4F-164847D6D6D5}</Id>
+            <Name>PurchaseOrder::FF_POReceipt</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\purchase_order_receipt_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{77CBE6C4-A9D8-4CE5-A187-C2B7E20FD65F}</Id>
+            <Name>PurchaseOrder::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\stage\ConcurPurchaseOrder\payment_vendor_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{343D4385-3753-4E27-88D4-B56E5C45DF71}</Id>
+            <Name>PurchaseOrder::varEntityCode</Name>
+            <Value xsi:type="xsd:string">t1209783x4lw2</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{6843F54A-C881-4646-B6A0-03BC69CF10DC}</Id>
+            <Name>PurchaseOrder::varExtractID</Name>
+            <Value xsi:type="xsd:string">21</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{39CFD5D7-95DD-463F-8341-E881D80B7976}</Id>
+            <Name>M3Extracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C9DFF631-E3EA-4B04-BA3F-AA68DBE84B15}</Id>
+            <Name>M3Extracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{40B092FD-BF23-44E9-8E61-084201F5018A}</Id>
+            <Name>M3Extracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{61917F21-8CB8-4E15-A6B7-96D51A166DEB}</Id>
+            <Name>M3Extracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+    <Configuration>
+      <Name>Production</Name>
+      <Options>
+        <OutputPath>bin</OutputPath>
+        <ConnectionMappings />
+        <ConnectionProviderMappings />
+        <ConnectionSecurityMappings />
+        <DatabaseStorageLocations />
+        <TargetServerVersion>SQLServer2016</TargetServerVersion>
+        <AzureMode>false</AzureMode>
+        <LinkedAzureTenantId />
+        <LinkedAzureAccountId />
+        <LinkedAzureSSISIR />
+        <LinkedAzureStorage />
+        <RemoteExecutionFolder />
+        <ParameterConfigurationValues>
+          <ConfigurationSetting>
+            <Id>{0ab2ffc5-fd5d-4e81-a966-81ef725a7c57}</Id>
+            <Name>Project::ConnectionStringsFile</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0030.ng.bg1857.net\common\ConnectionStrings.config</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>LastModifiedTime</Id>
+            <Name>LastModifiedTime</Name>
+            <Value xsi:type="xsd:dateTime">2026-08-18T19:53:50.7517215Z</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{E0C9FFA3-D0C3-4454-A739-384EAFD9EEF2}</Id>
+            <Name>EpicorExtracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{3DA6FC1C-BDE7-48F5-BE09-7E89130A409E}</Id>
+            <Name>EpicorExtracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{27BB9D3A-22BF-4EEC-9812-F26A18CE1E5E}</Id>
+            <Name>EpicorExtracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{6CDCFC59-7E95-4586-9875-D23B56C25313}</Id>
+            <Name>EpicorExtracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{546118AA-9E3D-4F33-9268-A602CF03B1E8}</Id>
+            <Name>M3Extracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\production\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{DC18B75E-3F53-4D1A-8685-56B7D3FD75C6}</Id>
+            <Name>M3Extracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\production\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{88684C34-CB7C-45EF-A6C0-E94A0A7AA8E6}</Id>
+            <Name>M3Extracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\production\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F93F9095-F251-46C5-B225-28CC8519FC17}</Id>
+            <Name>M3Extracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\ConcurExtracts\ConcurPurchaseOrder\production\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{7A4C275D-A9B2-4E82-9942-0A6140CF4CF9}</Id>
+            <Name>BarnesAerospaceExtracts::Extract_ID</Name>
+            <Value xsi:type="xsd:string">15</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{81A69E55-20EC-47C8-B60F-ECF8C1810EE9}</Id>
+            <Name>BarnesAerospaceExtracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{F25FB740-B322-46F4-BB6F-2C99FB858674}</Id>
+            <Name>BarnesAerospaceExtracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B0A00920-DB38-4732-8D6B-E802CF056809}</Id>
+            <Name>BarnesAerospaceExtracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{CA367FDB-C2C2-491F-82C2-3304C8B06C44}</Id>
+            <Name>BarnesAerospaceExtracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{953F0E20-E37A-4974-AB84-D564B67D3F39}</Id>
+            <Name>PurchaseOrder::FLATFILE_POHeader</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{9D23DE94-C4B0-4FC9-A309-DA008BF34431}</Id>
+            <Name>PurchaseOrder::FLATFILE_PODetail</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{A55ECE70-7E37-41FA-AAAE-14475A901C7B}</Id>
+            <Name>PurchaseOrder::FLATFILE_Vendor</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\vendor.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{B37FF081-E180-439C-9231-56F3A2E279BA}</Id>
+            <Name>PurchaseOrder::FLATFILE_Allreceipts</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{2886EB84-C2EB-4A57-8100-719968827A06}</Id>
+            <Name>PurchaseOrder::FF_POInvoice</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\purchase_order_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{0C62CDF3-221D-4BF1-BB4F-164847D6D6D5}</Id>
+            <Name>PurchaseOrder::FF_POReceipt</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\purchase_order_receipt_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{77CBE6C4-A9D8-4CE5-A187-C2B7E20FD65F}</Id>
+            <Name>PurchaseOrder::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\ngusmsrv0019.ng.bg1857.net\Applications\ConcurExtracts\production\ConcurPurchaseOrder\payment_vendor_import_[entitycode]_.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{343D4385-3753-4E27-88D4-B56E5C45DF71}</Id>
+            <Name>PurchaseOrder::varEntityCode</Name>
+            <Value xsi:type="xsd:string">p0010945e24e</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{6843F54A-C881-4646-B6A0-03BC69CF10DC}</Id>
+            <Name>PurchaseOrder::varExtractID</Name>
+            <Value xsi:type="xsd:string">21</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{39CFD5D7-95DD-463F-8341-E881D80B7976}</Id>
+            <Name>M3Extracts::FF_PODetail</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\PODetails.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{C9DFF631-E3EA-4B04-BA3F-AA68DBE84B15}</Id>
+            <Name>M3Extracts::FF_POHeader</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\POHeader.Txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{40B092FD-BF23-44E9-8E61-084201F5018A}</Id>
+            <Name>M3Extracts::FF_Receipts</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\Allreceipts.txt</Value>
+          </ConfigurationSetting>
+          <ConfigurationSetting>
+            <Id>{61917F21-8CB8-4E15-A6B7-96D51A166DEB}</Id>
+            <Name>M3Extracts::FF_Vendor</Name>
+            <Value xsi:type="xsd:string">\\bgusmsrv0019.bg.bg1857.net\Concur Invoice Aurora\vendor.txt</Value>
+          </ConfigurationSetting>
+        </ParameterConfigurationValues>
+      </Options>
+    </Configuration>
+  </Configurations>
+</Project>

@@ -1,0 +1,8 @@
+{
+	"App_Environment": "stage",
+	"App_DataDirectory": "E:\\Applications\\HighRadius\\stage\\in\\",
+	"App_ProcessedPath": "E:\\Applications\\HighRadius\\stage\\in\\processed\\",
+	"App_GetRemotePath": "//outbound/test//caa//FMG",
+	"App_GetM3SaveLocation":"\\\\RAUSMSRV0002.RA.bg1857.net\\ASR\\AR-Bank\\in",
+	"App_GetJBASaveLocation":"E:\\Applications\\HighRadius\\stage\\in\\SendToJBA\\"	
+}

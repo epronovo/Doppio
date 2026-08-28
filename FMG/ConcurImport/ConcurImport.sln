@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.34601.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{C9674DCB-5085-4A16-B785-4C70DD1589BD}") = "ConcurImport", "ConcurImport\ConcurImport.dtproj", "{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Development|Default = Development|Default
+		Production|Default = Production|Default
+		Stage|Default = Stage|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}.Development|Default.ActiveCfg = Development
+		{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}.Development|Default.Build.0 = Development
+		{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}.Production|Default.ActiveCfg = Production
+		{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}.Production|Default.Build.0 = Production
+		{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}.Stage|Default.ActiveCfg = Stage
+		{2D5D559E-E33A-434A-A6AD-B2B4C3AF77BF}.Stage|Default.Build.0 = Stage
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {466727EB-C610-484A-A823-512CD5D72F1B}
+	EndGlobalSection
+EndGlobal

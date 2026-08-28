@@ -1,0 +1,9 @@
+﻿{
+    "App_Environment": "stage",
+    "App_HostName": "ecom-sftp.fguk-pprd2.hsbc.com",
+    "App_UserName": "CT000032270_36098",
+    "App_SSHKey": "ssh-rsa 4096 2M0mmjdU54IHuTlP1go72XnejXLxYF5HkrsZnsb6ElM",
+    "App_KeyPassPhraseLocation": "E:\\Scripts\\WinScpFTP\\HSBC\\config\\stage\\passphrase2.txt",
+    "App_KeyPath": "E:\\KeysEncryptions\\HSBC\\SSH\\id_rsa_hsbcbank_private.ppk",
+	"File_Key": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+}

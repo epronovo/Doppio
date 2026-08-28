@@ -1,0 +1,9 @@
+﻿{
+    "App_Environment": "stage",
+    "App_HostName": "mft-us2.concursolutions.com",
+    "App_UserName": "t1209783x4lw",
+    "App_SSHKey": "ssh-rsa 3072 A+6pVvfQpGaSZfwvDenRBatqA9GE5YAbFOiKJASC7wI",
+    "App_KeyPassPhrase": "Uhbvadt1",
+    "App_KeyPath": "E:\\KeysEncryptions\\Concur\\Dev\\DevConcurSFTP_private.ppk",
+    "App_SendRemotePath": "/in/"
+}

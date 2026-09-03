@@ -1,0 +1,34 @@
+{
+  "login_id": {
+    "sources": [
+      "work_email"
+    ],
+    "suffix": "",
+    "replace_domain": "",
+    "prefix": "",
+    "lowercase": false,
+    "bare_domain": ""
+  },
+  "password": "Welcome01",
+  "scope": {
+    "305": "all",
+    "350": "active",
+    "360": "active"
+  },
+  "extract": {
+    "delimiter": ",",
+    "quote": "minimal",
+    "line_ending": "\r\n",
+    "encoding": "utf-8",
+    "order": "by_type",
+    "file_name": "FMG_Concur_Employee_{stamp}.txt",
+    "selection_file_name": "FMG_Concur_Employee_Selection_{stamp}.txt",
+    "outbound_dir": ""
+  },
+  "block_on": {
+    "unmapped": true,
+    "missing_login_id": true,
+    "missing_employee_id": true,
+    "broken_supervisor": true
+  }
+}

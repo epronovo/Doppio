@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADP &rarr; Concur Employee Load</title>
+<style>
+  :root{
+    --bg:#0f1216; --panel:#161b22; --panel2:#1c232c; --line:#2a3340;
+    --ink:#e6edf3; --dim:#8b98a5; --accent:#4c9aff; --accent2:#2ea043;
+    --warn:#d29922; --bad:#f85149; --chip:#233043;
+  }
+  *{box-sizing:border-box}
+  /* The whole app is one viewport-high column: only the table body scrolls,
+     so the pager under it is always on screen no matter how tall the list is. */
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;
+       font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  header{padding:10px 20px;border-bottom:1px solid var(--line);background:var(--panel);
+         display:flex;align-items:center;gap:16px;flex-wrap:wrap;flex:0 0 auto}
+  h1{font-size:16px;margin:0;font-weight:600;letter-spacing:.2px}
+  h3{font-size:13px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim)}
+  .sub{color:var(--dim);font-size:12px}
+  select,input,button,textarea{font:inherit;color:var(--ink);background:var(--panel2);
+         border:1px solid var(--line);border-radius:6px;padding:6px 9px;outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+  button{cursor:pointer;background:var(--panel2)}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#04101f;font-weight:600}
+  button.good{background:var(--accent2);border-color:var(--accent2);color:#03150a;font-weight:600}
+  button.danger{border-color:#5b2a2a;color:#ff9c93}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .grow{flex:1}
+  main{padding:0 20px 12px;flex:1;min-height:0;display:flex;flex-direction:column}
+  #drop{margin:10px 0 8px;border:2px dashed var(--line);border-radius:8px;padding:9px 14px;
+        text-align:center;color:var(--dim);transition:.15s;background:var(--panel);
+        flex:0 0 auto;font-size:12px}
+  #drop.hot{border-color:var(--accent);background:#132033;color:var(--ink)}
+  #drop b{color:var(--ink)}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-top:6px;flex:0 0 auto;
+        flex-wrap:wrap}
+  .tab{padding:9px 16px;border:1px solid transparent;border-bottom:none;cursor:pointer;
+       border-radius:8px 8px 0 0;color:var(--dim)}
+  .tab.on{background:var(--panel);border-color:var(--line);color:var(--ink);font-weight:600}
+  .tab .n{font-size:11px;color:var(--dim);margin-left:6px}
+  .pane{display:none}
+  .pane.on{display:flex;flex-direction:column;flex:1;min-height:0;padding-top:10px}
+  .pane > .toolbar,.pane > .note{flex:0 0 auto}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+  th{color:var(--dim);font-weight:600;font-size:12px;text-transform:uppercase;
+     letter-spacing:.4px;position:sticky;top:0;background:var(--bg);z-index:2}
+  th.sortable{cursor:pointer}
+  th.sortable:hover{color:var(--ink)}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--panel)}
+  tbody tr.sel{background:#16283f}
+  /* fills whatever is left over, so the pager below it stays put */
+  .wrap{flex:1;min-height:90px;overflow:auto;border:1px solid var(--line);
+        border-radius:8px;background:var(--panel)}
+  .pager{display:flex;gap:8px;align-items:center;padding:8px 2px 0;font-size:12px;
+         color:var(--dim);flex:0 0 auto}
+  .pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:11px;
+        background:var(--chip);color:var(--dim)}
+  .pill.active{background:#12331f;color:#7ee2a8}
+  .pill.inactive{background:#3a2f12;color:#e3c07b}
+  .pill.bad{background:#3a1a1a;color:#ff9c93}
+  .pill.new{background:#132f4c;color:#7cc4ff}
+  .pill.manual{background:#2b1f3a;color:#c4a6ff}
+  .pill.picked{background:#132f4c;color:#7cc4ff;font-weight:600}
+  .node.unpicked .who,.node.unpicked .fn{opacity:.55}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+  .note{border:1px solid var(--line);background:var(--panel);border-radius:8px;
+        padding:10px 12px;margin-bottom:10px;font-size:12px;color:var(--dim)}
+  .note b{color:var(--ink)}
+  .note.warnish{border-color:#5b4a2a;background:#1b1712}
+  /* the slide-in editor */
+  #panel{position:fixed;top:0;right:0;height:100%;width:min(760px,92vw);z-index:80;
+         background:var(--panel);border-left:1px solid var(--line);transform:translateX(105%);
+         transition:.2s;display:flex;flex-direction:column;box-shadow:-16px 0 40px rgba(0,0,0,.5)}
+  #panel.on{transform:none}
+  #panel .head{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;
+               gap:12px;align-items:center;flex:0 0 auto}
+  #panel .body{padding:14px 16px;overflow:auto;flex:1}
+  #panel .foot{padding:10px 16px;border-top:1px solid var(--line);display:flex;gap:8px;
+               align-items:center;flex:0 0 auto}
+  .grid{display:grid;grid-template-columns:210px 1fr;gap:7px 12px;align-items:center}
+  .grid label{color:var(--dim);font-size:12px}
+  .grid input,.grid select{width:100%}
+  .ro{background:#141a21;color:var(--dim)}
+  .exc{border-left:3px solid var(--warn);padding:6px 10px;margin:6px 0;background:var(--panel2);
+       border-radius:0 6px 6px 0;font-size:12px}
+  .exc.error{border-left-color:var(--bad)}
+  .recprev{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;
+           background:var(--panel2);border:1px solid var(--line);border-radius:6px;
+           padding:8px;overflow:auto;white-space:pre-wrap;word-break:break-all;margin:4px 0 10px}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140px);
+         background:var(--panel);border:1px solid var(--accent);border-radius:10px;
+         padding:11px 18px;z-index:90;transition:.2s;max-width:70vw;
+         box-shadow:0 12px 32px rgba(0,0,0,.5)}
+  #toast.on{transform:translateX(-50%)}
+  #toast.bad{border-color:var(--bad)}
+  .kv{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--dim)}
+  .kv b{color:var(--ink);font-weight:600}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  @media (max-width:1100px){.cols2{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:14px}
+  /* ---- the shared selection bar, on Employees and Hierarchy ---- */
+  .selbar{display:flex;gap:8px;align-items:center;padding:8px 12px;margin-bottom:8px;
+          border:1px solid var(--line);border-radius:8px;background:var(--panel);
+          font-size:13px;flex:0 0 auto}
+  .selbar.hot{border-color:var(--accent);background:#132033}
+  .selbar b{min-width:96px}
+  tbody tr.picked{background:#20262e}
+  tbody tr.picked td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+  .tick{width:auto;margin:0}
+  /* ---- hierarchy ---- */
+  .hsplit{display:grid;grid-template-columns:minmax(420px,1fr) minmax(360px,1fr);
+          gap:12px;flex:1;min-height:0}
+  @media (max-width:1150px){.hsplit{grid-template-columns:1fr}}
+  #h-tree{padding:8px 4px;font-size:13px}
+  .node{display:flex;align-items:center;gap:7px;padding:3px 8px;border-radius:6px;
+        white-space:nowrap}
+  .node:hover{background:var(--panel2)}
+  .node.on{background:#16283f}
+  .node .twist{width:16px;text-align:center;color:var(--dim);cursor:pointer;
+               user-select:none;flex:0 0 auto}
+  .node .fn{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;color:var(--dim);
+            flex:0 0 auto}
+  .node .who{cursor:pointer;overflow:hidden;text-overflow:ellipsis}
+  .node .role{color:var(--dim);font-size:12px;overflow:hidden;text-overflow:ellipsis}
+  .node.hit{outline:1px solid var(--accent)}
+  .kids{margin-left:16px;border-left:1px solid var(--line);padding-left:2px}
+  .kids.shut{display:none}
+  .chain{list-style:none;margin:0;padding:0}
+  .chain li{padding:5px 0 5px 0;position:relative}
+  .chain li .rung{display:flex;gap:8px;align-items:baseline}
+  .chain li.me .rung b{color:var(--accent)}
+  .ended{border-radius:6px;padding:8px 10px;margin:8px 0;font-size:12px}
+  .ended.top{background:#12331f;color:#7ee2a8}
+  .ended.broken,.ended.cycle{background:#3a1a1a;color:#ff9c93}
+  .ended.deep{background:#3a2f12;color:#e3c07b}
+  /* ---- fixes ---- */
+  .seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .seg button{border:none;border-radius:0;background:var(--panel2);color:var(--dim);
+              padding:6px 14px}
+  .seg button.on{background:var(--accent);color:#04101f;font-weight:600}
+  .fix{border:1px solid var(--line);border-left:3px solid var(--bad);
+       background:var(--panel);border-radius:0 8px 8px 0;padding:13px 15px;margin-bottom:12px}
+  .fix.warning{border-left-color:var(--warn)}
+  .fix.done{border-left-color:var(--accent2);opacity:.65}
+  .fix h4{margin:0 0 4px;font-size:14px;font-weight:600}
+  .fix .why{color:var(--dim);font-size:12.5px;margin-bottom:9px;max-width:80ch}
+  .fix .who{font-size:12px;color:var(--dim);margin-bottom:9px}
+  .fix .who span{display:inline-block;margin-right:10px;cursor:pointer}
+  .fix .who span:hover{color:var(--ink);text-decoration:underline}
+  .fix .acts{display:flex;gap:8px;flex-wrap:wrap}
+  .fixform{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}
+  .fixform .note{margin-bottom:10px}
+  .fixform .grid{grid-template-columns:200px 1fr}
+  .fixform input.guess{color:var(--dim);border-style:dashed}
+  .fixform input.need{border-color:var(--warn)}
+  .fixform .foot{display:flex;gap:8px;align-items:center;margin-top:12px}
+  .outcome{margin-top:10px;border-radius:6px;padding:9px 11px;font-size:12.5px}
+  .outcome.good{background:#12331f;color:#7ee2a8}
+  .outcome.mixed{background:#3a2f12;color:#e3c07b}
+  .allclear{border:1px solid #1f4030;background:#101c17;border-radius:8px;
+            padding:18px;color:#7ee2a8}
+  /* ---- clearing ---- */
+  .srcline{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;margin-bottom:6px;
+           border:1px solid var(--line);border-radius:8px;background:var(--panel2);
+           cursor:pointer}
+  .srcline input{width:auto;margin-top:2px}
+  .srcline i{font-style:normal;color:var(--dim);font-size:12px}
+  .note.danger{border-color:#5b2a2a;background:#1b1214;color:#ff9c93}
+  .note.danger b{color:#ffc9c3}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>ADP &rarr; Concur</h1>
+  <span class="sub" id="dbline"></span>
+  <span class="grow"></span>
+  <span class="sub" id="countline"></span>
+  <button id="rederive" title="Recompute every derived value from the maps">Re-derive</button>
+</header>
+
+<main>
+  <div id="drop">
+    Drop the <b>ADP / Concur workbook</b> (.xlsx) here &mdash; the ADP sheet, the six map tabs and the
+    305 / 350 / 360 layouts all load from it. <span id="dropmsg"></span>
+    <input type="file" id="file" multiple accept=".xlsx,.xlsm" style="display:none">
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-pane="employees">Employees<span class="n" id="n-emp"></span></div>
+    <div class="tab" data-pane="r305">305<span class="n" id="n-305"></span></div>
+    <div class="tab" data-pane="r350">350<span class="n" id="n-350"></span></div>
+    <div class="tab" data-pane="r360">360<span class="n" id="n-360"></span></div>
+    <div class="tab" data-pane="hierarchy">Hierarchy<span class="n" id="n-hier"></span></div>
+    <div class="tab" data-pane="maps">Maps</div>
+    <div class="tab" data-pane="exceptions">Exceptions<span class="n" id="n-exc"></span></div>
+    <div class="tab" data-pane="extract">Extract</div>
+  </div>
+
+  <!-- ------------------------------------------------------- employees -->
+  <div class="pane on" id="pane-employees">
+    <div class="toolbar">
+      <input id="q" placeholder="Search name, file number, email, title, BU" style="min-width:280px">
+      <select id="f-status">
+        <option value="">Any status</option>
+        <option value="active">Active in Concur (Y)</option>
+        <option value="inactive">Inactive (N)</option>
+        <option value="unmapped">Status not mapped</option>
+      </select>
+      <select id="f-source">
+        <option value="">ADP and manual</option>
+        <option value="adp">From ADP</option>
+        <option value="manual">Added by hand</option>
+      </select>
+      <select id="f-problems">
+        <option value="">Any</option>
+        <option value="errors">Blocking errors</option>
+        <option value="any">Any exception</option>
+        <option value="duplicates">Duplicate ADP rows</option>
+        <option value="clean">Clean</option>
+      </select>
+      <select id="f-bu"><option value="">Every business unit</option></select>
+      <select class="pickedview">
+        <option value="">Picked and not</option>
+        <option value="only">Only picked</option>
+        <option value="not">Only not picked</option>
+      </select>
+      <span class="grow"></span>
+      <button class="primary" id="add-emp">+ Employee</button>
+    </div>
+    <div class="selbar" id="selbar-emp">
+      <b id="selcount-emp">Nothing picked</b>
+      <button id="sel-all-view">Select all in view</button>
+      <button id="sel-page">Select this page</button>
+      <button id="sel-drop">Drop those in view</button>
+      <button id="sel-clear">Clear</button>
+      <span class="grow"></span>
+      <button class="good" id="sel-extract">Extract the selection</button>
+    </div>
+    <div class="wrap"><table id="t-emp">
+      <thead><tr>
+        <th style="width:34px"></th>
+        <th class="sortable" data-sort="file_number">File #</th>
+        <th class="sortable" data-sort="legal_last_name">Name</th>
+        <th class="sortable" data-sort="job_title">Title</th>
+        <th class="sortable" data-sort="business_unit_desc">Business unit</th>
+        <th class="sortable" data-sort="org_unit_1">Org 1</th>
+        <th class="sortable" data-sort="org_unit_2">Org 2</th>
+        <th class="sortable" data-sort="login_id">Login ID</th>
+        <th class="sortable" data-sort="supervisor_id">Supervisor</th>
+        <th class="sortable" data-sort="concur_status">Active</th>
+        <th>Flags</th>
+      </tr></thead><tbody></tbody></table></div>
+    <div class="pager">
+      <button id="prev">&larr;</button><span id="pageinfo"></span><button id="next">&rarr;</button>
+      <span class="grow"></span>
+      <label>Rows <select id="size"><option>50</option><option selected>100</option>
+        <option>250</option><option>500</option></select></label>
+    </div>
+  </div>
+
+  <!-- ---------------------------------------------------- record panes -->
+  <div class="pane" id="pane-r305"></div>
+  <div class="pane" id="pane-r350"></div>
+  <div class="pane" id="pane-r360"></div>
+
+  <!-- ------------------------------------------------------- hierarchy -->
+  <div class="pane" id="pane-hierarchy">
+    <div class="toolbar">
+      <input id="h-q" placeholder="Find a person in the tree" style="min-width:260px">
+      <button id="h-expand">Expand all</button>
+      <button id="h-collapse">Collapse to roots</button>
+      <select id="h-status">
+        <option value="">Active and inactive</option>
+        <option value="active">Active only (Y)</option>
+        <option value="inactive">Inactive only (N)</option>
+      </select>
+      <select class="pickedview">
+        <option value="">The whole tree</option>
+        <option value="only">Only picked</option>
+      </select>
+      <span class="grow"></span>
+      <span class="sub" id="h-stats"></span>
+    </div>
+    <div class="selbar" id="selbar-hier">
+      <b id="selcount-hier">Nothing picked</b>
+      <button id="h-sel-sub">Select this organisation</button>
+      <button id="h-sel-one">Select just this person</button>
+      <button id="h-sel-clear">Clear</button>
+      <span class="grow"></span>
+      <button class="good" id="h-sel-extract">Extract the selection</button>
+    </div>
+    <div id="h-problems"></div>
+    <div class="hsplit">
+      <div class="wrap" id="h-tree"></div>
+      <div class="wrap" id="h-detail" style="padding:14px"></div>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------------------ maps -->
+  <div class="pane" id="pane-maps">
+    <div class="toolbar">
+      <select id="mapname">
+        <option value="org">Org Map</option>
+        <option value="status">Status Map</option>
+        <option value="country">Country Map</option>
+        <option value="language">Language Map</option>
+        <option value="salary">Salary Map</option>
+        <option value="supervisor">Supervisor Map</option>
+      </select>
+      <input id="mapq" placeholder="Search this map">
+      <span class="sub" id="mapcount"></span>
+      <span class="grow"></span>
+      <button class="primary" id="add-map">+ Row</button>
+    </div>
+    <div class="note">Editing a map re-derives every employee straight away, so the
+      Employees and 305&nbsp;/&nbsp;350&nbsp;/&nbsp;360 tabs move with it. Dropping a
+      workbook replaces these tables with what it carries.</div>
+    <div id="map-validation"></div>
+    <div class="wrap"><table id="t-map"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ------------------------------------------------------ exceptions -->
+  <div class="pane" id="pane-exceptions">
+    <div class="toolbar">
+      <div class="seg">
+        <button id="mode-fixes" class="on">Fixes</button>
+        <button id="mode-list">Every exception</button>
+      </div>
+      <span class="sub" id="fix-summary"></span>
+      <span class="grow"></span>
+    </div>
+    <div class="wrap" id="fixlist" style="padding:14px"></div>
+    <div class="toolbar" id="exc-filters" style="display:none">
+      <select id="e-sev">
+        <option value="">Errors and warnings</option>
+        <option value="error">Errors only (held out of the extract)</option>
+        <option value="warning">Warnings only</option>
+      </select>
+      <select id="e-field"><option value="">Every check</option></select>
+      <select class="pickedview">
+        <option value="">Everyone</option>
+        <option value="only">Only picked</option>
+        <option value="not">Only not picked</option>
+      </select>
+      <span class="sub" id="e-count"></span>
+    </div>
+    <div class="wrap" id="exc-table" style="display:none"><table id="t-exc">
+      <thead><tr><th>Severity</th><th>File #</th><th>Name</th><th>Check</th>
+        <th>What is wrong</th><th>Status</th></tr></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- --------------------------------------------------------- extract -->
+  <div class="pane" id="pane-extract">
+    <div class="wrap" style="padding:16px">
+      <div class="cols2">
+        <div class="card">
+          <h3>Login ID rule</h3>
+          <div class="note">Concur login IDs are unique across every entity on the
+            platform, which is why the plain work email will not load. Set the rule
+            once and the whole extract follows it.</div>
+          <div class="grid">
+            <label>Source fields, in order</label>
+            <input id="c-sources" placeholder="work_email, personal_email, file_number">
+            <label>Append suffix</label>
+            <input id="c-suffix" placeholder="e.g. .fmg">
+            <label>Prepend prefix</label>
+            <input id="c-prefix">
+            <label>Replace the domain</label>
+            <input id="c-domain" placeholder="e.g. fmgconcur.com">
+            <label>Domain for bare IDs</label>
+            <input id="c-bare" placeholder="used when the source has no @">
+            <label>Lower case</label>
+            <select id="c-lower"><option value="0">No &mdash; as ADP has it</option>
+              <option value="1">Yes</option></select>
+            <label>Password</label>
+            <input id="c-password">
+          </div>
+          <div class="recprev" id="c-preview" style="margin-top:12px"></div>
+        </div>
+        <div class="card">
+          <h3>File</h3>
+          <div class="grid">
+            <label>305 covers</label>
+            <select id="c-s305"><option value="all">Everyone</option>
+              <option value="active">Active only</option></select>
+            <label>350 covers</label>
+            <select id="c-s350"><option value="all">Everyone</option>
+              <option value="active">Active only</option></select>
+            <label>360 covers</label>
+            <select id="c-s360"><option value="all">Everyone</option>
+              <option value="active">Active only</option></select>
+            <label>Delimiter</label>
+            <select id="c-delim"><option value=",">Comma</option>
+              <option value="|">Pipe</option><option value="&#9;">Tab</option></select>
+            <label>Quoting</label>
+            <select id="c-quote"><option value="minimal">Only when needed</option>
+              <option value="all">Every field</option><option value="none">Never</option></select>
+            <label>Record order</label>
+            <select id="c-order"><option value="by_type">All 305, then 350, then 360</option>
+              <option value="by_employee">Grouped by employee</option></select>
+            <label>File name</label>
+            <input id="c-name">
+            <label>Outbound folder</label>
+            <input id="c-out" placeholder="blank = output/adp_concur/">
+          </div>
+          <div class="grid" style="margin-top:7px">
+            <label>This file covers</label>
+            <select id="c-scope">
+              <option value="everyone">Everyone the scopes allow</option>
+              <option value="selection">Only what is picked</option>
+            </select>
+          </div>
+          <div class="toolbar" style="margin:14px 0 0">
+            <button class="primary" id="save-config">Save settings</button>
+            <button id="preview-extract">Preview</button>
+            <button class="good" id="write-extract">Write extract</button>
+            <span class="sub" id="scope-hint"></span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>Result</h3>
+        <div id="extract-result" class="sub">Preview builds the file and counts it without
+          writing anything.</div>
+        <div class="recprev" id="extract-preview" style="display:none"></div>
+        <div id="heldback"></div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>Start again</h3>
+        <div class="cols2">
+          <div>
+            <div class="sub" style="margin-bottom:8px">Clear employees — pick what goes.</div>
+            <label class="srcline"><input type="checkbox" id="src-adp" checked>
+              <span><b>From ADP</b> <i id="src-adp-n"></i><br>
+              <span class="sub">Comes back the moment the workbook is dropped again.</span>
+              </span></label>
+            <label class="srcline"><input type="checkbox" id="src-manual">
+              <span><b>Added by hand</b> <i id="src-manual-n"></i><br>
+              <span class="sub">Keyed in here and held nowhere else — no workbook
+                will bring them back. Includes anyone created from the Fixes tab
+                to repair a broken supervisor chain.</span>
+              </span></label>
+            <div id="clear-preview" class="note" style="margin-top:10px"></div>
+            <div class="toolbar" style="margin:0">
+              <input id="clear-confirm" placeholder="Type CLEAR" style="width:150px">
+              <button class="danger" id="clear-emp" disabled>Clear employees</button>
+            </div>
+          </div>
+          <div>
+            <div class="sub" style="margin-bottom:8px">Clear the lookup tables.</div>
+            <div class="note">The six maps and the captured 305 / 350 / 360
+              layouts. The next workbook refills all of them. Corrections filed
+              in the Supervisor Map live here, so this is what throws those
+              away — clearing employees does not.</div>
+            <div class="toolbar" style="margin:0">
+              <input id="clear-maps-confirm" placeholder="Type CLEAR" style="width:150px">
+              <button class="danger" id="clear-maps" disabled>Clear maps and layouts</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="panel">
+  <div class="head"><b id="p-title">Employee</b><span class="grow"></span>
+    <button id="p-close">Close</button></div>
+  <div class="body" id="p-body"></div>
+  <div class="foot">
+    <button class="primary" id="p-save">Save</button>
+    <span id="p-state" class="sub"></span>
+    <span class="grow"></span>
+    <button class="danger" id="p-purge" style="display:none">Delete outright</button>
+    <button class="danger" id="p-delete">Leave out of the load</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, ...kids) => {
+  const n = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) {
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined) n.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined)
+    n.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return n;
+};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+let toastTimer = null;
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('bad', !!bad);
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), bad ? 7000 : 3500);
+}
+
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  let body;
+  try { body = await r.json(); } catch { body = { status: 'error', message: r.statusText }; }
+  if (!r.ok || body.status === 'error') throw new Error(body.message || 'Request failed');
+  return body;
+}
+
+/* ------------------------------------------------------------- state --- */
+
+const state = {
+  tab: 'employees',
+  emp: { page: 1, size: 100, sort: '', dir: 'asc' },
+  rec: { 305: { page: 1 }, 350: { page: 1 }, 360: { page: 1 } },
+  map: 'org',
+  editing: null,
+  config: null,
+  columns: { adp: [], derived: [] },
+  /* One selection shared by every tab, and held in the database rather than
+     here — so it survives a reload, and so 'only picked' can be a filter on
+     the server instead of a list of keys travelling with every request. This
+     Set is a mirror of it, refreshed after every change. */
+  sel: new Set(),
+  selLabel: '',
+  picked: '',            // '' | 'only' | 'not' — the view, not the selection
+  excMode: 'fixes',      // the Exceptions tab: grouped fixes, or the raw list
+  hier: { roots: [], open: new Set(), current: null },
+};
+
+function selCount() { return state.sel.size; }
+
+function renderSel() {
+  const n = selCount();
+  const text = n ? `${n} picked` : 'Nothing picked';
+  for (const id of ['#selcount-emp', '#selcount-hier']) $(id).textContent = text;
+  for (const id of ['#selbar-emp', '#selbar-hier']) $(id).classList.toggle('hot', !!n);
+  for (const id of ['#sel-extract', '#h-sel-extract', '#sel-drop'])
+    $(id).disabled = !n;
+  // The 'only picked' views are meaningless with nothing picked, so they say so
+  // rather than silently showing an empty table.
+  document.querySelectorAll('.pickedview').forEach(s => {
+    s.value = state.picked;
+    s.querySelector('option[value=only]').textContent =
+      n ? `Only the ${n} picked` : 'Only picked (none yet)';
+  });
+  document.querySelectorAll('#t-emp tbody tr').forEach(tr => {
+    const k = +tr.dataset.key;
+    tr.classList.toggle('picked', state.sel.has(k));
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = state.sel.has(k);
+  });
+}
+
+function applySelection(d) {
+  state.sel = new Set(d.keys || []);
+  state.selLabel = d.label || '';
+  renderSel();
+}
+
+async function loadSelection() {
+  applySelection(await api('/api/selection'));
+}
+
+async function selPost(path, body) {
+  const d = await api('/api/selection/' + path, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  applySelection(d);
+  return d;
+}
+
+/* Every tab that can be narrowed to the selection refreshes through here, so
+   flipping the view on one tab is felt everywhere without a reload. */
+function refreshCurrentTab() {
+  if (state.tab === 'employees') loadEmployees();
+  else if (/^r\d/.test(state.tab)) loadRecords(state.tab.slice(1));
+  else if (state.tab === 'hierarchy') loadHierarchy();
+  else if (state.tab === 'exceptions')
+    state.excMode === 'list' ? loadExceptions() : loadFixes();
+}
+
+function setPicked(value) {
+  state.picked = value;
+  renderSel();
+  refreshCurrentTab();
+}
+
+async function clearSel() {
+  await selPost('clear');
+  if (state.picked === 'only') state.picked = '';
+  renderSel();
+  refreshCurrentTab();
+  toast('Selection cleared.');
+}
+
+/* -------------------------------------------------------------- tabs --- */
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  $('#pane-' + t.dataset.pane).classList.add('on');
+  state.tab = t.dataset.pane;
+  if (/^r\d/.test(t.dataset.pane)) loadRecords(t.dataset.pane.slice(1));
+  if (t.dataset.pane === 'hierarchy') loadHierarchy();
+  if (t.dataset.pane === 'maps') loadMap();
+  if (t.dataset.pane === 'exceptions') setExcMode(state.excMode || 'fixes');
+  if (t.dataset.pane === 'extract') loadConfig();
+}));
+
+/* ------------------------------------------------------------ status --- */
+
+async function loadStatus() {
+  const s = await api('/api/status');
+  $('#dbline').textContent = s.db;
+  const c = s.counts;
+  $('#countline').innerHTML =
+    `<b>${c.employees}</b> employees &nbsp;·&nbsp; ${c.employees_active} active ` +
+    `&nbsp;·&nbsp; ${c.employees_manual} by hand &nbsp;·&nbsp; ` +
+    `<span style="color:var(--bad)">${c.errors} error${c.errors === 1 ? '' : 's'}</span>` +
+    ` &nbsp;·&nbsp; <span style="color:var(--warn)">${c.warnings} warning${c.warnings === 1 ? '' : 's'}</span>` +
+    (c.picked ? ` &nbsp;·&nbsp; <span style="color:var(--accent)">${c.picked} picked</span>` : '');
+  $('#n-emp').textContent = c.employees;
+  $('#n-exc').textContent = c.errors + c.warnings;
+  return s;
+}
+
+/* ---------------------------------------------------------- employees --- */
+
+function empQuery() {
+  const p = new URLSearchParams({
+    q: $('#q').value, status: $('#f-status').value, source: $('#f-source').value,
+    problems: $('#f-problems').value, bu: $('#f-bu').value,
+    picked: state.picked,
+    page: state.emp.page, size: state.emp.size,
+  });
+  if (state.emp.sort) { p.set('sort', state.emp.sort); p.set('dir', state.emp.dir); }
+  return p.toString();
+}
+
+async function loadEmployees() {
+  const d = await api('/api/employees?' + empQuery());
+  const tb = $('#t-emp tbody');
+  tb.textContent = '';
+  for (const r of d.rows) {
+    const flags = [];
+    if (r.source === 'manual') flags.push(['manual', 'by hand']);
+    if (r.n_errors) flags.push(['bad', r.n_errors + ' error' + (r.n_errors === 1 ? '' : 's')]);
+    else if (r.n_warnings) flags.push(['inactive', r.n_warnings + ' warning' + (r.n_warnings === 1 ? '' : 's')]);
+    if (r.duplicate_rows > 1) flags.push(['inactive', r.duplicate_rows + ' ADP rows']);
+    if (r.row_state === 'new') flags.push(['new', 'new']);
+    const unmapped = v => /Not Mapped/.test(v || '');
+    const tick = el('input', { type: 'checkbox', class: 'tick' });
+    tick.checked = state.sel.has(r.employee_key);
+    tick.addEventListener('click', async e => {
+      e.stopPropagation();
+      const on = tick.checked;
+      await selPost(on ? 'add' : 'remove',
+        { keys: [r.employee_key], reason: 'hand-picked' });
+      // Un-ticking while looking at the picked view should take the row away.
+      if (!on && state.picked === 'only') loadEmployees();
+    });
+    tb.append(el('tr', { 'data-key': r.employee_key, onclick: () => openEmployee(r.employee_key) },
+      el('td', { onclick: e => e.stopPropagation() }, tick),
+      el('td', { class: 'mono' }, r.file_number),
+      el('td', {}, `${r.legal_last_name || ''}, ${r.legal_first_name || ''}`),
+      el('td', {}, r.job_title || ''),
+      el('td', {}, r.business_unit_desc || ''),
+      el('td', { class: unmapped(r.org_unit_1) ? 'mono' : 'mono', style: unmapped(r.org_unit_1) ? 'color:var(--bad)' : '' }, r.org_unit_1 || ''),
+      el('td', { class: 'mono', style: unmapped(r.org_unit_2) ? 'color:var(--bad)' : '' }, r.org_unit_2 || ''),
+      el('td', { class: 'mono', style: r.login_id ? '' : 'color:var(--bad)' }, r.login_id || '(none)'),
+      el('td', { class: 'mono' }, r.supervisor_id || ''),
+      el('td', {}, el('span', { class: 'pill ' + (r.concur_status === 'Y' ? 'active' : r.concur_status === 'N' ? 'inactive' : 'bad') }, r.concur_status || '?')),
+      el('td', {}, flags.map(([c, t]) => el('span', { class: 'pill ' + c, style: 'margin-right:4px' }, t)))));
+  }
+  const from = (d.page - 1) * d.size + 1;
+  $('#pageinfo').textContent = d.total
+    ? `${from}–${Math.min(d.page * d.size, d.total)} of ${d.total}` : 'nothing to show';
+  $('#prev').disabled = d.page <= 1;
+  $('#next').disabled = d.page * d.size >= d.total;
+  state.lastPageKeys = d.rows.map(r => r.employee_key);
+  renderSel();
+}
+
+/* ---------------------------------------------------------- selection --- */
+
+$('#sel-all-view').addEventListener('click', async () => {
+  const d = await api('/api/employees/keys?' + empQuery());
+  const label = 'filter: ' + ($('#q').value || 'all') +
+    ($('#f-bu').value ? ' / ' + $('#f-bu').value : '') +
+    ($('#f-status').value ? ' / ' + $('#f-status').value : '');
+  const r = await selPost('add', { keys: d.keys, reason: label });
+  toast(`${d.keys.length} matched — ${r.added} newly picked.`);
+});
+$('#sel-page').addEventListener('click', async () => {
+  const r = await selPost('add',
+    { keys: state.lastPageKeys || [], reason: 'hand-picked' });
+  toast(`${r.added} newly picked.`);
+});
+$('#sel-drop').addEventListener('click', async () => {
+  // Drop what is on screen from the selection — the natural companion to
+  // Select all in view when you are pruning a pilot rather than building one.
+  const d = await api('/api/employees/keys?' + empQuery());
+  const r = await selPost('remove', { keys: d.keys });
+  toast(`${r.removed} removed from the selection.`);
+  refreshCurrentTab();
+});
+$('#sel-clear').addEventListener('click', clearSel);
+$('#h-sel-clear').addEventListener('click', clearSel);
+$('#sel-extract').addEventListener('click', () => extractSelection());
+$('#h-sel-extract').addEventListener('click', () => extractSelection());
+document.querySelectorAll('.pickedview').forEach(s =>
+  s.addEventListener('change', e => setPicked(e.target.value)));
+
+async function extractSelection() {
+  if (!selCount()) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x => x.classList.remove('on'));
+  document.querySelector('.tab[data-pane="extract"]').classList.add('on');
+  $('#pane-extract').classList.add('on');
+  state.tab = 'extract';
+  await loadConfig();
+  runExtract(false, true);
+}
+
+document.querySelectorAll('#t-emp th.sortable').forEach(th =>
+  th.addEventListener('click', () => {
+    const k = th.dataset.sort;
+    if (state.emp.sort !== k) { state.emp.sort = k; state.emp.dir = 'asc'; }
+    else if (state.emp.dir === 'asc') state.emp.dir = 'desc';
+    else { state.emp.sort = ''; state.emp.dir = 'asc'; }
+    state.emp.page = 1;
+    loadEmployees();
+  }));
+
+let debounce;
+['#q'].forEach(s => $(s).addEventListener('input', () => {
+  clearTimeout(debounce);
+  debounce = setTimeout(() => { state.emp.page = 1; loadEmployees(); }, 220);
+}));
+['#f-status', '#f-source', '#f-problems', '#f-bu'].forEach(s =>
+  $(s).addEventListener('change', () => { state.emp.page = 1; loadEmployees(); }));
+$('#size').addEventListener('change', e => {
+  state.emp.size = +e.target.value; state.emp.page = 1; loadEmployees();
+});
+$('#prev').addEventListener('click', () => { state.emp.page--; loadEmployees(); });
+$('#next').addEventListener('click', () => { state.emp.page++; loadEmployees(); });
+
+/* ----------------------------------------------------------- the panel --- */
+
+function field(label, name, value, opts = {}) {
+  const input = el('input', {
+    id: 'f-' + name, value: value ?? '',
+    class: opts.readonly ? 'ro' : '', readonly: opts.readonly ? '' : null,
+  });
+  return [el('label', { for: 'f-' + name }, label), input];
+}
+
+async function openEmployee(key) {
+  const d = await api('/api/employees/' + key);
+  state.editing = { key, row: d.row };
+  state.columns = { adp: d.adp_columns, derived: d.derived_columns };
+  const r = d.row;
+  $('#p-title').textContent =
+    `${r.legal_last_name || ''}, ${r.legal_first_name || ''}  ·  ${r.file_number}`;
+  $('#p-state').innerHTML =
+    `<span class="pill ${r.source === 'manual' ? 'manual' : ''}">${r.source === 'manual' ? 'added by hand' : 'from ADP'}</span>` +
+    (r.row_state !== 'unchanged' ? ` <span class="pill new">${r.row_state}</span>` : '');
+  $('#p-delete').style.display = '';
+  $('#p-delete').textContent = r.row_state === 'deleted'
+    ? 'Put back in the load' : 'Leave out of the load';
+  // A hand-keyed person can be deleted outright, because nothing else holds
+  // them — for an ADP row that would be pointless, the next drop returns them.
+  $('#p-purge').style.display = r.source === 'manual' ? '' : 'none';
+
+  const body = $('#p-body');
+  body.textContent = '';
+
+  if (d.exceptions.length) {
+    body.append(el('h3', {}, 'Exceptions'));
+    for (const x of d.exceptions)
+      body.append(el('div', { class: 'exc ' + x.severity },
+        el('b', {}, x.field || ''), ' — ', x.message));
+  }
+
+  if (d.chain && d.chain.chain.length) {
+    body.append(el('h3', { style: 'margin-top:16px' }, 'Chain up — the approver fields'));
+    const list = el('ul', { class: 'chain' });
+    [...d.chain.chain].reverse().forEach((c, i) =>
+      list.append(el('li', { class: c.file_number === r.file_number ? 'me' : '' },
+        el('div', { class: 'rung', style: `padding-left:${i * 16}px` },
+          el('span', { class: 'mono', style: 'color:var(--dim)' },
+            (i ? '└ ' : '') + c.file_number),
+          el('b', {}, c.name),
+          el('span', { class: 'sub' }, c.job_title || '')))));
+    body.append(list);
+    body.append(el('div', { class: 'ended ' + d.chain.ended }, d.chain.detail));
+    if (d.reports.length)
+      body.append(el('div', { class: 'sub' },
+        `${d.reports.length} direct report${d.reports.length === 1 ? '' : 's'}, ` +
+        `${d.n_subtree - 1} underneath in total.`));
+  }
+
+  const isPicked = state.sel.has(key);
+  body.append(el('div', { class: 'toolbar' },
+    el('button', {
+      class: isPicked ? '' : 'primary',
+      onclick: async () => {
+        await selPost(isPicked ? 'remove' : 'add',
+          { keys: [key], reason: 'hand-picked' });
+        openEmployee(key);
+        refreshCurrentTab();
+      },
+    }, isPicked ? 'Remove from the selection' : 'Add to the selection'),
+    isPicked ? el('span', { class: 'pill picked' }, 'picked') : null));
+
+  body.append(el('h3', { style: 'margin-top:16px' }, 'Include in'));
+  const flags = el('div', { class: 'toolbar' });
+  for (const t of ['305', '350', '360']) {
+    const cb = el('input', { type: 'checkbox', id: 'inc-' + t, style: 'width:auto' });
+    cb.checked = !!r['include_' + t];
+    flags.append(el('label', { style: 'display:flex;gap:6px;align-items:center' }, cb, t));
+  }
+  body.append(flags);
+
+  body.append(el('h3', { style: 'margin-top:16px' }, 'ADP fields'));
+  const g1 = el('div', { class: 'grid' });
+  for (const [label, name] of d.adp_columns) g1.append(...field(label, name, r[name]));
+  body.append(g1);
+
+  body.append(el('h3', { style: 'margin-top:18px' }, 'Derived — rebuilt from the maps'));
+  const g2 = el('div', { class: 'grid' });
+  for (const [label, name] of d.derived_columns)
+    g2.append(...field(label, 'd_' + name, r[name], { readonly: true }));
+  body.append(g2);
+
+  body.append(el('h3', { style: 'margin-top:18px' }, 'Records this produces'));
+  for (const t of ['305', '350', '360'])
+    body.append(el('div', { class: 'sub' }, t),
+      el('div', { class: 'recprev' }, d.records[t].join(',')));
+
+  $('#panel').classList.add('on');
+}
+
+function newEmployee() {
+  state.editing = { key: null, row: {} };
+  $('#p-title').textContent = 'New employee — not in ADP';
+  $('#p-state').innerHTML = '<span class="pill manual">added by hand</span>';
+  $('#p-delete').style.display = 'none';
+  const body = $('#p-body');
+  body.textContent = '';
+  body.append(el('div', { class: 'note' },
+    'For people at a branch that has not gone live on ADP yet. The File Number is the ' +
+    'Employee ID Concur keys on, so it has to match what ADP will eventually send.'));
+  const g = el('div', { class: 'grid' });
+  for (const [label, name] of (state.columns.adp.length ? state.columns.adp : DEFAULT_ADP))
+    g.append(...field(label, name, ''));
+  body.append(g);
+  $('#panel').classList.add('on');
+}
+
+const DEFAULT_ADP = [['File Number', 'file_number'], ['Legal First Name', 'legal_first_name'],
+  ['Legal Last Name', 'legal_last_name'], ['Work Contact: Work Email', 'work_email'],
+  ['Position Status', 'position_status'], ['Business Unit Description', 'business_unit_desc'],
+  ['Home Department Code', 'home_department_code'], ['Pay Grade Code', 'pay_grade_code'],
+  ['Legal / Preferred Address: Country Code', 'legal_country_code'],
+  ['Supervisor ID', 'supervisor_id_raw']];
+
+$('#p-close').addEventListener('click', () => $('#panel').classList.remove('on'));
+$('#add-emp').addEventListener('click', newEmployee);
+
+$('#p-save').addEventListener('click', async () => {
+  const body = {};
+  for (const [, name] of (state.columns.adp.length ? state.columns.adp : DEFAULT_ADP)) {
+    const input = $('#f-' + name);
+    if (input) body[name] = input.value;
+  }
+  for (const t of ['305', '350', '360']) {
+    const cb = $('#inc-' + t);
+    if (cb) body['include_' + t] = cb.checked;
+  }
+  try {
+    const url = state.editing.key ? '/api/employees/' + state.editing.key : '/api/employees/new';
+    const d = await api(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    toast('Saved.');
+    $('#panel').classList.remove('on');
+    await Promise.all([loadStatus(), loadEmployees()]);
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#p-purge').addEventListener('click', async () => {
+  const key = state.editing?.key;
+  if (!key) return;
+  const r = state.editing.row;
+  if (!confirm(`Delete ${r.legal_last_name}, ${r.legal_first_name} outright?\n\n` +
+    'They were keyed in here and exist nowhere else — no workbook will bring ' +
+    'them back.')) return;
+  try {
+    await api('/api/employees/' + key + '?hard=1', { method: 'DELETE' });
+    toast('Deleted.');
+    $('#panel').classList.remove('on');
+    await Promise.all([loadStatus(), loadSelection(), loadEmployees()]);
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#p-delete').addEventListener('click', async () => {
+  const key = state.editing?.key;
+  if (!key) return;
+  const putBack = state.editing.row.row_state === 'deleted';
+  try {
+    await api('/api/employees/' + key + (putBack ? '/restore' : ''),
+      { method: putBack ? 'POST' : 'DELETE' });
+    toast(putBack ? 'Back in the load.' : 'Left out of the load.');
+    $('#panel').classList.remove('on');
+    await Promise.all([loadStatus(), loadEmployees()]);
+  } catch (e) { toast(e.message, true); }
+});
+
+/* --------------------------------------------------------- record tabs --- */
+
+async function loadRecords(type) {
+  const pane = $('#pane-r' + type);
+  const full = pane.dataset.full === '1';
+  const page = state.rec[type].page;
+  const d = await api(`/api/records/${type}?page=${page}&size=100` +
+    (full ? '&full=1' : '') + (state.picked === 'only' ? '&picked=only' : ''));
+  $('#n-' + type).textContent = d.total;
+  pane.textContent = '';
+
+  const view = el('select', { class: 'pickedview' },
+    el('option', { value: '' }, 'Everyone the scopes allow'),
+    el('option', { value: 'only' }, 'Only picked'));
+  // 'not picked' is left off here: these tabs answer "what will the file
+  // contain", and a file of everyone-except-the-pilot is not a thing anyone
+  // wants to write.
+  view.value = state.picked === 'only' ? 'only' : '';
+  view.addEventListener('change', e => setPicked(e.target.value));
+
+  pane.append(el('div', { class: 'toolbar' },
+    el('span', { class: 'sub' },
+      `${d.total} record${d.total === 1 ? '' : 's'} · ${d.width} fields each · ` +
+      `showing ${full ? 'every position' : 'the positions the template fills'}` +
+      (d.picked === 'only' ? ' · scoped to the selection' : '')),
+    view,
+    el('span', { class: 'grow' }),
+    el('button', {
+      onclick: () => { pane.dataset.full = full ? '0' : '1'; loadRecords(type); },
+    }, full ? 'Only filled positions' : 'Show all ' + d.width + ' positions')));
+
+  const thead = el('thead', {}, el('tr', {},
+    el('th', {}, 'File #'),
+    d.columns.map(c => el('th', { title: c.heading },
+      `${c.column_ref} · ${(c.heading || '').split('\n')[0].slice(0, 22)}`))));
+  const tbody = el('tbody', {}, d.rows.map(r => el('tr', {
+    onclick: () => openEmployee(r.employee_key),
+  }, el('td', { class: 'mono' }, r.file_number),
+    r.values.map(v => el('td', { class: 'mono' }, v)))));
+  pane.append(el('div', { class: 'wrap' }, el('table', {}, thead, tbody)));
+
+  const pager = el('div', { class: 'pager' },
+    el('button', {
+      disabled: page <= 1 ? '' : null,
+      onclick: () => { state.rec[type].page--; loadRecords(type); },
+    }, '←'),
+    el('span', {}, d.total ? `${(page - 1) * d.size + 1}–${Math.min(page * d.size, d.total)} of ${d.total}` : 'nothing to show'),
+    el('button', {
+      disabled: page * d.size >= d.total ? '' : null,
+      onclick: () => { state.rec[type].page++; loadRecords(type); },
+    }, '→'));
+  pane.append(pager);
+}
+
+/* ----------------------------------------------------------- hierarchy --- */
+
+function hierQuery() {
+  const p = new URLSearchParams();
+  if (state.picked === 'only') p.set('picked', 'only');
+  const status = $('#h-status') ? $('#h-status').value : '';
+  if (status) p.set('status', status);
+  return p.toString();
+}
+
+async function loadHierarchy() {
+  const [tree, probs] = await Promise.all([
+    api('/api/hierarchy/tree?' + hierQuery()),
+    api('/api/hierarchy/problems'),
+  ]);
+  state.hier.roots = tree.roots;
+  state.hier.filtered = tree.picked_only || !!tree.status_filter;
+  const s = tree.stats;
+  $('#n-hier').textContent = s.max_depth ? s.max_depth + ' deep' : '';
+  // The stats describe the whole hierarchy, so they stay put when a filter is
+  // on; what the filter changed is said separately.
+  $('#h-stats').textContent =
+    (state.hier.filtered
+      ? `showing ${tree.wanted} of ${tree.shown} on screen` +
+        (tree.shown > tree.wanted
+          ? ` (${tree.shown - tree.wanted} kept to hold the branches up)` : '') +
+        ' · '
+      : '') +
+    `${s.roots} root${s.roots === 1 ? '' : 's'} — ${s.tops} genuine top` +
+    `${s.tops === 1 ? '' : 's'}, ${s.broken_roots} broken · ` +
+    `${s.max_depth} level${s.max_depth === 1 ? '' : 's'} deep · ` +
+    `widest span ${s.managers.length ? s.managers[0].n_reports : 0}`;
+
+  const t = probs.totals;
+  $('#h-problems').innerHTML = (t.broken + t.self_led + t.cycles)
+    ? `<div class="note warnish"><b>${t.broken + t.self_led + t.cycles} broken link` +
+      `${t.broken + t.self_led + t.cycles === 1 ? '' : 's'} in the chain.</b> ` +
+      [t.broken && `${t.broken} report to a supervisor who is not in this load`,
+        t.self_led && `${t.self_led} report to themselves`,
+        t.cycles && `${t.cycles} sit inside a loop`].filter(Boolean).join(', ') +
+      '. Concur cannot resolve an approver it does not have, so these are held ' +
+      'out of the extract. They show as red roots below.</div>'
+    : '';
+
+  if (state.hier.filtered) {
+    // Pruning removes people, so the remembered open set is not enough — a
+    // pruned tree is small and is most useful fully open.
+    const walk = n => { state.hier.open.add(n.file_number); (n.children || []).forEach(walk); };
+    tree.roots.forEach(walk);
+  }
+  // Open the roots and the biggest organisation, so the tab is useful on arrival.
+  if (!state.hier.open.size) {
+    for (const r of tree.roots) state.hier.open.add(r.file_number);
+    const big = tree.roots.find(r => r.children && r.children.length);
+    if (big) for (const c of big.children) state.hier.open.add(c.file_number);
+  }
+  renderTree();
+  if (state.hier.current) showChain(state.hier.current);
+  renderSel();
+}
+
+function nodeEl(node, depth) {
+  const kids = node.children || [];
+  const open = state.hier.open.has(node.file_number);
+  const twist = el('span', { class: 'twist' }, kids.length ? (open ? '▾' : '▸') : '·');
+  if (kids.length) twist.addEventListener('click', e => {
+    e.stopPropagation();
+    open ? state.hier.open.delete(node.file_number)
+      : state.hier.open.add(node.file_number);
+    renderTree();
+  });
+
+  const marks = [];
+  if (node.picked) marks.push(el('span', { class: 'pill picked' }, 'picked'));
+  // A node the filter did not want is only on screen because somebody below it
+  // was wanted. Saying which is which is the whole reason the tree stays whole.
+  if (state.hier.filtered && node.wanted === false)
+    marks.push(el('span', { class: 'pill',
+      title: 'Does not match the filter — shown only to hold this branch up' },
+      'chain only'));
+  if (node.root_kind === 'broken')
+    marks.push(el('span', { class: 'pill bad', title: 'Supervisor not in this load' },
+      'chain broken'));
+  if (node.root_kind === 'cycle')
+    marks.push(el('span', { class: 'pill bad', title: 'Inside a supervisor loop' }, 'loop'));
+  if (node.concur_status !== 'Y')
+    marks.push(el('span', { class: 'pill inactive' }, node.concur_status || '?'));
+  if (node.source === 'manual') marks.push(el('span', { class: 'pill manual' }, 'by hand'));
+  if (kids.length) marks.push(el('span', { class: 'pill' },
+    node.n_subtree > kids.length + 1 ? `${kids.length} direct · ${node.n_subtree - 1} total`
+      : `${kids.length} direct`));
+
+  const row = el('div', {
+    class: 'node' + (state.hier.current === node.file_number ? ' on' : '')
+      + (state.hier.filtered && node.wanted === false ? ' unpicked' : ''),
+    'data-fn': node.file_number,
+  }, twist,
+    el('span', { class: 'fn' }, node.file_number),
+    el('span', { class: 'who' }, node.name),
+    el('span', { class: 'role' }, node.job_title || ''),
+    marks);
+  row.querySelector('.who').addEventListener('click', () => showChain(node.file_number));
+  row.addEventListener('click', e => {
+    if (e.target.classList.contains('twist')) return;
+    showChain(node.file_number);
+  });
+
+  return el('div', {}, row,
+    kids.length ? el('div', { class: 'kids' + (open ? '' : ' shut') },
+      kids.map(c => nodeEl(c, depth + 1))) : null);
+}
+
+function renderTree() {
+  const box = $('#h-tree');
+  box.textContent = '';
+  for (const r of state.hier.roots) box.append(nodeEl(r, 0));
+  const q = $('#h-q').value.trim().toLowerCase();
+  if (q) {
+    let first = null;
+    box.querySelectorAll('.node').forEach(n => {
+      const hit = n.textContent.toLowerCase().includes(q);
+      n.classList.toggle('hit', hit);
+      if (hit && !first) first = n;
+    });
+    if (first) first.scrollIntoView({ block: 'center' });
+  }
+}
+
+async function showChain(fileNumber) {
+  state.hier.current = fileNumber;
+  renderTree();
+  const d = await api('/api/hierarchy/employee/' + encodeURIComponent(fileNumber)
+    + '?' + hierQuery());
+  const box = $('#h-detail');
+  box.textContent = '';
+  const me = d.chain.chain[0];
+
+  box.append(el('h3', {}, 'Chain up'));
+  const list = el('ul', { class: 'chain' });
+  // Rendered top-down, the way an org chart reads, with the person at the foot.
+  [...d.chain.chain].reverse().forEach((r, i, arr) => {
+    list.append(el('li', { class: r.file_number === fileNumber ? 'me' : '' },
+      el('div', { class: 'rung', style: `padding-left:${i * 16}px` },
+        el('span', { class: 'mono', style: 'color:var(--dim)' },
+          (i ? '└ ' : '') + r.file_number),
+        el('b', {}, r.name),
+        el('span', { class: 'sub' }, r.job_title || ''))));
+  });
+  box.append(list);
+  box.append(el('div', { class: 'ended ' + d.chain.ended }, d.chain.detail));
+
+  box.append(el('div', { class: 'toolbar' },
+    el('button', {
+      class: 'primary',
+      onclick: () => selectOrg(fileNumber, me.name, false),
+    }, `Select this organisation (${d.n_subtree + 1})`),
+    el('button', { onclick: () => selectOrg(fileNumber, me.name, true) },
+      'Select just this person'),
+    el('button', {
+      onclick: () => selectOrg(fileNumber, me.name, false, true),
+    }, 'Drop this organisation'),
+    el('button', { onclick: () => openEmployee(me.employee_key) }, 'Open record')));
+
+  box.append(el('h3', { style: 'margin-top:16px' },
+    `Direct reports — ${d.reports.length}`
+    + (d.reports_hidden ? ` of ${d.reports.length + d.reports_hidden}` : '')));
+  if (d.reports_hidden)
+    box.append(el('div', { class: 'sub', style: 'margin-bottom:6px' },
+      `${d.reports_hidden} hidden by the filter.`));
+  if (!d.reports.length && !d.reports_hidden)
+    box.append(el('div', { class: 'sub' }, 'Nobody reports to them.'));
+  for (const r of d.reports)
+    box.append(el('div', { class: 'node', onclick: () => showChain(r.file_number) },
+      el('span', { class: 'twist' }, '·'),
+      el('span', { class: 'fn' }, r.file_number),
+      el('span', { class: 'who' }, r.name),
+      el('span', { class: 'role' }, r.job_title || ''),
+      r.n_reports ? el('span', { class: 'pill' }, `${r.n_reports} direct`) : null));
+
+  if (d.n_subtree > d.reports.length)
+    box.append(el('div', { class: 'sub', style: 'margin-top:10px' },
+      `${d.n_subtree} people underneath in total, across ` +
+      `${Math.max(...d.subtree.map(r => r.depth))} level` +
+      `${Math.max(...d.subtree.map(r => r.depth)) === 1 ? '' : 's'}.`));
+}
+
+async function selectOrg(fileNumber, name, justOne, drop) {
+  const body = { file_numbers: [fileNumber], subtree: !justOne,
+    reason: justOne ? name : `under ${name}` };
+  const d = await selPost(drop ? 'remove' : 'add', body);
+  toast(drop
+    ? `${d.removed} removed — ${name}${justOne ? '' : ' and everyone below'}.`
+    : `${d.added} newly picked — ${name}${justOne ? '' : ' and everyone below'}.`);
+  if (state.picked === 'only') loadHierarchy();
+}
+
+$('#h-q').addEventListener('input', () => {
+  clearTimeout(debounce); debounce = setTimeout(renderTree, 200);
+});
+$('#h-status').addEventListener('change', () => {
+  // Reopening from scratch: the pruned tree is a different shape, and the
+  // remembered open set describes the one that was there before.
+  state.hier.open.clear();
+  loadHierarchy();
+});
+$('#h-expand').addEventListener('click', () => {
+  const walk = n => { state.hier.open.add(n.file_number); (n.children || []).forEach(walk); };
+  state.hier.roots.forEach(walk);
+  renderTree();
+});
+$('#h-collapse').addEventListener('click', () => {
+  state.hier.open.clear();
+  state.hier.roots.forEach(r => state.hier.open.add(r.file_number));
+  renderTree();
+});
+$('#h-sel-sub').addEventListener('click', () => {
+  if (!state.hier.current) return toast('Pick somebody in the tree first.', true);
+  const n = document.querySelector(`.node[data-fn="${state.hier.current}"] .who`);
+  selectOrg(state.hier.current, n ? n.textContent : state.hier.current, false);
+});
+$('#h-sel-one').addEventListener('click', () => {
+  if (!state.hier.current) return toast('Pick somebody in the tree first.', true);
+  const n = document.querySelector(`.node[data-fn="${state.hier.current}"] .who`);
+  selectOrg(state.hier.current, n ? n.textContent : state.hier.current, true);
+});
+
+/* ---------------------------------------------------------------- maps --- */
+
+async function loadMap() {
+  const name = $('#mapname').value;
+  const d = await api('/api/maps/' + name + '?q=' + encodeURIComponent($('#mapq').value));
+  state.mapMeta = d;
+  $('#mapcount').textContent = `${d.total} row${d.total === 1 ? '' : 's'}`;
+
+  // Only the Supervisor Map can be wrong in a way reading it will not show,
+  // so it is the only one that gets a verdict column and this banner.
+  const v = d.validation;
+  const box = $('#map-validation');
+  if (!v) box.innerHTML = '';
+  else if (!v.problems)
+    box.innerHTML = `<div class="note" style="border-color:#1f4030;background:#101c17;` +
+      `color:#7ee2a8"><b>All ${v.rows} rows check out.</b> Every row is keyed on ` +
+      'an employee in this load, and every supervisor it names is one too.</div>';
+  else
+    box.innerHTML = `<div class="note warnish"><b>${v.problems} of ${v.rows} rows ` +
+      'do not hold up.</b> ' +
+      [v.supervisor_missing && `${v.supervisor_missing} name a supervisor who is not in the load`,
+        v.employee_missing && `${v.employee_missing} are keyed on somebody who is not in the load, so they never apply`,
+        v.self && `${v.self} point at themselves`,
+        v.name_mismatch && `${v.name_mismatch} carry a name that disagrees with the employee it points at`,
+      ].filter(Boolean).join('; ') +
+      '. The Fixes tab has the remedies; the rows are marked below.</div>';
+
+  $('#t-map thead').textContent = '';
+  $('#t-map thead').append(el('tr', {},
+    v ? el('th', {}, 'Check') : null,
+    d.columns.map(c => el('th', {}, c.replace(/_/g, ' '))), el('th', {}, '')));
+  const tb = $('#t-map tbody');
+  tb.textContent = '';
+  for (const r of d.rows) tb.append(mapRow(name, d, r));
+}
+
+const VERDICT_PILL = {
+  ok: ['active', 'ok'], top: ['active', 'top of chain'],
+  supervisor_missing: ['bad', 'no such supervisor'],
+  employee_missing: ['inactive', 'never applies'],
+  self: ['bad', 'points at itself'],
+  name_mismatch: ['inactive', 'name mismatch'],
+};
+
+function mapRow(name, meta, r) {
+  const inputs = meta.columns.map(c =>
+    el('input', { value: r[c] ?? '', style: 'width:100%;padding:3px 6px' }));
+  const save = async () => {
+    const body = { [meta.key]: r[meta.key] };
+    meta.columns.forEach((c, i) => { body[c] = inputs[i].value; });
+    try {
+      await api('/api/maps/' + name + '/row', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      toast('Saved and re-derived.');
+      loadStatus();
+    } catch (e) { toast(e.message, true); }
+  };
+  inputs.forEach(i => i.addEventListener('change', save));
+
+  let check = null;
+  if (meta.validation) {
+    const [cls, label] = VERDICT_PILL[r.verdict] || ['', r.verdict || ''];
+    check = el('td', { title: r.detail || '' },
+      label ? el('span', { class: 'pill ' + cls }, label) : '',
+      // The one verdict with an obvious next step gets it right here, rather
+      // than sending someone to another tab to do a single thing.
+      r.verdict === 'supervisor_missing' && /^\d+$/.test(r.supervisor_id || '')
+        ? el('button', {
+          style: 'padding:2px 8px;margin-left:6px',
+          onclick: () => createMissingSupervisor(r),
+        }, 'Create')
+        : null);
+  }
+
+  return el('tr', {}, check, inputs.map(i => el('td', {}, i)),
+    el('td', {}, el('button', {
+      class: 'danger', style: 'padding:2px 8px',
+      onclick: async () => {
+        if (!r[meta.key]) return;
+        await api(`/api/maps/${name}/row/${r[meta.key]}`, { method: 'DELETE' });
+        toast('Removed.'); loadMap(); loadStatus();
+      },
+    }, '×')));
+}
+
+async function createMissingSupervisor(row) {
+  // Straight to the Fixes card for that person, which already knows how to
+  // prefill the record from everyone who reports to them — better than a
+  // second, thinner create form living here.
+  const d = await api('/api/fixes');
+  const g = d.groups.find(x => x.key === row.supervisor_id);
+  if (!g) {
+    toast('Nothing to create — nobody currently resolves to that supervisor.', true);
+    return;
+  }
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  document.querySelectorAll('.pane').forEach(x => x.classList.remove('on'));
+  document.querySelector('.tab[data-pane="exceptions"]').classList.add('on');
+  $('#pane-exceptions').classList.add('on');
+  state.tab = 'exceptions';
+  await setExcMode('fixes');
+  const card = [...document.querySelectorAll('.fix')]
+    .find(c => c.textContent.includes(row.supervisor_id));
+  if (card) {
+    const create = card.querySelector('button.primary');
+    if (create) create.click();
+    card.scrollIntoView({ block: 'center' });
+  }
+}
+
+$('#mapname').addEventListener('change', loadMap);
+$('#mapq').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(loadMap, 220); });
+$('#add-map').addEventListener('click', () => {
+  const meta = state.mapMeta;
+  if (!meta) return;
+  $('#t-map tbody').prepend(mapRow($('#mapname').value, meta, {}));
+});
+
+/* --------------------------------------------------------------- fixes --- */
+/* The exception list says what is wrong one person at a time. This says what
+   to DO, grouped so that two people blocked by the same absent supervisor are
+   one job. Each remedy arrives from the server as an action name plus a bag of
+   prefilled fields, and the form below is rendered from that — nothing here
+   knows what a supervisor or a department code is. */
+
+let pickerRows = null;
+
+async function employeePicker() {
+  if (!pickerRows) pickerRows = (await api('/api/employees/picker')).rows;
+  return pickerRows;
+}
+
+function fieldLabel(name) {
+  return name.replace(/_/g, ' ').replace(/\b\w/, c => c.toUpperCase());
+}
+
+async function remedyForm(group, remedy, card) {
+  const form = el('div', { class: 'fixform' });
+  if (remedy.note) form.append(el('div', { class: 'note' }, remedy.note));
+
+  const inputs = {};
+  const grid = el('div', { class: 'grid' });
+  const required = new Set(remedy.required || []);
+  const guessed = new Set(remedy.guessed || []);
+
+  // Who the fix applies to, when it is one person at a time.
+  if (remedy.per_employee) {
+    const sel = el('select', {},
+      (remedy.employees || []).map(e =>
+        el('option', { value: e.file_number }, `${e.file_number} — ${e.name}`)));
+    inputs.file_number = sel;
+    grid.append(el('label', {}, 'Who'), sel);
+  }
+
+  for (const [name, value] of Object.entries(remedy.fields || {})) {
+    if (name === 'file_numbers') continue;                 // carried, not shown
+    if (name === 'file_number' && remedy.per_employee) continue;
+
+    if (name === 'supervisor_id') {
+      // A picker rather than a text box: it cannot offer somebody who is not
+      // in the load, which is the mistake this whole card exists to fix.
+      const rows = await employeePicker();
+      const list = el('datalist', { id: 'sup-' + group.key.replace(/\W/g, '') },
+        rows.map(r => el('option', { value: `${r.file_number} — ${r.name}` })));
+      const input = el('input', { list: list.id, value: value || '',
+        placeholder: 'Search by name or file number' });
+      inputs[name] = input;
+      grid.append(el('label', {}, 'New supervisor'), el('div', {}, input, list));
+      continue;
+    }
+
+    const input = el('input', {
+      value: value || '',
+      class: (required.has(name) ? 'need ' : '') + (guessed.has(name) ? 'guess' : ''),
+      title: guessed.has(name) ? 'A guess taken from the people who report to '
+        + 'them — check it' : '',
+    });
+    inputs[name] = input;
+    grid.append(el('label', {}, fieldLabel(name)), input);
+  }
+  form.append(grid);
+
+  const out = el('div');
+  const apply = el('button', { class: 'good' }, 'Apply');
+  apply.addEventListener('click', async () => {
+    if (remedy.confirm && !confirm(`${remedy.label} — apply this?`)) return;
+    const fields = { ...(remedy.fields || {}) };
+    for (const [name, input] of Object.entries(inputs)) {
+      let v = input.value;
+      // 'Kemenah, Greg' comes back off the picker as '211766 — Kemenah, Greg'.
+      if (name === 'supervisor_id') v = (v.split('—')[0] || '').trim();
+      fields[name] = v;
+    }
+    if (remedy.map) fields.map = remedy.map;
+    apply.disabled = true;
+    apply.textContent = 'Applying…';
+    try {
+      const d = await api('/api/fixes/apply', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: remedy.action, fields }),
+      });
+      renderOutcome(out, d);
+      card.classList.add('done');
+      // Creating somebody changes who the supervisor picker can offer.
+      pickerRows = null;
+      toast(outcomeLine(d));
+      await Promise.all([loadStatus(), loadSelection()]);
+      // Redraw the whole plan after a moment so the card's result is readable
+      // before the list rearranges itself under it.
+      setTimeout(loadFixes, 2600);
+    } catch (e) {
+      out.textContent = '';
+      out.append(el('div', { class: 'outcome mixed' }, e.message));
+      toast(e.message, true);
+    } finally {
+      apply.disabled = false;
+      apply.textContent = 'Apply';
+    }
+  });
+
+  form.append(el('div', { class: 'foot' }, apply,
+    el('button', { onclick: () => form.remove() }, 'Cancel')), out);
+  return form;
+}
+
+function outcomeLine(d) {
+  const errs = d.before.errors - d.after.errors;
+  const warns = d.after.warnings - d.before.warnings;
+  return (errs > 0 ? `${errs} error${errs === 1 ? '' : 's'} cleared`
+    : errs < 0 ? `${-errs} new error${errs === -1 ? '' : 's'}` : 'No change to errors')
+    + (warns ? `, ${warns > 0 ? warns + ' new' : -warns + ' fewer'} warning` +
+      (Math.abs(warns) === 1 ? '' : 's') : '');
+}
+
+function renderOutcome(box, d) {
+  box.textContent = '';
+  const clean = d.before.errors - d.after.errors > 0 && !d.remaining.length;
+  box.append(el('div', { class: 'outcome ' + (clean ? 'good' : 'mixed') },
+    `${d.before.errors} → ${d.after.errors} errors, ` +
+    `${d.before.warnings} → ${d.after.warnings} warnings.`));
+  if (d.remaining.length) {
+    // A person created from guesses usually arrives with problems of their
+    // own. Saying so here beats letting them turn up in the list unexplained.
+    box.append(el('div', { class: 'sub', style: 'margin-top:8px' },
+      'Still outstanding on the record this touched:'));
+    for (const r of d.remaining)
+      box.append(el('div', { class: 'exc ' + r.severity },
+        el('b', {}, r.file_number + ' '), r.message));
+  }
+}
+
+async function loadFixes() {
+  const d = await api('/api/fixes');
+  const box = $('#fixlist');
+  box.textContent = '';
+  $('#fix-summary').textContent = d.totals.groups
+    ? `${d.totals.groups} to fix · ${d.totals.errors} blocking ${d.totals.blocked} ` +
+      `employee${d.totals.blocked === 1 ? '' : 's'} out of the extract`
+    : '';
+
+  if (!d.groups.length) {
+    box.append(el('div', { class: 'allclear' },
+      el('b', {}, 'Nothing left to fix. '),
+      'Every employee maps cleanly and every supervisor resolves.'));
+    return;
+  }
+
+  for (const g of d.groups) {
+    const card = el('div', { class: 'fix ' + g.severity });
+    card.append(el('h4', {},
+      el('span', { class: 'pill ' + (g.severity === 'error' ? 'bad' : 'inactive'),
+        style: 'margin-right:8px' },
+        g.severity === 'error' ? 'blocks the extract' : 'worth a look'),
+      g.title));
+    card.append(el('div', { class: 'why' }, g.detail));
+
+    const who = el('div', { class: 'who' });
+    for (const e of g.employees.slice(0, 12))
+      who.append(el('span', { onclick: () => openEmployee(e.employee_key) },
+        `${e.file_number} ${e.name}`));
+    if (g.employees.length > 12)
+      who.append(el('span', { style: 'cursor:default' },
+        `and ${g.employees.length - 12} more`));
+    card.append(who);
+
+    const acts = el('div', { class: 'acts' });
+    for (const [i, remedy] of (g.remedies || []).entries())
+      acts.append(el('button', {
+        class: i === 0 ? 'primary' : '',
+        onclick: async e => {
+          const existing = card.querySelector('.fixform');
+          if (existing) existing.remove();
+          card.append(await remedyForm(g, remedy, card));
+        },
+      }, remedy.label));
+    if (!g.remedies.length)
+      acts.append(el('span', { class: 'sub' },
+        'Open a record above to edit it.'));
+    card.append(acts);
+    box.append(card);
+  }
+}
+
+$('#mode-fixes').addEventListener('click', () => setExcMode('fixes'));
+$('#mode-list').addEventListener('click', () => setExcMode('list'));
+
+function setExcMode(mode) {
+  state.excMode = mode;
+  $('#mode-fixes').classList.toggle('on', mode === 'fixes');
+  $('#mode-list').classList.toggle('on', mode === 'list');
+  $('#fixlist').style.display = mode === 'fixes' ? '' : 'none';
+  $('#exc-filters').style.display = mode === 'fixes' ? 'none' : '';
+  $('#exc-table').style.display = mode === 'fixes' ? 'none' : '';
+  return mode === 'fixes' ? loadFixes() : loadExceptions();
+}
+
+/* ---------------------------------------------------------- exceptions --- */
+
+async function loadExceptions() {
+  const p = new URLSearchParams({ severity: $('#e-sev').value,
+    field: $('#e-field').value, picked: state.picked });
+  const d = await api('/api/exceptions?' + p);
+  $('#e-count').textContent = `${d.total} row${d.total === 1 ? '' : 's'}` +
+    (state.picked === 'only' ? ' inside the selection'
+      : state.picked === 'not' ? ' outside the selection' : '');
+
+  const sel = $('#e-field');
+  if (sel.options.length <= 1) {
+    const fields = [...new Set(d.summary.map(s => s.field))].filter(Boolean).sort();
+    for (const f of fields) sel.append(el('option', { value: f }, f.replace(/_/g, ' ')));
+  }
+
+  const tb = $('#t-exc tbody');
+  tb.textContent = '';
+  for (const r of d.rows) tb.append(el('tr', {
+    onclick: () => r.employee_key && openEmployee(r.employee_key),
+  },
+    el('td', {}, el('span', { class: 'pill ' + (r.severity === 'error' ? 'bad' : 'inactive') }, r.severity)),
+    el('td', { class: 'mono' }, r.file_number || ''),
+    el('td', {}, r.employee_name || ''),
+    el('td', {}, (r.field || '').replace(/_/g, ' ')),
+    el('td', { style: 'max-width:640px;white-space:normal' }, r.message),
+    el('td', {}, r.position_status || '')));
+}
+
+['#e-sev', '#e-field'].forEach(s => $(s).addEventListener('change', loadExceptions));
+
+/* -------------------------------------------------------------- config --- */
+
+async function loadConfig() {
+  const d = await api('/api/config');
+  state.config = d.config;
+  const l = d.config.login_id || {}, x = d.config.extract || {}, s = d.config.scope || {};
+  $('#c-sources').value = (l.sources || []).join(', ');
+  $('#c-suffix').value = l.suffix || '';
+  $('#c-prefix').value = l.prefix || '';
+  $('#c-domain').value = l.replace_domain || '';
+  $('#c-bare').value = l.bare_domain || '';
+  $('#c-lower').value = l.lowercase ? '1' : '0';
+  $('#c-password').value = d.config.password || '';
+  $('#c-s305').value = s['305'] || 'all';
+  $('#c-s350').value = s['350'] || 'active';
+  $('#c-s360').value = s['360'] || 'active';
+  $('#c-delim').value = x.delimiter || ',';
+  $('#c-quote').value = x.quote || 'minimal';
+  $('#c-order').value = x.order || 'by_type';
+  $('#c-name').value = x.file_name || '';
+  $('#c-out').value = x.outbound_dir || '';
+  clearPreview();
+  $('#scope-hint').textContent = selCount()
+    ? `${selCount()} picked${state.selLabel ? ' — ' + state.selLabel : ''}`
+    : 'Nothing picked yet — pick people on Employees or Hierarchy.';
+  previewLogin();
+}
+
+function previewLogin() {
+  const sources = $('#c-sources').value.split(',').map(s => s.trim()).filter(Boolean);
+  const sample = { work_email: 'a.user@onebarnes.com', personal_email: 'auser@gmail.com', file_number: '211837' };
+  let v = '';
+  for (const s of sources) if (sample[s]) { v = sample[s]; break; }
+  if (v) {
+    if (!v.includes('@') && $('#c-bare').value) v = v + '@' + $('#c-bare').value.replace(/^@/, '');
+    else if (v.includes('@') && $('#c-domain').value) v = v.split('@')[0] + '@' + $('#c-domain').value.replace(/^@/, '');
+    v = $('#c-prefix').value + v + $('#c-suffix').value;
+    if ($('#c-lower').value === '1') v = v.toLowerCase();
+  }
+  $('#c-preview').textContent = 'a.user@onebarnes.com  →  ' + (v || '(no login id)');
+}
+['#c-sources', '#c-suffix', '#c-prefix', '#c-domain', '#c-bare', '#c-lower']
+  .forEach(s => $(s).addEventListener('input', previewLogin));
+
+$('#save-config').addEventListener('click', async () => {
+  const body = {
+    login_id: {
+      sources: $('#c-sources').value.split(',').map(s => s.trim()).filter(Boolean),
+      suffix: $('#c-suffix').value, prefix: $('#c-prefix').value,
+      replace_domain: $('#c-domain').value, bare_domain: $('#c-bare').value,
+      lowercase: $('#c-lower').value === '1',
+    },
+    password: $('#c-password').value,
+    scope: { 305: $('#c-s305').value, 350: $('#c-s350').value, 360: $('#c-s360').value },
+    extract: {
+      delimiter: $('#c-delim').value, quote: $('#c-quote').value,
+      order: $('#c-order').value, file_name: $('#c-name').value,
+      outbound_dir: $('#c-out').value,
+    },
+  };
+  try {
+    const d = await api('/api/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    toast(`Saved. ${d.derive.errors} error(s), ${d.derive.warnings} warning(s).`);
+    loadStatus();
+  } catch (e) { toast(e.message, true); }
+});
+
+/* ------------------------------------------------------------- extract --- */
+
+async function runExtract(write, useSelection) {
+  const scoped = useSelection ?? ($('#c-scope').value === 'selection');
+  if (scoped && !selCount()) return toast('Nothing is picked.', true);
+  try {
+    const d = await api('/api/export', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      // The selection lives on the server, so the file asks for it by name
+      // rather than the page posting 150 keys back.
+      body: JSON.stringify({ write: !!write, selection: scoped }),
+    });
+    $('#c-scope').value = scoped ? 'selection' : 'everyone';
+    $('#extract-result').innerHTML =
+      (d.selection
+        ? `<div class="note" style="margin:0 0 10px"><b>Selection of ${d.selected}` +
+          `</b>${d.selection_label ? ' — ' + esc(d.selection_label) : ''}. ` +
+          'The file is named <span class="mono">…_Selection_…</span> so it is not ' +
+          'mistaken for the full company in the pickup folder.</div>'
+        : '') +
+      `<div class="kv"><span><b>${d.records}</b> records</span>` +
+      `<span><b>${d.n_305}</b> × 305</span><span><b>${d.n_350}</b> × 350</span>` +
+      `<span><b>${d.n_360}</b> × 360</span><span><b>${d.bytes.toLocaleString()}</b> bytes</span></div>` +
+      (write ? `<div style="margin-top:8px">Written to <span class="mono">${esc(d.path)}</span> — ` +
+        `<a href="/api/download/${encodeURIComponent(d.file_name)}" style="color:var(--accent)">download a copy</a></div>`
+        : `<div class="sub" style="margin-top:8px">Nothing written. Would be ` +
+          `<span class="mono">${esc(d.file_name)}</span>.</div>`);
+    const pv = $('#extract-preview');
+    pv.style.display = 'block';
+    pv.textContent = d.preview.join('\n');
+
+    const hb = d.held_back || [];
+    $('#heldback').innerHTML = hb.length
+      ? `<h3 style="margin-top:16px">Held back — ${hb.length}</h3>` +
+        '<div class="wrap" style="max-height:260px"><table><thead><tr><th>File #</th>' +
+        '<th>Name</th><th>Why</th></tr></thead><tbody>' +
+        hb.map(r => `<tr><td class="mono">${esc(r.file_number)}</td><td>${esc(r.name)}</td>` +
+          `<td style="white-space:normal">${esc(r.reasons ||
+            ['305', '350', '360'].filter(t => !r['include_' + t]).map(t => 'excluded from ' + t).join(', '))}</td></tr>`).join('') +
+        '</tbody></table></div>'
+      : '';
+    toast(write ? 'Extract written.' : 'Preview built.');
+  } catch (e) { toast(e.message, true); }
+}
+$('#preview-extract').addEventListener('click', () => runExtract(false));
+$('#write-extract').addEventListener('click', () => runExtract(true));
+$('#c-scope').addEventListener('change', () => runExtract(false));
+
+/* --------------------------------------------------------------- clearing --- */
+/* Two sources, two different decisions. An ADP row is a copy of something the
+   ADP report still holds, so clearing it costs nothing but a re-drop. A
+   hand-keyed person exists nowhere else. The preview says which of those you
+   are about to do, and the CLEAR gate makes it deliberate either way. */
+
+function clearSources() {
+  return [$('#src-adp').checked && 'adp', $('#src-manual').checked && 'manual']
+    .filter(Boolean);
+}
+
+async function clearPreview() {
+  const sources = clearSources();
+  const box = $('#clear-preview');
+  if (!sources.length) {
+    box.className = 'note';
+    box.textContent = 'Nothing selected.';
+    $('#clear-emp').disabled = true;
+    return;
+  }
+  const d = await api('/api/clear/preview?sources=' + sources.join(','));
+  for (const [key, s] of Object.entries(d.sources))
+    $('#src-' + key + '-n').textContent =
+      `${s.n} employee${s.n === 1 ? '' : 's'}` +
+      (s.picked ? `, ${s.picked} picked` : '');
+
+  const bits = [`<b>${d.total} employee${d.total === 1 ? '' : 's'}</b> would go`];
+  if (d.exceptions) bits.push(`${d.exceptions} exception${d.exceptions === 1 ? '' : 's'} with them`);
+  if (d.picked) bits.push(`${d.picked} of them are in the current selection`);
+  bits.push(`${d.kept} employee${d.kept === 1 ? '' : 's'} would remain`);
+
+  box.className = 'note' + (d.unrecoverable ? ' danger' : '');
+  box.innerHTML = bits.join(' · ') +
+    (d.unrecoverable
+      ? `<div style="margin-top:7px"><b>${d.unrecoverable} of them cannot be ` +
+        'recovered.</b> They were keyed in here and exist nowhere else — ' +
+        'dropping the workbook again will not bring them back.</div>'
+      : '<div style="margin-top:7px">All of it comes back on the next workbook drop.</div>')
+    + '<div style="margin-top:7px" class="sub">The six maps and the captured '
+    + 'layouts are not touched — a correction filed in the Supervisor Map '
+    + 'outlives the employees it was about.</div>';
+  gateClear();
+}
+
+function gateClear() {
+  $('#clear-emp').disabled =
+    !clearSources().length ||
+    $('#clear-confirm').value.trim().toUpperCase() !== 'CLEAR';
+}
+
+['#src-adp', '#src-manual'].forEach(s =>
+  $(s).addEventListener('change', clearPreview));
+$('#clear-confirm').addEventListener('input', gateClear);
+$('#clear-maps-confirm').addEventListener('input', () => {
+  $('#clear-maps').disabled =
+    $('#clear-maps-confirm').value.trim().toUpperCase() !== 'CLEAR';
+});
+
+$('#clear-emp').addEventListener('click', async () => {
+  const sources = clearSources();
+  try {
+    const d = await api('/api/clear', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ what: 'employees', sources, confirm: 'CLEAR' }),
+    });
+    toast(`${d.cleared.removed} employee(s) cleared, ${d.cleared.kept} left.`);
+    $('#clear-confirm').value = '';
+    await Promise.all([loadStatus(), loadSelection(), loadEmployees(),
+      loadBusinessUnits()]);
+    clearPreview();
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#clear-maps').addEventListener('click', async () => {
+  try {
+    await api('/api/clear', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ what: 'maps', confirm: 'CLEAR' }),
+    });
+    toast('Maps cleared — drop a workbook to refill them.');
+    $('#clear-maps-confirm').value = '';
+    $('#clear-maps').disabled = true;
+    loadStatus();
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#rederive').addEventListener('click', async () => {
+  const d = await api('/api/derive', { method: 'POST' });
+  toast(`${d.derive.employees} employees re-derived — ${d.derive.errors} error(s), ` +
+        `${d.derive.warnings} warning(s).`);
+  loadStatus(); loadEmployees();
+});
+
+/* --------------------------------------------------------------- drop --- */
+
+const drop = $('#drop');
+drop.addEventListener('click', () => $('#file').click());
+$('#file').addEventListener('change', e => upload(e.target.files));
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add('hot');
+}));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove('hot');
+}));
+drop.addEventListener('drop', e => upload(e.dataTransfer.files));
+
+async function upload(files) {
+  if (!files || !files.length) return;
+  const fd = new FormData();
+  for (const f of files) fd.append('files', f);
+  $('#dropmsg').textContent = 'Loading…';
+  try {
+    const d = await api('/api/upload', { method: 'POST', body: fd });
+    const lines = [];
+    for (const r of d.results) {
+      for (const s of r.sheets) {
+        let line = `${s.sheet}: ${s.rows} ${s.kind}`;
+        if (s.duplicates) line += ` (from ${s.source_rows} ADP rows; ${s.duplicates} people had more than one)`;
+        lines.push(line);
+      }
+      if (r.unknown_sheets.length) lines.push('not recognised: ' + r.unknown_sheets.join(', '));
+      if (r.derive) lines.push(`${r.derive.errors} error(s), ${r.derive.warnings} warning(s)`);
+    }
+    $('#dropmsg').innerHTML = '<b>' + esc(lines.join(' · ')) + '</b>';
+    toast('Workbook loaded.');
+    await Promise.all([loadStatus(), loadSelection(), loadEmployees(),
+      loadBusinessUnits()]);
+  } catch (e) {
+    $('#dropmsg').textContent = '';
+    toast(e.message, true);
+  }
+}
+
+async function loadBusinessUnits() {
+  const d = await api('/api/employees/business-units');
+  const sel = $('#f-bu');
+  const current = sel.value;
+  sel.textContent = '';
+  sel.append(el('option', { value: '' }, 'Every business unit'));
+  for (const b of d.rows) sel.append(el('option', { value: b }, b));
+  sel.value = current;
+}
+
+/* --------------------------------------------------------------- start --- */
+
+(async () => {
+  try {
+    await loadStatus();
+    // Before the first list, so a selection left over from yesterday is
+    // already reflected in the ticks and the counts.
+    await loadSelection();
+    await loadEmployees();
+    await loadBusinessUnits();
+  } catch (e) { toast(e.message, true); }
+})();
+</script>
+</body>
+</html>

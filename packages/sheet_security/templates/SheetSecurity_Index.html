@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sheet Security</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Doppio Group house style - same tokens as packages/adp_concur and
+     packages/pgp_keys: near-black chrome, white content, one red accent,
+     light hairline borders, small radii. */
+  :root{
+    --chrome:#141416; --chrome2:#232327;
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f6f6f7; --panel3:#fbfbfc;
+    --line:#e6e7e9; --line2:#d9dadd;
+    --ink:#111214; --body:#55585c; --dim:#8a8d92;
+    --accent:#d40814; --accent-hi:#ef1c28; --accent-ink:#ffffff; --accent-wash:#fdecee;
+    --bad:#a4121b; --bad-wash:#fdecee; --bad-line:#f3c6ca;
+    --warn:#8a5a00; --warn-wash:#fdf4e3; --warn-line:#efdcb4;
+    --good:#0d6b39; --good-wash:#e9f6ee; --good-line:#bfe3cd;
+    --info:#1f4f8f; --info-wash:#eaf1fb; --info-line:#c7dbf5;
+    --sans:"Nunito Sans","Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Poppins","Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:8px; --r-sm:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--body);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;font:14px/1.5 var(--sans);
+       -webkit-font-smoothing:antialiased}
+
+  header{padding:0 22px;height:58px;background:var(--chrome);color:#fff;
+         display:flex;align-items:center;gap:16px;flex:0 0 auto}
+  h1{font:800 19px/1 var(--display);margin:0;letter-spacing:-.4px;color:#fff;
+     display:flex;align-items:baseline;gap:9px}
+  h1 .mark{color:var(--accent);font-size:22px;line-height:0}
+  h1 .app{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+          color:#9b9ea3;padding-left:11px;border-left:1px solid #34343a}
+  header .fld{margin:0}
+  header .fld label{color:#9b9ea3}
+  .grow{flex:1}
+  .sub{color:var(--dim);font-size:12px}
+
+  select,input,button,textarea{font:inherit;color:var(--ink);background:#fff;
+         border:1px solid var(--line2);border-radius:var(--r-sm);padding:6px 10px;outline:none}
+  input::placeholder{color:#a8abaf}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);
+         box-shadow:0 0 0 3px rgba(212,8,20,.12)}
+  button{cursor:pointer;background:#fff;color:var(--ink);font-weight:600}
+  button:hover{border-color:var(--ink)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+  button.danger{color:var(--bad);border-color:var(--bad-line);background:var(--bad-wash)}
+  button.danger:hover{border-color:var(--bad);background:#fbdcdf}
+  button.ghost{background:transparent;color:#c7c9cc;border-color:#3a3a40}
+  button.ghost:hover{color:#fff;border-color:#fff}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.small{padding:4px 9px;font-size:12px}
+
+  main{padding:0 22px 14px;flex:1;min-height:0;display:flex;flex-direction:column}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0 10px;flex:0 0 auto}
+  .note{border:1px solid var(--line);background:var(--panel3);border-radius:var(--r);
+        padding:10px 13px;margin-bottom:10px;font-size:12.5px;color:var(--body);flex:0 0 auto}
+  .note.danger{border-color:var(--bad-line);background:var(--bad-wash);color:var(--bad)}
+  .note b{color:var(--ink)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px}
+  th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;
+     letter-spacing:.07em;position:sticky;top:0;background:var(--panel3);z-index:2;
+     border-bottom:1px solid var(--line2)}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--ink)}
+  th .arrow{opacity:.35;margin-left:4px;font-size:10px}
+  th.sorted{color:var(--accent)}
+  th.sorted .arrow{opacity:1}
+  tr.filters th{position:sticky;top:29px;background:var(--panel3);padding:5px 8px}
+  tr.filters input{width:100%;font-size:12px;padding:4px 7px;font-weight:400;text-transform:none;
+                   letter-spacing:normal;color:var(--ink)}
+  td{color:var(--body)}
+  td.mono{font-family:var(--mono);font-size:12px}
+  tbody tr:hover{background:var(--panel2)}
+  .acts{display:flex;gap:6px;flex-wrap:nowrap}
+  .acts button{padding:4px 9px;font-size:12px}
+  .wrap{flex:1;min-height:90px;overflow:auto;border:1px solid var(--line);
+        border-radius:var(--r);background:var(--panel)}
+  .empty{padding:34px 20px;text-align:center;color:var(--dim);font-size:13px}
+  .countline{font-size:12px;color:var(--dim);margin:0 0 8px;flex:0 0 auto}
+
+  /* ---- the slide-in panels: add/edit record, and extract-to-.ionapi ---- */
+  #panel,#xpanel{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);z-index:80;
+         background:var(--bg);border-left:1px solid var(--line);transform:translateX(105%);
+         transition:.22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+         box-shadow:-20px 0 48px rgba(17,18,20,.14)}
+  #xpanel{width:min(760px,96vw)}
+  #panel.on,#xpanel.on{transform:none}
+  #panel .head,#xpanel .head{padding:0 18px;height:58px;background:var(--chrome);color:#fff;
+               display:flex;gap:12px;align-items:center;flex:0 0 auto;font:700 15px var(--display)}
+  #panel .head button,#xpanel .head button{background:transparent;color:#fff;border-color:#3a3a40}
+  #panel .head button:hover,#xpanel .head button:hover{border-color:#fff}
+  #panel .body,#xpanel .body{padding:16px 18px;overflow:auto;flex:1;background:var(--bg)}
+  #panel .foot,#xpanel .foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;
+               align-items:center;flex:0 0 auto;background:var(--panel3)}
+
+  .grid{display:grid;grid-template-columns:120px 1fr;gap:9px 14px;align-items:center}
+  .grid label{color:var(--dim);font-size:12px;font-weight:600}
+  .grid input,.grid select,.grid textarea{width:100%}
+  .grid .hint{grid-column:2;color:var(--dim);font-size:11.5px;margin-top:-5px}
+  .ro{background:var(--panel2);color:var(--dim);border-style:dashed}
+  textarea.hash{font-family:var(--mono);font-size:11.5px;min-height:70px;resize:vertical}
+  textarea.hash.json{min-height:160px;white-space:pre}
+  h3{font:700 12px/1 var(--display);margin:18px 0 9px;text-transform:uppercase;
+     letter-spacing:.09em;color:var(--dim);border-top:1px solid var(--line);padding-top:16px}
+  h3:first-child{border-top:none;margin-top:0;padding-top:0}
+
+  .guess{border:1px solid var(--line);background:var(--panel3);border-radius:var(--r);
+        padding:11px 13px;margin-top:10px}
+  .guess .cand{display:flex;align-items:center;gap:8px;padding:6px 0;
+              border-top:1px solid var(--line);font-size:12.5px}
+  .guess .cand:first-child{border-top:none}
+  .guess .cand .who{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .guess .cand .score{color:var(--dim);font-size:11px;font-family:var(--mono)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;
+        font-weight:600;background:var(--panel2);color:var(--body);border:1px solid var(--line)}
+  .pill.good{background:var(--good-wash);color:var(--good);border-color:var(--good-line)}
+  .pill.warn{background:var(--warn-wash);color:var(--warn);border-color:var(--warn-line)}
+  .pill.bad{background:var(--bad-wash);color:var(--bad);border-color:var(--bad-line)}
+
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140px);
+         background:var(--chrome);color:#fff;border:none;border-radius:var(--r);
+         padding:12px 20px;z-index:90;transition:.22s;max-width:70vw;font-weight:600;
+         box-shadow:0 14px 36px rgba(17,18,20,.28)}
+  #toast.on{transform:translateX(-50%)}
+  #toast.bad{background:var(--bad)}
+
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:#d3d5d8;border-radius:6px;border:3px solid #fff}
+  ::-webkit-scrollbar-thumb:hover{background:#b9bcc0}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Doppio<span class="mark">&#9679;</span><span class="app">Sheet Security</span></h1>
+  <div class="fld">
+    <label for="tenant" style="display:block;font-size:11px;letter-spacing:.07em;text-transform:uppercase">Tenant</label>
+    <select id="tenant"></select>
+  </div>
+  <span class="sub" id="statusline"></span>
+  <span class="grow"></span>
+  <button id="refresh">Refresh</button>
+</header>
+
+<main>
+  <div class="note danger" id="conn-error" hidden></div>
+  <div class="toolbar">
+    <input id="q" placeholder="Search every column&hellip;" style="min-width:260px">
+    <button id="clear-filters">Clear filters</button>
+    <span class="grow"></span>
+    <button id="extract-ionapi">Extract Type 20 &rarr; .ionapi files</button>
+    <button class="primary" id="add-record">+ Add security record</button>
+  </div>
+  <div class="countline" id="countline"></div>
+  <div class="wrap"><table id="t-sec"><thead></thead><tbody></tbody></table></div>
+</main>
+
+<div id="panel">
+  <div class="head"><b id="p-title">Add security record</b><span class="grow"></span>
+    <button id="p-close">Close</button></div>
+  <div class="body" id="p-body">
+    <h3>Record</h3>
+    <div class="grid">
+      <label>PCID</label>
+      <input id="f-PCID" placeholder="login / person id">
+      <label>TNNM</label>
+      <input id="f-TNNM" placeholder="customer tenant name, e.g. NUTRACORP TST">
+      <label>AUTH</label>
+      <input id="f-AUTH" list="auth-list" placeholder="1, 20, 99&hellip;">
+      <datalist id="auth-list"></datalist>
+      <div></div>
+      <div class="hint">PCID, TNNM and AUTH together are the record's key.</div>
+    </div>
+
+    <h3>M3 user</h3>
+    <div class="grid">
+      <label>M3ID</label>
+      <input id="f-M3ID" placeholder="M3 USID">
+      <label>UMSG</label>
+      <input id="f-UMSG" placeholder="email address">
+      <label>Override search</label>
+      <input id="f-guess-hint" placeholder="name or email — optional, searches this instead of PCID">
+      <div></div>
+      <div class="hint">Find M3 user normally searches by PCID. PCID is
+        often a Windows login rather than a real M3 identifier, so when it
+        won't turn up the right person, fill this in — it replaces PCID for
+        the search entirely.</div>
+    </div>
+    <div style="margin-top:10px">
+      <button id="p-guess">Find M3 user&hellip;</button>
+      <span class="sub" id="guess-status"></span>
+    </div>
+    <div class="guess" id="guess-box" hidden></div>
+
+    <h3>HASH</h3>
+    <div class="grid">
+      <label>HASH</label>
+      <textarea id="f-HASH" class="hash" placeholder="(usually left as-is)"></textarea>
+    </div>
+    <div style="margin-top:8px">
+      <button id="hash-decode">Decrypt HASH → JSON</button>
+      <button id="hash-encode">Encrypt JSON → HASH</button>
+      <span class="sub" id="hash-status"></span>
+    </div>
+    <div class="grid" id="hash-json-row" style="margin-top:10px" hidden>
+      <label>Decoded JSON</label>
+      <textarea id="f-HASH-json" class="hash json"></textarea>
+      <div class="hint">HASH isn't encrypted, just base64-wrapped JSON — this
+        is that JSON, pretty-printed. Edit it and click "Encrypt JSON → HASH"
+        to write the change back into HASH above, then Save.</div>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="primary" id="p-save">Save</button>
+    <span id="p-state" class="sub"></span>
+    <span class="grow"></span>
+    <button class="danger" id="p-delete" style="display:none">Delete</button>
+  </div>
+</div>
+
+<div id="xpanel">
+  <div class="head"><b>Extract Type 20 &rarr; .ionapi files</b><span class="grow"></span>
+    <button id="x-close">Close</button></div>
+  <div class="body">
+    <div class="note">Every AUTH=20 record's HASH is an encoded .ionapi file
+      (the same blob the Decrypt HASH button unwraps). This writes one real
+      <span class="mono">.ionapi</span> file per AUTH=20 record into
+      <span class="mono" id="x-dir">the repo's shared ionapi/ folder</span>,
+      named after the record's own <span class="mono">TNNM</span>.
+      Nothing is written until you click "Write files" below.</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)">
+        <input type="checkbox" id="x-overwrite" style="width:auto">
+        Overwrite files that already exist
+      </label>
+      <button id="x-select-all" class="small">Select all</button>
+      <button id="x-select-none" class="small">Select none</button>
+    </div>
+    <div class="sub" id="x-summary">Loading&hellip;</div>
+    <div class="wrap" id="x-wrap" style="margin-top:10px;max-height:52vh">
+      <table id="t-extract"><thead><tr>
+        <th style="width:26px"><input type="checkbox" id="x-check-all" style="width:auto"></th>
+        <th>PCID</th><th>TNNM</th><th>TI</th><th>File</th><th>Action</th><th>Reason</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="primary" id="x-write">Write files</button>
+    <span id="x-state" class="sub"></span>
+    <span class="grow"></span>
+    <button id="x-refresh">Re-preview</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, ...kids) => {
+  const n = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) {
+    if (k === 'class') n.className = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined) n.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined)
+    n.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return n;
+};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+let toastTimer = null;
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('bad', !!bad);
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), bad ? 7000 : 3500);
+}
+
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  let body;
+  try { body = await r.json(); } catch { body = { status: 'error', message: r.statusText }; }
+  if (!r.ok || body.status === 'error') throw new Error(body.message || 'Request failed');
+  return body;
+}
+
+/* ------------------------------------------------------------- state --- */
+const state = {
+  tenant: '', columns: [], rows: [], authLabels: {},
+  sort: '', dir: 'asc', filters: {}, q: '',
+  editing: null,   // {PCID, TNNM, AUTH} of the row being edited, or null when adding
+};
+
+/* ---------------------------------------------------------- tenants --- */
+async function loadTenants() {
+  const d = await api('/api/tenants');
+  state.authLabels = d.auth_labels || {};
+  $('#auth-list').innerHTML = Object.values(state.authLabels)
+    .map(l => `<option value="${esc(l.split(' ')[0])}">${esc(l)}</option>`).join('');
+
+  const sel = $('#tenant');
+  sel.innerHTML = (d.tenants || []).map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  if (!d.tenants || !d.tenants.length) {
+    $('#statusline').textContent = 'No .ionapi files found.';
+    return;
+  }
+  sel.value = d.default && d.tenants.includes(d.default) ? d.default : d.tenants[0];
+  state.tenant = sel.value;
+}
+
+$('#tenant').addEventListener('change', () => { state.tenant = $('#tenant').value; loadSecurity(); });
+$('#refresh').addEventListener('click', loadSecurity);
+
+/* ----------------------------------------------------------- listing --- */
+async function loadSecurity() {
+  if (!state.tenant) return;
+  $('#conn-error').hidden = true;
+  $('#statusline').textContent = 'Loading…';
+  try {
+    const d = await api('/api/security?tenant=' + encodeURIComponent(state.tenant));
+    state.columns = d.columns || [];
+    state.rows = d.rows || [];
+    state.filters = {};
+    $('#statusline').textContent = `Connected — ${state.tenant}`;
+    renderHead();
+    renderBody();
+  } catch (e) {
+    state.columns = []; state.rows = [];
+    renderHead(); renderBody();
+    $('#statusline').textContent = 'Connection failed';
+    $('#conn-error').hidden = false;
+    $('#conn-error').innerHTML = `<b>Could not read EXT124MI/LstUsrInfo for ${esc(state.tenant)}.</b> ${esc(e.message)}`;
+  }
+}
+
+function fmtCol(c) { return c.replace(/_/g, ' '); }
+
+function renderHead() {
+  const thead = $('#t-sec thead');
+  thead.innerHTML = '';
+  if (!state.columns.length) return;
+
+  const head = el('tr');
+  state.columns.forEach(c => {
+    const th = el('th', { class: 'sortable', 'data-col': c },
+      fmtCol(c), el('span', { class: 'arrow' }, '↑'));
+    th.addEventListener('click', () => {
+      if (state.sort !== c) { state.sort = c; state.dir = 'asc'; }
+      else if (state.dir === 'asc') state.dir = 'desc';
+      else { state.sort = ''; state.dir = 'asc'; }
+      renderHead(); renderBody();
+    });
+    if (state.sort === c) {
+      th.classList.add('sorted');
+      th.querySelector('.arrow').textContent = state.dir === 'asc' ? '↑' : '↓';
+    }
+    head.append(th);
+  });
+  head.append(el('th', { style: 'position:sticky;top:0' }, 'Actions'));
+  thead.append(head);
+
+  const filterRow = el('tr', { class: 'filters' });
+  state.columns.forEach(c => {
+    const input = el('input', { placeholder: 'filter…', value: state.filters[c] || '' });
+    input.addEventListener('input', () => {
+      state.filters[c] = input.value;
+      renderBody();
+    });
+    filterRow.append(el('th', {}, input));
+  });
+  filterRow.append(el('th', {}));
+  thead.append(filterRow);
+}
+
+$('#q').addEventListener('input', () => { state.q = $('#q').value; renderBody(); });
+$('#clear-filters').addEventListener('click', () => {
+  state.filters = {}; state.q = ''; $('#q').value = '';
+  renderHead(); renderBody();
+});
+
+function filteredSortedRows() {
+  const q = state.q.trim().toLowerCase();
+  let rows = state.rows.filter(r => {
+    for (const c of state.columns) {
+      const f = (state.filters[c] || '').trim().toLowerCase();
+      if (f && !String(r[c] ?? '').toLowerCase().includes(f)) return false;
+    }
+    if (q && !state.columns.some(c => String(r[c] ?? '').toLowerCase().includes(q))) return false;
+    return true;
+  });
+  if (state.sort) {
+    const k = state.sort, dir = state.dir === 'asc' ? 1 : -1;
+    rows = rows.slice().sort((a, b) => {
+      const av = a[k] ?? '', bv = b[k] ?? '';
+      const an = Number(av), bn = Number(bv);
+      if (av !== '' && bv !== '' && !Number.isNaN(an) && !Number.isNaN(bn))
+        return (an - bn) * dir;
+      return String(av).localeCompare(String(bv), undefined, { sensitivity: 'base' }) * dir;
+    });
+  }
+  return rows;
+}
+
+function renderBody() {
+  const tbody = $('#t-sec tbody');
+  tbody.innerHTML = '';
+  const rows = filteredSortedRows();
+  $('#countline').textContent = state.rows.length
+    ? `${rows.length} of ${state.rows.length} record${state.rows.length === 1 ? '' : 's'}`
+    : '';
+
+  if (!state.rows.length) {
+    tbody.append(el('tr', {}, el('td', { colspan: state.columns.length + 1, class: 'empty' },
+      state.columns.length ? 'No security records for this tenant.' : ' ')));
+    return;
+  }
+  if (!rows.length) {
+    tbody.append(el('tr', {}, el('td', { colspan: state.columns.length + 1, class: 'empty' },
+      'Nothing matches the current filters.')));
+    return;
+  }
+
+  rows.forEach(r => {
+    const tr = el('tr');
+    state.columns.forEach(c => {
+      const isHash = c.toUpperCase() === 'HASH';
+      const title = isHash
+        ? (r.HASH_full_length ? `${r.HASH_full_length} characters — truncated for display` : '')
+        : String(r[c] ?? '');
+      tr.append(el('td', { class: isHash ? 'mono' : '', title }, r[c] ?? ''));
+    });
+    const editBtn = el('button', { class: 'small', onclick: () => openEdit(r) }, 'Edit');
+    const delBtn = el('button', { class: 'small danger', onclick: () => deleteRow(r) }, 'Delete');
+    tr.append(el('td', {}, el('div', { class: 'acts' }, editBtn, delBtn)));
+    tbody.append(tr);
+  });
+}
+
+/* --------------------------------------------------------- add/edit --- */
+function openPanel(mode, row) {
+  state.editing = mode === 'edit' ? { PCID: row.PCID, TNNM: row.TNNM, AUTH: row.AUTH } : null;
+  $('#p-title').textContent = mode === 'edit' ? 'Edit security record' : 'Add security record';
+  $('#p-delete').style.display = mode === 'edit' ? '' : 'none';
+  $('#p-state').textContent = '';
+  $('#guess-box').hidden = true;
+  $('#guess-box').innerHTML = '';
+  $('#guess-status').textContent = '';
+  $('#f-guess-hint').value = '';
+  $('#hash-json-row').hidden = true;
+  $('#f-HASH-json').value = '';
+  $('#hash-status').textContent = '';
+
+  for (const f of ['PCID', 'TNNM', 'AUTH', 'M3ID', 'UMSG', 'HASH'])
+    $('#f-' + f).value = row ? (row[f] ?? '') : '';
+
+  const keyInputs = ['#f-PCID', '#f-TNNM', '#f-AUTH'];
+  keyInputs.forEach(sel => {
+    $(sel).readOnly = mode === 'edit';
+    $(sel).classList.toggle('ro', mode === 'edit');
+  });
+
+  $('#panel').classList.add('on');
+}
+
+async function openEdit(row) {
+  try {
+    const d = await api('/api/security/get', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, PCID: row.PCID, TNNM: row.TNNM, AUTH: row.AUTH }),
+    });
+    openPanel('edit', d.row);
+  } catch (e) {
+    toast(e.message, true);
+  }
+}
+
+$('#add-record').addEventListener('click', () => openPanel('add', null));
+$('#p-close').addEventListener('click', () => $('#panel').classList.remove('on'));
+
+$('#p-save').addEventListener('click', async () => {
+  const PCID = $('#f-PCID').value.trim();
+  const TNNM = $('#f-TNNM').value.trim();
+  const AUTH = $('#f-AUTH').value.trim();
+  if (!PCID || !TNNM || !AUTH) { toast('PCID, TNNM and AUTH are all required.', true); return; }
+  const fields = {
+    HASH: $('#f-HASH').value,
+    M3ID: $('#f-M3ID').value.trim(),
+    UMSG: $('#f-UMSG').value.trim(),
+  };
+  const body = JSON.stringify({ tenant: state.tenant, PCID, TNNM, AUTH, fields });
+  $('#p-save').disabled = true;
+  $('#p-state').textContent = 'Saving…';
+  try {
+    if (state.editing) {
+      await api('/api/security', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
+    } else {
+      await api('/api/security', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+    }
+    toast(state.editing ? 'Record updated.' : 'Record added.');
+    $('#panel').classList.remove('on');
+    loadSecurity();
+  } catch (e) {
+    $('#p-state').textContent = '';
+    toast(e.message, true);
+  } finally {
+    $('#p-save').disabled = false;
+  }
+});
+
+$('#p-delete').addEventListener('click', async () => {
+  if (!state.editing) return;
+  const ok = await deleteRow(state.editing);
+  if (ok) $('#panel').classList.remove('on');
+});
+
+async function deleteRow(row) {
+  if (!confirm(`Delete the security record for ${row.PCID} on ${row.TNNM}? This cannot be undone.`)) return false;
+  try {
+    await api('/api/security', {
+      method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, PCID: row.PCID, TNNM: row.TNNM, AUTH: row.AUTH }),
+    });
+    toast('Record deleted.');
+    loadSecurity();
+    return true;
+  } catch (e) {
+    toast(e.message, true);
+    return false;
+  }
+}
+
+/* ------------------------------------------------------ find M3 user --- */
+$('#p-guess').addEventListener('click', async () => {
+  const tnnm = $('#f-TNNM').value.trim();
+  const pcid = $('#f-PCID').value.trim();
+  const hint = $('#f-guess-hint').value.trim();
+  if (!tnnm) { toast('Enter TNNM first.', true); return; }
+  if (!pcid && !hint) { toast('Enter a PCID, or an override search term, first.', true); return; }
+  const searchedBy = hint || pcid;
+  const box = $('#guess-box');
+  $('#guess-status').textContent = 'Looking up…';
+  box.hidden = true;
+  try {
+    const d = await api('/api/guess', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tnnm, pcid, hint, tenant: state.tenant }),
+    });
+    $('#guess-status').textContent = d.extracted
+      ? `via ${d.ionapi} (extracted just now from ${state.tenant}'s AUTH=20 record)`
+      : `via ${d.ionapi}`;
+    box.hidden = false;
+    if (!d.candidates.length) {
+      box.innerHTML = `<span class="sub">No MNS150MI users on ${esc(d.tenant)} came close to matching '${esc(searchedBy)}'.</span>`;
+      return;
+    }
+    box.innerHTML = '';
+    d.candidates.forEach(c => {
+      const isBest = d.best && d.best.usid === c.usid && d.best.email === c.email;
+      const row = el('div', { class: 'cand' },
+        el('div', { class: 'who' },
+          el('b', {}, c.usid || '(no usid)'), ' — ', c.name || '(no name)',
+          el('br'), el('span', { class: 'sub' }, c.email || '(no email)')),
+        el('span', { class: 'score' }, (c.score * 100).toFixed(0) + '%'),
+        isBest ? el('span', { class: 'pill good' }, 'best') : null,
+        el('button', {
+          class: 'small', onclick: () => {
+            $('#f-M3ID').value = c.usid || '';
+            $('#f-UMSG').value = c.email || '';
+            toast(`M3ID / UMSG filled from ${c.usid || c.email}.`);
+          },
+        }, 'Use'));
+      box.append(row);
+    });
+    if (d.best) {
+      $('#f-M3ID').value = d.best.usid || '';
+      $('#f-UMSG').value = d.best.email || '';
+    }
+  } catch (e) {
+    $('#guess-status').textContent = '';
+    box.hidden = false;
+    box.innerHTML = `<span class="sub" style="color:var(--bad)">${esc(e.message)}</span>`;
+  }
+});
+
+/* ------------------------------------------------- HASH decrypt/encrypt --- */
+$('#hash-decode').addEventListener('click', async () => {
+  const hash = $('#f-HASH').value.trim();
+  if (!hash) { toast('HASH is empty — nothing to decrypt.', true); return; }
+  $('#hash-status').textContent = 'Decrypting…';
+  try {
+    const d = await api('/api/hash/decode', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hash }),
+    });
+    $('#f-HASH-json').value = JSON.stringify(d.json, null, 2);
+    $('#hash-json-row').hidden = false;
+    $('#hash-status').textContent = '';
+  } catch (e) {
+    $('#hash-status').textContent = '';
+    toast(e.message, true);
+  }
+});
+
+$('#hash-encode').addEventListener('click', async () => {
+  const text = $('#f-HASH-json').value.trim();
+  if (!text) { toast('Nothing in the JSON box to encrypt.', true); return; }
+  $('#hash-status').textContent = 'Encrypting…';
+  try {
+    const d = await api('/api/hash/encode', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ json: text }),
+    });
+    $('#f-HASH').value = d.hash;
+    $('#hash-status').textContent = 'HASH updated below — click Save to persist it.';
+    toast('JSON encrypted into HASH.');
+  } catch (e) {
+    $('#hash-status').textContent = '';
+    toast(e.message, true);
+  }
+});
+
+/* ------------------------------------------------- extract to .ionapi --- */
+const ACTION_PILL = { write: 'good', overwrite: 'warn', skip: '' };
+let lastExtractPlan = null;
+// Only rows that are currently exportable (action write/overwrite) get an
+// entry; a row's absence here just means it hasn't been seen as exportable
+// yet, so re-previewing (e.g. after toggling overwrite) defaults new
+// candidates to selected without disturbing what was already picked.
+let xSelected = new Map();
+
+function xKey(p) { return p.pcid + ' ' + p.tnnm; }
+function xSelectable(p) { return p.action === 'write' || p.action === 'overwrite'; }
+
+function xSelectedCount() {
+  if (!lastExtractPlan) return 0;
+  return lastExtractPlan.plan.filter(p => xSelectable(p) && xSelected.get(xKey(p))).length;
+}
+
+function updateXSummary() {
+  const d = lastExtractPlan;
+  if (!d) return;
+  const exportable = d.plan.filter(xSelectable).length;
+  const picked = xSelectedCount();
+  $('#x-summary').textContent =
+    `${d.totals.type20} type-20 record${d.totals.type20 === 1 ? '' : 's'} — ` +
+    `${picked} of ${exportable} selected` +
+    (d.dry_run ? '' : ` — ${d.totals.written} written`) +
+    `, ${d.totals.skipped} skipped.`;
+  $('#x-check-all').checked = exportable > 0 && picked === exportable;
+}
+
+function renderExtractPlan(d) {
+  lastExtractPlan = d;
+  $('#x-dir').textContent = d.ionapi_dir || 'the repo’s shared ionapi/ folder';
+
+  const tbody = $('#t-extract tbody');
+  tbody.innerHTML = '';
+  if (!d.plan.length) {
+    tbody.append(el('tr', {}, el('td', { colspan: 7, class: 'empty' }, 'No AUTH=20 records for this tenant.')));
+    updateXSummary();
+    return;
+  }
+  d.plan.forEach(p => {
+    const selectable = xSelectable(p);
+    const key = xKey(p);
+    if (selectable && !xSelected.has(key)) xSelected.set(key, true);
+
+    let checkCell = '';
+    if (selectable) {
+      const cb = el('input', { type: 'checkbox' });
+      cb.checked = xSelected.get(key);
+      cb.addEventListener('change', () => { xSelected.set(key, cb.checked); updateXSummary(); });
+      checkCell = cb;
+    }
+    tbody.append(el('tr', {},
+      el('td', {}, checkCell),
+      el('td', {}, p.pcid || ''),
+      el('td', {}, p.tnnm || ''),
+      el('td', { class: 'mono' }, p.ti || ''),
+      el('td', { class: 'mono' }, p.file || ''),
+      el('td', {}, el('span', { class: 'pill ' + (ACTION_PILL[p.action] || '') }, p.action)),
+      el('td', {}, p.reason || '')));
+  });
+  updateXSummary();
+}
+
+async function previewExtract() {
+  $('#x-summary').textContent = 'Reading EXT124MI…';
+  try {
+    const d = await api('/api/extract-ionapi', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, overwrite: $('#x-overwrite').checked, confirm: false }),
+    });
+    renderExtractPlan(d);
+  } catch (e) {
+    $('#x-summary').textContent = '';
+    toast(e.message, true);
+  }
+}
+
+$('#extract-ionapi').addEventListener('click', () => {
+  xSelected = new Map();
+  lastExtractPlan = null;
+  $('#xpanel').classList.add('on');
+  $('#x-state').textContent = '';
+  previewExtract();
+});
+$('#x-close').addEventListener('click', () => $('#xpanel').classList.remove('on'));
+$('#x-refresh').addEventListener('click', previewExtract);
+$('#x-overwrite').addEventListener('change', previewExtract);
+
+function xSetAll(checked) {
+  if (!lastExtractPlan) return;
+  lastExtractPlan.plan.filter(xSelectable).forEach(p => xSelected.set(xKey(p), checked));
+  renderExtractPlan(lastExtractPlan);
+}
+$('#x-select-all').addEventListener('click', () => xSetAll(true));
+$('#x-select-none').addEventListener('click', () => xSetAll(false));
+$('#x-check-all').addEventListener('change', e => xSetAll(e.target.checked));
+
+$('#x-write').addEventListener('click', async () => {
+  if (!lastExtractPlan) return;
+  const picked = lastExtractPlan.plan.filter(p => xSelectable(p) && xSelected.get(xKey(p)));
+  if (!picked.length) { toast('Select at least one record to export.', true); return; }
+  const overwriting = picked.filter(p => p.action === 'overwrite');
+  if (overwriting.length && !confirm(
+    `This will overwrite ${overwriting.length} existing .ionapi file(s):\n` +
+    overwriting.map(p => '  ' + p.file).join('\n') +
+    '\n\nContinue?')) return;
+
+  $('#x-write').disabled = true;
+  $('#x-state').textContent = 'Writing…';
+  try {
+    const d = await api('/api/extract-ionapi', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tenant: state.tenant, overwrite: $('#x-overwrite').checked, confirm: true,
+        keys: picked.map(p => [p.pcid, p.tnnm]),
+      }),
+    });
+    renderExtractPlan(d);
+    $('#x-state').textContent = '';
+    toast(`${d.totals.written} .ionapi file(s) written to ${d.ionapi_dir}.`);
+  } catch (e) {
+    $('#x-state').textContent = '';
+    toast(e.message, true);
+  } finally {
+    $('#x-write').disabled = false;
+  }
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  $('#panel').classList.remove('on');
+  $('#xpanel').classList.remove('on');
+});
+
+/* --------------------------------------------------------------- init --- */
+(async function init() {
+  await loadTenants();
+  await loadSecurity();
+})();
+</script>
+</body>
+</html>

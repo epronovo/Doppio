@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deploy Packages</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Doppio Group house style - the same tokens as packages/ERP_Concur,
+     packages/adp_concur and packages/sheet_security. */
+  :root{
+    --chrome:#141416; --chrome2:#232327;
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f6f6f7; --panel3:#fbfbfc;
+    --line:#e6e7e9; --line2:#d9dadd;
+    --ink:#111214; --body:#55585c; --dim:#8a8d92;
+    --accent:#d40814; --accent-hi:#ef1c28; --accent-ink:#ffffff; --accent-wash:#fdecee;
+    --bad:#a4121b; --bad-wash:#fdecee; --bad-line:#f3c6ca;
+    --good:#0d6b39; --good-wash:#e9f6ee; --good-line:#bfe3cd;
+    --sans:"Nunito Sans","Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Poppins","Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:8px; --r-sm:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--body);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;font:14px/1.5 var(--sans);
+       -webkit-font-smoothing:antialiased}
+
+  header{padding:0 22px;height:58px;background:var(--chrome);color:#fff;
+         display:flex;align-items:center;gap:14px;flex:0 0 auto}
+  h1{font:800 19px/1 var(--display);margin:0;letter-spacing:-.4px;color:#fff;
+     display:flex;align-items:baseline;gap:9px;white-space:nowrap}
+  h1 .mark{color:var(--accent);font-size:22px;line-height:0}
+  h1 .app{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+          color:#9b9ea3;padding-left:11px;border-left:1px solid #34343a}
+  .grow{flex:1}
+  header .sub{color:#9b9ea3;font-size:12px}
+
+  select,input,button{font:inherit;color:var(--ink);background:#fff;
+         border:1px solid var(--line2);border-radius:var(--r-sm);padding:6px 10px;outline:none}
+  input:focus,button:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,8,20,.12)}
+  button{cursor:pointer;background:#fff;color:var(--ink);font-weight:600}
+  button:hover{border-color:var(--ink)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+
+  main{padding:24px 28px 28px;flex:1;min-height:0;overflow:auto;max-width:960px;
+       margin:0 auto;width:100%}
+  h2{font:700 12px/1 var(--display);margin:0 0 12px;text-transform:uppercase;
+     letter-spacing:.09em;color:var(--dim)}
+  .intro{font-size:13px;color:var(--dim);margin:0 0 20px;max-width:640px}
+
+  .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-bottom:26px}
+  .card{border:1px solid var(--line2);border-radius:var(--r);padding:13px 15px;
+        cursor:pointer;background:var(--panel3);transition:.12s}
+  .card:hover{border-color:var(--ink)}
+  .card.on{border-color:var(--accent);background:var(--accent-wash)}
+  .card-key{font-weight:800;color:var(--ink);font-size:13.5px;font-family:var(--mono)}
+  .card-desc{font-size:12.5px;color:var(--body);margin-top:5px;line-height:1.45}
+  .card-port{font-size:11px;color:var(--dim);margin-top:8px;font-family:var(--mono)}
+
+  #buildpanel{border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;
+              background:var(--panel3)}
+  #buildpanel[hidden]{display:none}
+  .row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;
+               letter-spacing:.06em;color:var(--dim);margin-bottom:5px}
+  #port{width:100px;font-family:var(--mono)}
+  .status{font-size:12.5px;margin-top:12px;min-height:16px}
+  .status.bad{color:var(--bad)}
+  .status.good{color:var(--good)}
+  #selname{color:var(--ink);font-weight:700;font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Doppio<span class="mark">&#9679;</span><span class="app">Deploy Packages</span></h1>
+  <span class="grow"></span>
+  <span class="sub">Build a standalone copy of a packages/ app for another machine</span>
+</header>
+
+<main>
+  <h2>1. Pick an app</h2>
+  <p class="intro">Every app under packages/ with its own Flask front end shows up here.
+    Picking one zips up its own folder - source, templates, requirements.txt - leaving
+    out virtual environments, caches, and its input/output data, which it rebuilds
+    itself on the target machine.</p>
+  <div class="apps" id="apps"></div>
+
+  <h2>2. Choose a port and build</h2>
+  <div id="buildpanel" hidden>
+    <div class="row">
+      <div class="field">
+        <label>App</label>
+        <div id="selname">-</div>
+      </div>
+      <div class="field">
+        <label for="port">Port on the deployed machine</label>
+        <input id="port" type="number" min="1" max="65535" step="1">
+      </div>
+      <button class="primary" id="build-btn" style="align-self:flex-end">Build &amp; download</button>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+</main>
+
+<script>
+const state = { apps: [], selected: null };
+
+async function loadApps(){
+  const res = await fetch('/api/apps');
+  state.apps = await res.json();
+  renderApps();
+}
+
+function renderApps(){
+  const wrap = document.getElementById('apps');
+  wrap.innerHTML = '';
+  if (!state.apps.length) {
+    wrap.innerHTML = '<div class="intro">No deployable apps found under packages/.</div>';
+    return;
+  }
+  state.apps.forEach(a => {
+    const card = document.createElement('div');
+    card.className = 'card' + (state.selected === a.key ? ' on' : '');
+    card.innerHTML =
+      `<div class="card-key">${a.key}</div>` +
+      `<div class="card-desc">${a.description}</div>` +
+      `<div class="card-port">default port ${a.default_port}</div>`;
+    card.onclick = () => selectApp(a.key);
+    wrap.appendChild(card);
+  });
+}
+
+function selectApp(key){
+  state.selected = key;
+  const a = state.apps.find(x => x.key === key);
+  document.getElementById('port').value = a.default_port;
+  document.getElementById('selname').textContent = key;
+  document.getElementById('buildpanel').hidden = false;
+  document.getElementById('status').textContent = '';
+  document.getElementById('status').className = 'status';
+  renderApps();
+}
+
+async function build(){
+  const btn = document.getElementById('build-btn');
+  const status = document.getElementById('status');
+  const port = parseInt(document.getElementById('port').value, 10);
+
+  if (!state.selected) return;
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    status.textContent = 'Enter a port between 1 and 65535.';
+    status.className = 'status bad';
+    return;
+  }
+
+  btn.disabled = true;
+  status.textContent = 'Building...';
+  status.className = 'status';
+  try {
+    const res = await fetch('/api/build', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({app: state.selected, port})
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Build failed (${res.status}).`);
+    }
+    const blob = await res.blob();
+    const disposition = res.headers.get('Content-Disposition') || '';
+    const match = /filename="?([^"]+)"?/.exec(disposition);
+    const filename = match ? match[1] : `${state.selected}_${port}.zip`;
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+
+    status.textContent = `Downloaded ${filename}.`;
+    status.className = 'status good';
+  } catch (err) {
+    status.textContent = err.message;
+    status.className = 'status bad';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+document.getElementById('build-btn').addEventListener('click', build);
+loadApps();
+</script>
+</body>
+</html>

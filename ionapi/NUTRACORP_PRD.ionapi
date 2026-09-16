@@ -1,0 +1,16 @@
+{
+    "ti": "NUTRACORP_PRD",
+    "cn": "NUTRACORP_PRD",
+    "dt": "12",
+    "ci": "NUTRACORP_PRD~6aCJnBVL73IkoIydWCNFTvd7OBP4E9lHyAC9VeWIcJ8",
+    "cs": "FOKp2ULHGLhD8s4rJvEl_m-fExZ6b5zB7OG11fMphvJI4I5IXjIq0axo2Iz1ROyvaq6QNYRAZgxcPsbJxi0cmg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/NUTRACORP_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "NUTRACORP_PRD#QWrl7RNS60g-z38TAkYcY8faWKb7yX59kNn35hUCAuIVUf3T7KQTi4RI5dMmaYXW2FaUCJX2saFz2IM1N9zoQA",
+    "sask": "1dBjvYs8zn_dzInK_FlzvONygLmPNtBCZlJ2MMoS_CJwOgKQDAkOx0fYaHD7Ncs-xw8n4DJ3lyMCrUsbHNP6aw"
+}

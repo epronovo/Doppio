@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PGP Key Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Doppio Group house style - same tokens as packages/adp_concur: near-black
+     chrome, white content, one red accent, light hairline borders. The
+     terminal panel is the one deliberate departure - a real dark console so
+     the gpg commands it prints read the way a terminal actually looks. */
+  :root{
+    --chrome:#141416; --chrome2:#232327;
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f6f6f7; --panel3:#fbfbfc;
+    --line:#e6e7e9; --line2:#d9dadd;
+    --ink:#111214; --body:#55585c; --dim:#8a8d92;
+    --accent:#d40814; --accent-hi:#ef1c28; --accent-ink:#ffffff; --accent-wash:#fdecee;
+    --bad:#a4121b; --bad-wash:#fdecee; --bad-line:#f3c6ca;
+    --warn:#8a5a00; --warn-wash:#fdf4e3; --warn-line:#efdcb4;
+    --good:#0d6b39; --good-wash:#e9f6ee; --good-line:#bfe3cd;
+    --info:#1f4f8f; --info-wash:#eaf1fb; --info-line:#c7dbf5;
+    --sans:"Nunito Sans","Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Poppins","Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:8px; --r-sm:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--body);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;font:14px/1.5 var(--sans);
+       -webkit-font-smoothing:antialiased}
+
+  header{padding:0 22px;height:58px;background:var(--chrome);color:#fff;
+         display:flex;align-items:center;gap:18px;flex:0 0 auto}
+  h1{font:800 19px/1 var(--display);margin:0;letter-spacing:-.4px;color:#fff;
+     display:flex;align-items:baseline;gap:9px}
+  h1 .mark{color:var(--accent);font-size:22px;line-height:0}
+  h1 .app{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+          color:#9b9ea3;padding-left:11px;border-left:1px solid #34343a}
+  header .sub{color:#8e9196;font-size:12px}
+  .grow{flex:1}
+  .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}
+  .dot.good{background:var(--good)}
+  .dot.bad{background:var(--bad)}
+
+  h3{font:700 12px/1 var(--display);margin:0 0 9px;text-transform:uppercase;
+     letter-spacing:.09em;color:var(--dim)}
+  .sub{color:var(--dim);font-size:12px}
+
+  select,input,button,textarea{font:inherit;color:var(--ink);background:#fff;
+         border:1px solid var(--line2);border-radius:var(--r-sm);padding:7px 10px;outline:none}
+  input::placeholder,textarea::placeholder{color:#a8abaf}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);
+         box-shadow:0 0 0 3px rgba(212,8,20,.12)}
+  button{cursor:pointer;background:#fff;color:var(--ink);font-weight:600}
+  button:hover{border-color:var(--ink)}
+  button.primary{background:var(--accent);border-color:var(--accent);
+         color:var(--accent-ink);font-weight:700}
+  button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+  button.danger{color:var(--bad);border-color:var(--bad-line);background:var(--bad-wash)}
+  button.danger:hover{border-color:var(--bad);background:#fbdcdf}
+  button.ghost{background:transparent;color:#c7c9cc;border-color:#34343a}
+  button.ghost:hover{color:#fff;border-color:#54545c}
+  button:disabled{opacity:.4;cursor:not-allowed}
+
+  main{padding:18px 22px 0;flex:1;min-height:0;display:flex;flex-direction:column}
+
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .tab{padding:10px 16px;border:none;border-bottom:2px solid transparent;cursor:pointer;
+       color:var(--dim);font-weight:600;margin-bottom:-1px;transition:.12s;background:none}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+  .panes{flex:1;min-height:0;overflow:auto;padding:16px 2px}
+  .pane{display:none}
+  .pane.on{display:block}
+
+  .card{border:1px solid var(--line);background:var(--panel);border-radius:var(--r);
+        padding:18px 20px;max-width:640px}
+  .grid{display:grid;grid-template-columns:150px 1fr;gap:10px 14px;align-items:center}
+  .grid label{color:var(--dim);font-size:12px;font-weight:600}
+  .grid input,.grid select,.grid textarea{width:100%}
+  .grid .hint{grid-column:2;color:var(--dim);font-size:11.5px;margin-top:-6px}
+  .foot{display:flex;gap:10px;align-items:center;margin-top:16px}
+
+  .note{border:1px solid var(--line);background:var(--panel3);border-radius:var(--r);
+        padding:11px 13px;margin-bottom:14px;font-size:12.5px;color:var(--body);max-width:720px}
+  .note b{color:var(--ink);font-weight:700}
+  .note.danger{border-color:var(--bad-line);background:var(--bad-wash);color:var(--bad)}
+  .note.good{border-color:var(--good-line);background:var(--good-wash);color:var(--good)}
+  .note.warnish{border-color:var(--warn-line);background:var(--warn-wash);color:var(--warn)}
+
+  .mono{font-family:var(--mono);font-size:12px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;
+        font-weight:600;background:var(--panel2);color:var(--body);border:1px solid var(--line)}
+  .pill.good{background:var(--good-wash);color:var(--good);border-color:var(--good-line)}
+  .pill.warn{background:var(--warn-wash);color:var(--warn);border-color:var(--warn-line)}
+  .pill.bad{background:var(--bad-wash);color:var(--bad);border-color:var(--bad-line)}
+  .pill.info{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
+
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;
+     letter-spacing:.07em;background:var(--panel3)}
+  td.uid{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  td .fpr{color:var(--dim);cursor:pointer}
+  td .fpr:hover{color:var(--ink);text-decoration:underline}
+  .acts{display:flex;gap:6px;flex-wrap:wrap}
+  .acts button{padding:5px 9px;font-size:12px}
+  .empty{padding:34px 20px;text-align:center;color:var(--dim);font-size:13px}
+
+  textarea.big{width:100%;min-height:120px;font-family:var(--mono);font-size:12.5px;resize:vertical}
+
+  #f-drop{border:1px dashed var(--line2);border-radius:var(--r);padding:20px 14px;
+          text-align:center;color:var(--dim);transition:.15s;background:var(--panel3);
+          font-size:12.5px;cursor:pointer}
+  #f-drop.hot{border-color:var(--accent);background:var(--accent-wash);color:var(--ink)}
+  #f-drop #f-name{display:block;margin-top:6px;color:var(--ink);font-weight:700}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start;max-width:1100px}
+  @media (max-width:900px){.cols2{grid-template-columns:1fr}}
+
+  /* ---- terminal, pinned under the tab content on every pane ---- */
+  #terminal{flex:0 0 230px;margin:12px 0 16px;border-radius:var(--r);overflow:hidden;
+            border:1px solid #000;box-shadow:0 10px 26px rgba(0,0,0,.18);
+            display:flex;flex-direction:column;background:#0b0b0d}
+  #terminal .tbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;
+                  padding:8px 12px;background:var(--chrome2);color:#c7c9cc;
+                  font:600 11px var(--sans);letter-spacing:.06em;text-transform:uppercase}
+  #terminal .tdots{display:flex;gap:6px;margin-right:4px}
+  #terminal .tdots i{width:10px;height:10px;border-radius:50%;display:inline-block}
+  #terminal .tdots i:nth-child(1){background:#ff5f57}
+  #terminal .tdots i:nth-child(2){background:#febc2e}
+  #terminal .tdots i:nth-child(3){background:#28c840}
+  #term-log{flex:1;min-height:0;overflow:auto;padding:10px 14px;
+            font:12.5px/1.6 var(--mono);color:#d7dadd;white-space:pre-wrap;word-break:break-all}
+  #term-log .cmd{color:#7ee787}
+  #term-log .cmd::before{content:"$ ";color:#57606a}
+  #term-log .out{color:#c9d1d9}
+  #term-log .err{color:#ffa198}
+  #term-log .rc{color:#ffa198}
+  #term-log .sep{color:#3d3d42;margin:6px 0;border-top:1px dashed #2b2b2f}
+  #term-log .empty{color:#57606a;padding:0;text-align:left}
+
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:#d3d5d8;border-radius:6px;border:3px solid #fff}
+  ::-webkit-scrollbar-thumb:hover{background:#b9bcc0}
+  ::-webkit-scrollbar-track{background:transparent}
+  #term-log::-webkit-scrollbar-thumb{background:#3a3a3f;border:3px solid #0b0b0d}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Doppio<span class="mark">&#9679;</span><span class="app">PGP Keys</span></h1>
+  <span class="sub" id="gpgline">checking for gpg&hellip;</span>
+  <span class="grow"></span>
+</header>
+
+<main>
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-pane="generate">Generate</div>
+    <div class="tab" data-pane="keys">Keys<span class="n" id="n-keys"></span></div>
+    <div class="tab" data-pane="test">Test Encrypt / Decrypt</div>
+    <div class="tab" data-pane="decryptfile">Decrypt a File</div>
+  </div>
+
+  <div class="panes">
+    <!-- ------------------------------------------------------- generate -->
+    <div class="pane on" id="pane-generate">
+      <div class="note" id="gpg-missing" hidden>
+        <b>gpg was not found.</b> Install GnuPG to use this tool
+        &mdash; on macOS: <span class="mono">brew install gnupg</span>, then reload this page.
+      </div>
+      <div class="card">
+        <h3>New key pair</h3>
+        <div class="grid">
+          <label>Name</label>
+          <input id="g-name" placeholder="Jane Doe">
+          <label>Email</label>
+          <input id="g-email" placeholder="jane@example.com">
+          <label>Comment <span class="sub">(optional)</span></label>
+          <input id="g-comment" placeholder="work key">
+          <label>Key type</label>
+          <select id="g-type">
+            <option value="ed25519" selected>Ed25519 / Curve25519 (modern, recommended)</option>
+            <option value="rsa3072">RSA 3072-bit</option>
+            <option value="rsa4096">RSA 4096-bit</option>
+          </select>
+          <label>Expires</label>
+          <select id="g-expire">
+            <option value="1y" selected>1 year</option>
+            <option value="2y">2 years</option>
+            <option value="5y">5 years</option>
+            <option value="0">Never</option>
+          </select>
+          <label>Passphrase <span class="sub">(optional)</span></label>
+          <input id="g-pass" type="password" placeholder="leave blank for no passphrase">
+          <div></div>
+          <div class="hint">Stored in this app's own local keyring, separate from your
+            real GnuPG keyring &mdash; safe to generate throwaway test keys here.</div>
+        </div>
+        <div class="foot">
+          <button class="primary" id="g-generate">Generate key pair</button>
+          <span class="sub" id="g-status"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------ keys -->
+    <div class="pane" id="pane-keys">
+      <div class="card" style="margin-bottom:16px">
+        <h3>Import a key</h3>
+        <div class="grid">
+          <label>Paste armored key</label>
+          <textarea id="i-armored" class="big" style="min-height:80px"
+                    placeholder="-----BEGIN PGP PRIVATE KEY BLOCK-----&#10;&hellip;"></textarea>
+          <label>&hellip;or choose a file</label>
+          <input id="i-file" type="file">
+        </div>
+        <div class="foot">
+          <button class="primary" id="i-import">Import</button>
+          <span class="sub" id="i-status"></span>
+        </div>
+      </div>
+      <div class="foot" style="margin:0 0 12px">
+        <button id="k-refresh">Refresh</button>
+        <span class="sub" id="k-homedir"></span>
+      </div>
+      <div id="k-wrap">
+        <table id="t-keys">
+          <thead><tr>
+            <th>Identity</th><th>Type</th><th>Fingerprint</th>
+            <th>Created</th><th>Expires</th><th>Capabilities</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------------ test -->
+    <div class="pane" id="pane-test">
+      <div class="cols2">
+        <div class="card">
+          <h3>Encrypt</h3>
+          <div class="grid">
+            <label>Recipient key</label>
+            <select id="e-key"></select>
+            <label>Message</label>
+            <textarea id="e-message" class="big" placeholder="A message to encrypt with the selected public key&hellip;">This is a test message for the PGP Key Manager.</textarea>
+          </div>
+          <div class="foot">
+            <button class="primary" id="e-encrypt">Encrypt</button>
+          </div>
+          <div class="grid" style="margin-top:12px">
+            <label>Ciphertext</label>
+            <textarea id="e-cipher" class="big" readonly placeholder="Encrypted output appears here&hellip;"></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Decrypt</h3>
+          <div class="grid">
+            <label>Ciphertext</label>
+            <textarea id="d-cipher" class="big" placeholder="Paste an armored PGP message, or click &quot;Send to Decrypt&quot; after encrypting&hellip;"></textarea>
+            <label>Passphrase</label>
+            <input id="d-pass" type="password" placeholder="passphrase for the matching private key">
+          </div>
+          <div class="foot">
+            <button class="primary" id="d-decrypt">Decrypt</button>
+            <button id="d-send">&larr; Send ciphertext to Decrypt</button>
+          </div>
+          <div class="grid" style="margin-top:12px">
+            <label>Plaintext</label>
+            <textarea id="d-plain" class="big" readonly placeholder="Decrypted output appears here&hellip;"></textarea>
+          </div>
+          <div id="d-verify"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------------------------------------------------------ decrypt a file -->
+    <div class="pane" id="pane-decryptfile">
+      <div class="card" style="max-width:720px">
+        <h3>Decrypt a file</h3>
+        <div id="f-drop">
+          Drop an encrypted file here (<span class="mono">.gpg</span>, <span class="mono">.pgp</span>,
+          <span class="mono">.asc</span>, or any OpenPGP message) &mdash; or <u>click to browse</u>.
+          <span id="f-name"></span>
+          <input type="file" id="f-file" style="display:none">
+        </div>
+        <div class="grid" style="margin-top:14px">
+          <label>Passphrase</label>
+          <input id="f-pass" type="password" placeholder="passphrase for the matching private key">
+        </div>
+        <div class="foot">
+          <button class="primary" id="f-decrypt">Decrypt</button>
+          <span class="sub" id="f-status"></span>
+        </div>
+        <div id="f-result" hidden style="margin-top:14px">
+          <div class="note good" id="f-summary"></div>
+          <div class="grid">
+            <label id="f-preview-label">Preview</label>
+            <textarea id="f-preview" class="big" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="terminal">
+    <div class="tbar">
+      <span class="tdots"><i></i><i></i><i></i></span>
+      <span>gpg terminal</span>
+      <span class="grow"></span>
+      <button class="ghost" id="term-clear">Clear</button>
+    </div>
+    <div id="term-log"><div class="empty">Commands run against the local keyring will appear here.</div></div>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+// ---------------------------------------------------------------- tabs
+document.querySelectorAll(".tab").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".tab").forEach(b => b.classList.remove("on"));
+    document.querySelectorAll(".pane").forEach(p => p.classList.remove("on"));
+    btn.classList.add("on");
+    $(`pane-${btn.dataset.pane}`).classList.add("on");
+    if (btn.dataset.pane === "keys") loadKeys();
+    if (btn.dataset.pane === "test") loadKeys();
+  };
+});
+
+// ------------------------------------------------------------- terminal
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+}
+
+function logCommands(commands) {
+  if (!commands || !commands.length) return;
+  const log = $("term-log");
+  const empty = log.querySelector(".empty");
+  if (empty) empty.remove();
+  commands.forEach(c => {
+    const block = document.createElement("div");
+    let html = `<div class="cmd">${escapeHtml(c.command)}</div>`;
+    if (c.stdout && c.stdout.trim()) html += `<div class="out">${escapeHtml(c.stdout.trim())}</div>`;
+    if (c.stderr && c.stderr.trim()) html += `<div class="err">${escapeHtml(c.stderr.trim())}</div>`;
+    if (!c.ok) html += `<div class="rc"># exited ${c.returncode}</div>`;
+    html += `<div class="sep"></div>`;
+    block.innerHTML = html;
+    log.appendChild(block);
+  });
+  log.scrollTop = log.scrollHeight;
+}
+
+$("term-clear").onclick = () => {
+  $("term-log").innerHTML = '<div class="empty">Commands run against the local keyring will appear here.</div>';
+};
+
+// --------------------------------------------------------------- status
+async function loadStatus() {
+  try {
+    const res = await fetch("/api/status");
+    const s = await res.json();
+    if (!s.installed) {
+      $("gpgline").innerHTML = `<span class="dot bad"></span>gpg not found`;
+      $("gpg-missing").hidden = false;
+      $("g-generate").disabled = true;
+      return;
+    }
+    $("gpgline").innerHTML = `<span class="dot good"></span>${escapeHtml(s.version)}`;
+    $("k-homedir").textContent = `Keyring: ${s.homedir}`;
+  } catch (err) {
+    $("gpgline").innerHTML = `<span class="dot bad"></span>status check failed`;
+  }
+}
+
+// ----------------------------------------------------------------- keys
+let KEYS = [];
+
+function fmtDate(epoch) {
+  if (!epoch) return "&mdash;";
+  const d = new Date(parseInt(epoch, 10) * 1000);
+  return d.toISOString().slice(0, 10);
+}
+
+async function loadKeys() {
+  const res = await fetch("/api/keys");
+  const data = await res.json();
+  KEYS = data.keys || [];
+  $("n-keys").textContent = KEYS.length ? ` (${KEYS.length})` : "";
+  renderKeysTable();
+  renderEncryptSelect();
+}
+
+function renderKeysTable() {
+  const tbody = document.querySelector("#t-keys tbody");
+  if (!KEYS.length) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty">No keys yet &mdash; generate one on the Generate tab.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = KEYS.map(k => {
+    const caps = [];
+    if (k.has_secret) caps.push('<span class="pill good">private key</span>');
+    else caps.push('<span class="pill">public only</span>');
+    if (k.can_encrypt) caps.push('<span class="pill info">can encrypt</span>');
+    const short = k.fingerprint ? k.fingerprint.slice(-16) : k.key_id;
+    return `<tr>
+      <td class="uid" title="${escapeHtml(k.uid || "")}">${escapeHtml(k.uid || "(no uid)")}</td>
+      <td>${escapeHtml(k.algo)}</td>
+      <td><span class="mono fpr" title="${escapeHtml(k.fingerprint || "")}">${escapeHtml(short)}</span></td>
+      <td>${fmtDate(k.created)}</td>
+      <td>${k.expires ? fmtDate(k.expires) : "never"}</td>
+      <td>${caps.join(" ")}</td>
+      <td class="acts">
+        <button data-act="export-pub" data-fpr="${k.fingerprint}">Export public</button>
+        ${k.has_secret ? `<button data-act="export-priv" data-fpr="${k.fingerprint}">Export private</button>` : ""}
+        <button class="danger" data-act="delete" data-fpr="${k.fingerprint}">Delete</button>
+      </td>
+    </tr>`;
+  }).join("");
+
+  tbody.querySelectorAll("button[data-act]").forEach(btn => {
+    btn.onclick = () => handleKeyAction(btn.dataset.act, btn.dataset.fpr);
+  });
+}
+
+async function handleKeyAction(act, fpr) {
+  if (act === "delete") {
+    if (!confirm("Delete this key pair from the local keyring? This cannot be undone.")) return;
+    const res = await fetch("/api/delete", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({fingerprint: fpr}),
+    });
+    const data = await res.json();
+    logCommands(data.commands);
+    if (data.ok) loadKeys();
+    else alert(data.error || "Delete failed.");
+    return;
+  }
+  if (act === "export-priv") {
+    if (!confirm("This will display the ARMORED PRIVATE KEY in a popup. Continue?")) return;
+    const passphrase = prompt("Passphrase for this key (leave blank if it has none):", "") ?? "";
+    const res = await fetch("/api/export-private", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({fingerprint: fpr, passphrase}),
+    });
+    const data = await res.json();
+    logCommands(data.commands);
+    if (!data.ok) { alert(data.error || "Export failed."); return; }
+    prompt("Private key (copy it out):", data.armored);
+    return;
+  }
+  const res = await fetch(`/api/export?fingerprint=${encodeURIComponent(fpr)}`);
+  const data = await res.json();
+  logCommands(data.commands);
+  if (!data.ok) { alert(data.error || "Export failed."); return; }
+  prompt("Public key (copy it out):", data.armored);
+}
+
+$("k-refresh").onclick = loadKeys;
+
+// --------------------------------------------------------------- import key
+$("i-import").onclick = async () => {
+  const armored = $("i-armored").value.trim();
+  const file = $("i-file").files[0];
+  if (!armored && !file) {
+    $("i-status").textContent = "Paste an armored key or choose a file.";
+    return;
+  }
+  const form = new FormData();
+  if (file) form.append("keyfile", file);
+  if (armored) form.append("armored", armored);
+
+  $("i-import").disabled = true;
+  $("i-status").textContent = "Importing…";
+  try {
+    const res = await fetch("/api/import", {method: "POST", body: form});
+    const data = await res.json();
+    logCommands(data.commands);
+    if (data.ok) {
+      $("i-status").textContent = "Imported.";
+      $("i-armored").value = "";
+      $("i-file").value = "";
+      KEYS = data.keys || [];
+      renderKeysTable();
+      renderEncryptSelect();
+    } else {
+      $("i-status").textContent = data.error || "Import failed.";
+    }
+  } finally {
+    $("i-import").disabled = false;
+  }
+};
+
+// ---------------------------------------------------------------- generate
+$("g-generate").onclick = async () => {
+  const body = {
+    name: $("g-name").value.trim(),
+    email: $("g-email").value.trim(),
+    comment: $("g-comment").value.trim(),
+    key_type: $("g-type").value,
+    expire: $("g-expire").value,
+    passphrase: $("g-pass").value,
+  };
+  if (!body.name || !body.email) {
+    $("g-status").textContent = "Name and email are required.";
+    return;
+  }
+  $("g-generate").disabled = true;
+  $("g-status").textContent = "Generating… this can take a few seconds.";
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    logCommands(data.commands);
+    if (data.ok) {
+      $("g-status").textContent = `Key generated: ${data.key.fingerprint}`;
+      $("g-pass").value = "";
+      loadKeys();
+    } else {
+      $("g-status").textContent = data.error || "Generation failed.";
+    }
+  } finally {
+    $("g-generate").disabled = false;
+  }
+};
+
+// ------------------------------------------------------------------ test
+function renderEncryptSelect() {
+  const select = $("e-key");
+  const encryptable = KEYS.filter(k => k.can_encrypt);
+  select.innerHTML = encryptable.length
+    ? encryptable.map(k => `<option value="${k.fingerprint}">${escapeHtml(k.uid || k.fingerprint)} (${k.has_secret ? "has private key" : "public only"})</option>`).join("")
+    : `<option value="">No encryption-capable keys &mdash; generate one first</option>`;
+}
+
+$("e-encrypt").onclick = async () => {
+  const fingerprint = $("e-key").value;
+  const message = $("e-message").value;
+  if (!fingerprint) { alert("Generate a key first."); return; }
+  if (!message.trim()) { alert("Enter a message to encrypt."); return; }
+  const res = await fetch("/api/encrypt", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({fingerprint, message}),
+  });
+  const data = await res.json();
+  logCommands(data.commands);
+  if (data.ok) {
+    $("e-cipher").value = data.ciphertext;
+    $("d-verify").innerHTML = "";
+  } else {
+    alert(data.error || "Encryption failed.");
+  }
+};
+
+$("d-send").onclick = () => {
+  $("d-cipher").value = $("e-cipher").value;
+};
+
+$("d-decrypt").onclick = async () => {
+  const ciphertext = $("d-cipher").value;
+  const passphrase = $("d-pass").value;
+  if (!ciphertext.trim()) { alert("Paste an encrypted message first."); return; }
+  const res = await fetch("/api/decrypt", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ciphertext, passphrase}),
+  });
+  const data = await res.json();
+  logCommands(data.commands);
+  const verify = $("d-verify");
+  if (data.ok) {
+    $("d-plain").value = data.plaintext;
+    const original = $("e-message").value;
+    const roundTrip = $("e-cipher").value.trim() === ciphertext.trim();
+    if (roundTrip && data.plaintext.trim() === original.trim()) {
+      verify.innerHTML = '<div class="note good"><b>Round trip verified</b> &mdash; the decrypted text matches the original message.</div>';
+    } else {
+      verify.innerHTML = '';
+    }
+  } else {
+    $("d-plain").value = "";
+    verify.innerHTML = `<div class="note danger"><b>Decryption failed.</b> ${escapeHtml(data.error || "")}</div>`;
+  }
+};
+
+// --------------------------------------------------------- decrypt a file
+let selectedDecryptFile = null;
+
+function setSelectedDecryptFile(file) {
+  selectedDecryptFile = file || null;
+  $("f-name").textContent = selectedDecryptFile ? selectedDecryptFile.name : "";
+}
+
+const fDrop = $("f-drop");
+const fFile = $("f-file");
+fDrop.onclick = () => fFile.click();
+fFile.onchange = () => setSelectedDecryptFile(fFile.files[0]);
+fDrop.addEventListener("dragover", e => { e.preventDefault(); fDrop.classList.add("hot"); });
+fDrop.addEventListener("dragleave", () => fDrop.classList.remove("hot"));
+fDrop.addEventListener("drop", e => {
+  e.preventDefault();
+  fDrop.classList.remove("hot");
+  if (e.dataTransfer.files && e.dataTransfer.files.length) setSelectedDecryptFile(e.dataTransfer.files[0]);
+});
+
+$("f-decrypt").onclick = async () => {
+  if (!selectedDecryptFile) { alert("Choose an encrypted file first."); return; }
+  const form = new FormData();
+  form.append("file", selectedDecryptFile);
+  form.append("passphrase", $("f-pass").value);
+
+  $("f-decrypt").disabled = true;
+  $("f-status").textContent = "Decrypting…";
+  $("f-result").hidden = true;
+  try {
+    const res = await fetch("/api/decrypt-file", {method: "POST", body: form});
+    const data = await res.json();
+    logCommands(data.commands);
+    if (!data.ok) {
+      $("f-status").textContent = data.error || "Decryption failed.";
+      return;
+    }
+    $("f-status").textContent = "";
+    $("f-result").hidden = false;
+    $("f-summary").innerHTML =
+      `<b>Decrypted</b> &mdash; ${data.size.toLocaleString()} bytes. ` +
+      `<a href="/api/download/${encodeURIComponent(data.download_token)}">Download ${escapeHtml(data.filename)}</a> ` +
+      `(link works once).`;
+    if (data.text_preview !== null && data.text_preview !== undefined) {
+      $("f-preview-label").textContent = "Preview";
+      $("f-preview").value = data.text_preview;
+      $("f-preview").parentElement.hidden = false;
+    } else {
+      $("f-preview").parentElement.hidden = true;
+    }
+  } finally {
+    $("f-decrypt").disabled = false;
+  }
+};
+
+loadStatus();
+loadKeys();
+</script>
+</body>
+</html>

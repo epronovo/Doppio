@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MIG Sync</title>
+<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700,800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --doppio-red:#D4000E;
+    --doppio-dark:#32373c;
+    --doppio-gray:#8A8886;
+    --doppio-bg:#FFFFFF;
+    --doppio-bg-alt:#F7F7F7;
+    --line:#E5E3E2;
+    --good:#1e7e34;
+    --good-bg:#e6f4ea;
+    --amber:#8a6100;
+    --amber-bg:#fff4dc;
+    --bad:#b3261e;
+    --bad-bg:#fdeceb;
+    --info-bg:#eef2fb;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--doppio-bg); color:var(--doppio-dark);
+    font-family:'Montserrat',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:14px; line-height:1.5;
+  }
+  h1,h2,h3,h4{font-family:'Montserrat',sans-serif; font-weight:700; margin:0}
+  a{color:var(--doppio-red)}
+  select,input,button,textarea{
+    font:inherit; color:var(--doppio-dark); background:#fff;
+    border:1px solid #cfcccb; border-radius:6px; padding:8px 10px; outline:none;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--doppio-red)}
+  button{cursor:pointer; font-weight:600; transition:background .12s,border-color .12s}
+  button.primary{background:var(--doppio-red); border-color:var(--doppio-red); color:#fff}
+  button.primary:hover{background:#b40010}
+  button.secondary{background:#fff; border:1px solid var(--doppio-dark); color:var(--doppio-dark)}
+  button.secondary:hover{background:var(--doppio-bg-alt)}
+  button:disabled{opacity:.4; cursor:not-allowed}
+  button.linklike{background:none;border:none;color:var(--doppio-red);padding:2px 4px;font-weight:600}
+
+  /* ------------------------------------------------------------- header */
+  header{
+    background:#fff; border-bottom:1px solid var(--line);
+    padding:14px 28px; display:flex; align-items:center; gap:14px;
+  }
+  .brandmark{
+    width:30px; height:30px; border-radius:8px;
+    background:linear-gradient(135deg,var(--doppio-red),#8f0009);
+    flex:0 0 auto;
+  }
+  .brandtext{display:flex; flex-direction:column; line-height:1.15}
+  .brandtext b{font-size:17px; letter-spacing:.2px}
+  .brandtext span{font-size:12px; color:var(--doppio-gray); font-weight:600}
+
+  /* --------------------------------------------------------------- tabs */
+  .tabs{
+    display:flex; gap:4px; border-bottom:1px solid var(--line);
+    padding:0 20px; overflow-x:auto; background:#fff;
+  }
+  .tab{
+    padding:13px 16px; cursor:pointer; color:var(--doppio-gray);
+    font-weight:600; font-size:13px; white-space:nowrap;
+    border-bottom:3px solid transparent; margin-bottom:-1px;
+  }
+  .tab:hover{color:var(--doppio-dark)}
+  .tab.on{color:var(--doppio-dark); border-bottom-color:var(--doppio-red)}
+
+  main{padding:24px 28px 60px; max-width:1400px; margin:0 auto}
+  .pane{display:none}
+  .pane.on{display:block}
+
+  .card{
+    background:var(--doppio-bg-alt); border-radius:8px; padding:22px 24px;
+    margin-bottom:18px;
+  }
+  .card h3{font-size:14px; text-transform:uppercase; letter-spacing:.5px;
+    color:var(--doppio-gray); margin-bottom:14px}
+  .card + .card{margin-top:0}
+
+  /* --------------------------------------------------------- tenant row */
+  .tenants{display:flex; gap:16px; flex-wrap:wrap}
+  .tenant-box{
+    flex:1; min-width:280px; background:#fff; border:1px solid var(--line);
+    border-radius:8px; padding:16px;
+  }
+  .tenant-box h4{font-size:12px; text-transform:uppercase; letter-spacing:.6px;
+    color:var(--doppio-gray); margin-bottom:10px}
+  .tenant-row{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end}
+  .fld{display:flex; flex-direction:column; gap:4px; min-width:110px}
+  .fld.grow{flex:1; min-width:160px}
+  .fld label{font-size:11px; color:var(--doppio-gray); font-weight:600; text-transform:uppercase; letter-spacing:.3px}
+  .ready{
+    margin-top:10px; display:flex; align-items:center; gap:8px;
+    font-size:12.5px; color:var(--good); font-weight:600;
+  }
+  .ready .dot{width:9px; height:9px; border-radius:50%; background:var(--good); flex:0 0 auto}
+  .ready.off{display:none}
+  .err-note{color:var(--bad); font-size:12.5px; margin-top:8px; font-weight:600}
+
+  /* --------------------------------------------------------- run row */
+  .runrow{display:flex; gap:10px; align-items:center; margin:16px 0; flex-wrap:wrap}
+  .step-actions{display:flex; gap:10px; flex-wrap:wrap; margin:10px 0}
+
+  /* ------------------------------------------------------------ banner */
+  .banner{
+    border-radius:6px; padding:12px 14px; margin:12px 0; font-size:13px; font-weight:600;
+  }
+  .banner.error{background:var(--bad-bg); color:var(--bad)}
+  .banner.success{background:var(--good-bg); color:var(--good)}
+  .banner.info{background:var(--info-bg); color:var(--doppio-dark)}
+
+  /* ----------------------------------------------------------- progress */
+  .progresswrap{margin:14px 0}
+  .progresswrap .lbl{display:flex; justify-content:space-between; font-size:12.5px;
+    color:var(--doppio-gray); margin-bottom:6px}
+  .bar{height:8px; border-radius:4px; background:#e7e5e4; overflow:hidden}
+  .bar > i{display:block; height:100%; width:0; border-radius:4px; background:var(--doppio-red); transition:width .25s}
+  .bar.indet > i{width:30%; animation:slide 1.1s ease-in-out infinite}
+  @keyframes slide{0%{margin-left:-30%}100%{margin-left:100%}}
+  .phase{font-size:12.5px; color:var(--doppio-gray); margin-top:6px}
+  .phase.longrun{color:var(--amber)}
+
+  /* -------------------------------------------------------------- table */
+  .tablewrap{overflow-x:auto; border:1px solid var(--line); border-radius:8px; background:#fff}
+  table{width:100%; border-collapse:collapse; font-size:12.8px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap}
+  th{background:#fff; color:var(--doppio-gray); font-weight:700; font-size:11.5px;
+     text-transform:uppercase; letter-spacing:.4px; position:sticky; top:0}
+  td.wrap{white-space:normal; max-width:420px}
+  tbody tr:nth-child(even){background:var(--doppio-bg-alt)}
+  .pill{display:inline-block; padding:2px 9px; border-radius:20px; font-size:11px; font-weight:700}
+  .pill.new,.pill.add{background:var(--good-bg); color:var(--good)}
+  .pill.chg,.pill.update{background:var(--amber-bg); color:var(--amber)}
+  .pill.skip{background:#eee; color:var(--doppio-gray)}
+  .counts{display:flex; gap:18px; flex-wrap:wrap; font-size:12.5px; color:var(--doppio-gray); margin:8px 0 14px}
+  .counts b{color:var(--doppio-dark); font-weight:700}
+  .groupbox{margin-bottom:14px; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff}
+  .groupbox summary{cursor:pointer; padding:10px 14px; font-weight:700; font-size:13px;
+    background:var(--doppio-bg-alt); list-style:none}
+  .groupbox summary::-webkit-details-marker{display:none}
+  .groupbox summary::before{content:"▸ "; color:var(--doppio-gray)}
+  .groupbox[open] summary::before{content:"▾ "}
+  .groupbox .body{padding:10px 14px}
+  .changeslist{margin:0; padding-left:18px; font-size:12px}
+  .muted{color:var(--doppio-gray)}
+  .small{font-size:12px}
+
+  /* -------------------------------------------------------------- drop */
+  .dropzone{
+    border:2px dashed var(--line); border-radius:8px; padding:26px; text-align:center;
+    color:var(--doppio-gray); background:#fff; transition:.12s;
+  }
+  .dropzone.hot{border-color:var(--doppio-red); background:var(--info-bg); color:var(--doppio-dark)}
+  .dropzone b{color:var(--doppio-red)}
+
+  code{background:#fff; border:1px solid var(--line); border-radius:4px; padding:1px 5px; font-size:12px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brandmark"></div>
+  <div class="brandtext">
+    <b>Doppio Group</b>
+    <span>MIG Sync</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab on" data-pane="panel-views">Panel Views</div>
+  <div class="tab" data-pane="partner-media">Partner Media</div>
+  <div class="tab" data-pane="partner-ref">Partner Ref</div>
+  <div class="tab" data-pane="sorting-options">Sorting Options</div>
+  <div class="tab" data-pane="sorting-orders">Sorting Orders</div>
+  <div class="tab" data-pane="transl-data">Transl Data</div>
+  <div class="tab" data-pane="field-groups">Field Groups</div>
+  <div class="tab" data-pane="export-summary">Export Summary</div>
+  <div class="tab" data-pane="migration-review">Migration Review</div>
+</div>
+
+<main>
+
+<!-- ============================================================ PANEL VIEWS -->
+<section class="pane on" id="pane-panel-views">
+  <div class="card">
+    <h3>Tenants</h3>
+    <div class="tenants" id="pv-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Fetch &amp; Diff</h3>
+    <div class="runrow">
+      <div class="fld"><label>PGNM filter (optional)</label><input id="pv-pgnm" placeholder="blank = all programs" style="width:180px"></div>
+      <button class="primary" id="pv-run" style="align-self:flex-end">Fetch &amp; Diff</button>
+    </div>
+    <div id="pv-banner"></div>
+    <div class="progresswrap" id="pv-progress" hidden>
+      <div class="lbl"><span id="pv-phase-lbl">Working…</span><span id="pv-count"></span></div>
+      <div class="bar" id="pv-bar"><i></i></div>
+      <div class="phase" id="pv-phase"></div>
+    </div>
+    <div id="pv-counts" class="counts"></div>
+    <div class="step-actions" id="pv-step-actions"></div>
+    <div class="tablewrap" id="pv-tablewrap" hidden>
+      <table>
+        <thead><tr><th>PGNM</th><th>PIC1</th><th>PAVR</th><th>STATUS</th><th>DIFF</th></tr></thead>
+        <tbody id="pv-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ PARTNER MEDIA -->
+<section class="pane" id="pane-partner-media">
+  <div class="card">
+    <h3>Tenants</h3>
+    <div class="tenants" id="pm-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Fetch &amp; Diff</h3>
+    <div class="runrow">
+      <button class="primary" id="pm-run">Fetch &amp; Diff</button>
+    </div>
+    <div id="pm-banner"></div>
+    <div class="progresswrap" id="pm-progress" hidden>
+      <div class="lbl"><span id="pm-phase-lbl">Working…</span><span id="pm-count"></span></div>
+      <div class="bar" id="pm-bar"><i></i></div>
+      <div class="phase" id="pm-phase"></div>
+    </div>
+    <div id="pm-counts" class="counts"></div>
+    <div class="step-actions" id="pm-step-actions"></div>
+    <div class="tablewrap" id="pm-tablewrap" hidden>
+      <table>
+        <thead><tr><th>DIVI</th><th>DONR</th><th>DOVA</th><th>MEPF</th><th>PRF1</th><th>PRF2</th><th>MEDC</th><th>SEQN</th><th>ACTION</th><th>TXN</th><th>CHANGES</th></tr></thead>
+        <tbody id="pm-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ PARTNER REF -->
+<section class="pane" id="pane-partner-ref">
+  <div class="card">
+    <h3>Tenants</h3>
+    <div class="tenants" id="pr-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Fetch &amp; Diff</h3>
+    <div class="runrow">
+      <button class="primary" id="pr-run">Fetch &amp; Diff</button>
+    </div>
+    <div id="pr-banner"></div>
+    <div class="progresswrap" id="pr-progress" hidden>
+      <div class="lbl"><span id="pr-phase-lbl">Working…</span><span id="pr-count"></span></div>
+      <div class="bar" id="pr-bar"><i></i></div>
+      <div class="phase" id="pr-phase"></div>
+    </div>
+    <div id="pr-counts" class="counts"></div>
+    <div class="step-actions" id="pr-step-actions"></div>
+    <div class="tablewrap" id="pr-tablewrap" hidden>
+      <table>
+        <thead><tr><th>DIVI</th><th>DONR</th><th>DOVA</th><th>MEPF</th><th>PRF1</th><th>PRF2</th><th>TX15</th><th>TX40</th><th>ACTION</th><th>CHANGES</th></tr></thead>
+        <tbody id="pr-tbody"></tbody>
+      </table>
+    </div>
+    <div id="pr-summary"></div>
+  </div>
+</section>
+
+<!-- ============================================================ SORTING OPTIONS -->
+<section class="pane" id="pane-sorting-options">
+  <div class="card">
+    <h3>Tenants</h3>
+    <div class="tenants" id="so-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Fetch &amp; Diff</h3>
+    <div class="runrow">
+      <button class="primary" id="so-run">Fetch &amp; Diff</button>
+    </div>
+    <div id="so-banner"></div>
+    <div class="progresswrap" id="so-progress" hidden>
+      <div class="lbl"><span id="so-phase-lbl">Working…</span><span id="so-count"></span></div>
+      <div class="bar" id="so-bar"><i></i></div>
+      <div class="phase" id="so-phase"></div>
+    </div>
+    <div id="so-counts" class="counts"></div>
+    <div class="step-actions" id="so-step-actions"></div>
+    <div id="so-groups"></div>
+  </div>
+</section>
+
+<!-- ============================================================ SORTING ORDERS -->
+<section class="pane" id="pane-sorting-orders">
+  <div class="card">
+    <h3>Tenants</h3>
+    <div class="tenants" id="sr-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Fetch &amp; Diff</h3>
+    <div class="runrow">
+      <div class="fld"><label>PGNM filter (optional)</label><input id="sr-pgnm" placeholder="blank = all programs" style="width:180px"></div>
+      <button class="primary" id="sr-run" style="align-self:flex-end">Fetch &amp; Diff</button>
+    </div>
+    <div id="sr-banner"></div>
+    <div class="progresswrap" id="sr-progress" hidden>
+      <div class="lbl"><span id="sr-phase-lbl">Working…</span><span id="sr-count"></span></div>
+      <div class="bar" id="sr-bar"><i></i></div>
+      <div class="phase" id="sr-phase"></div>
+    </div>
+    <div id="sr-counts" class="counts"></div>
+    <div class="step-actions" id="sr-step-actions"></div>
+    <div id="sr-groups"></div>
+  </div>
+</section>
+
+<!-- ============================================================ TRANSL DATA -->
+<section class="pane" id="pane-transl-data">
+  <div class="card">
+    <h3>Tenants <span class="muted small">(global scope — translation data ignores company &amp; division)</span></h3>
+    <div class="tenants" id="td-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Fetch &amp; Diff (SOURCE only)</h3>
+    <div class="runrow">
+      <button class="primary" id="td-run">Fetch &amp; Diff</button>
+    </div>
+    <div id="td-banner"></div>
+    <div class="progresswrap" id="td-progress" hidden>
+      <div class="lbl"><span id="td-phase-lbl">Working…</span><span id="td-count"></span></div>
+      <div class="bar" id="td-bar"><i></i></div>
+      <div class="phase" id="td-phase"></div>
+    </div>
+    <div id="td-counts" class="counts"></div>
+    <div class="step-actions" id="td-step-actions"></div>
+    <div class="tablewrap" id="td-tablewrap" hidden>
+      <table>
+        <thead><tr><th>IDTR</th><th>TRQF</th><th>DIVI</th><th>TX15</th><th>MVXP</th><th>EXTP</th><th>MVXD</th><th>MBMD</th><th>TX40</th></tr></thead>
+        <tbody id="td-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ FIELD GROUPS -->
+<section class="pane" id="pane-field-groups">
+  <div class="card">
+    <h3>Tenant</h3>
+    <div class="tenants" id="fg-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Run (CMS005MI.GenStandard)</h3>
+    <div class="runrow">
+      <button class="primary" id="fg-run">Run</button>
+    </div>
+    <div id="fg-banner"></div>
+    <div class="progresswrap" id="fg-progress" hidden>
+      <div class="lbl"><span id="fg-phase-lbl">Working…</span><span id="fg-count"></span></div>
+      <div class="bar indet" id="fg-bar"><i></i></div>
+      <div class="phase longrun" id="fg-phase">This can take several minutes — the M3 background job is still running. It's OK, it hasn't stalled.</div>
+    </div>
+    <div id="fg-result"></div>
+  </div>
+</section>
+
+<!-- ============================================================ EXPORT SUMMARY -->
+<section class="pane" id="pane-export-summary">
+  <div class="card">
+    <h3>Upload .log files</h3>
+    <div class="dropzone" id="es-drop">
+      <div><b>Drop .log files here</b> — or <label style="color:var(--doppio-red); cursor:pointer; text-decoration:underline">browse<input type="file" id="es-file" multiple accept=".log" hidden></label></div>
+      <div class="small" style="margin-top:6px">M3 IES / export component logs</div>
+    </div>
+    <div class="runrow">
+      <button class="secondary" id="es-scan">Scan folder</button>
+    </div>
+    <div id="es-banner"></div>
+    <div id="es-results"></div>
+  </div>
+</section>
+
+<!-- ============================================================ MIGRATION REVIEW -->
+<section class="pane" id="pane-migration-review">
+  <div class="card">
+    <h3>Tenant</h3>
+    <div class="tenants" id="mr-tenants"></div>
+  </div>
+  <div class="card">
+    <h3>Upload .xlsx workbooks</h3>
+    <div class="dropzone" id="mr-drop">
+      <div><b>Drop workbooks here</b> — or <label style="color:var(--doppio-red); cursor:pointer; text-decoration:underline">browse<input type="file" id="mr-file" multiple accept=".xlsx" hidden></label></div>
+      <div class="small" style="margin-top:6px">Must contain a <code>DTA_FIN_MVX</code> sheet</div>
+    </div>
+    <div id="mr-upload-banner"></div>
+  </div>
+  <div class="card">
+    <h3>Scan folder</h3>
+    <div class="runrow">
+      <button class="primary" id="mr-scan">Scan folder</button>
+    </div>
+    <div id="mr-banner"></div>
+    <div class="progresswrap" id="mr-progress" hidden>
+      <div class="lbl"><span id="mr-phase-lbl">Working…</span><span id="mr-count"></span></div>
+      <div class="bar" id="mr-bar"><i></i></div>
+      <div class="phase" id="mr-phase"></div>
+    </div>
+    <div id="mr-results"></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const el = (t, a = {}, kids = []) => {
+  const n = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) {
+    if (k === 'class') n.className = v;
+    else if (k === 'text') n.textContent = v;
+    else if (k === 'html') n.innerHTML = v;
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  (Array.isArray(kids) ? kids : [kids]).forEach(k => k && n.appendChild(k));
+  return n;
+};
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  const j = await r.json().catch(() => ({ status: 'error', message: r.statusText }));
+  if (!r.ok || j.status === 'error') throw new Error(j.message || 'Request failed');
+  return j;
+}
+
+/* =============================================================================
+   Job polling: POST returns {job_id}; poll /api/job/<id> every ~1.5s until
+   status is "done" or "error", driving a progress bar + phase text. If the
+   job's total is 0 the wait is open-ended (e.g. Field Groups) - show an
+   indeterminate bar and the phase text only, no percentage.
+============================================================================= */
+function pgEls(prefix) {
+  return {
+    wrap: $('#' + prefix + '-progress'),
+    bar: $('#' + prefix + '-bar'),
+    count: $('#' + prefix + '-count'),
+    phase: $('#' + prefix + '-phase'),
+  };
+}
+function showProgress(prefix) {
+  const { wrap, bar, count, phase } = pgEls(prefix);
+  wrap.hidden = false;
+  bar.classList.add('indet');
+  bar.firstElementChild.style.width = '';
+  count.textContent = '';
+  phase.textContent = '';
+}
+function updateProgress(prefix, job) {
+  const { bar, count, phase } = pgEls(prefix);
+  if (job.total > 0) {
+    bar.classList.remove('indet');
+    bar.firstElementChild.style.width = Math.round(100 * job.done / job.total) + '%';
+    count.textContent = `${job.done.toLocaleString()} / ${job.total.toLocaleString()}`;
+  } else {
+    bar.classList.add('indet');
+    count.textContent = '';
+  }
+  phase.textContent = job.phase || '';
+}
+function hideProgress(prefix) {
+  pgEls(prefix).wrap.hidden = true;
+}
+function banner(prefix, msg, kind) {
+  const b = $('#' + prefix + '-banner');
+  if (!msg) { b.innerHTML = ''; return; }
+  b.innerHTML = '';
+  b.appendChild(el('div', { class: 'banner ' + (kind || 'info'), text: msg }));
+}
+
+/**
+ * POST body to url. If the response has a job_id, poll /api/job/<id> every
+ * 1.5s (driving the progress bar under `prefix`) until status is done/error,
+ * then resolve with job.result. A response with no job_id (e.g. the export
+ * routes, which are synchronous) resolves immediately with the response itself.
+ */
+async function runJob(prefix, url, body) {
+  banner(prefix, '');
+  const first = await api(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  if (!first.job_id) return first;
+  if (first.job_id === null) return first; // explicit "nothing to do" job_id:null
+
+  showProgress(prefix);
+  try {
+    for (;;) {
+      await new Promise(r => setTimeout(r, 1500));
+      const { job } = await api('/api/job/' + first.job_id);
+      updateProgress(prefix, job);
+      if (job.status === 'done') return job.result;
+      if (job.status === 'error') throw new Error(job.error || 'Job failed');
+    }
+  } finally {
+    hideProgress(prefix);
+  }
+}
+
+/* =============================================================================
+   Tenant mini-forms. Each tab builds one or two of these via mkTenantForm(),
+   which renders an .ionapi <select>, Company/Division inputs, a Connect
+   button, and a green "Ready" indicator once /api/tenant/connect succeeds.
+   The returned object exposes .tenantId (getter) and .container (the DOM
+   node to insert), plus .onReady(cb) to run something once connected.
+============================================================================= */
+let ionapiFiles = [];
+async function loadIonapiFiles() {
+  if (ionapiFiles.length) return ionapiFiles;
+  const j = await api('/api/ionapi');
+  ionapiFiles = j.files || [];
+  return ionapiFiles;
+}
+
+function mkTenantForm({ title, forceGlobal, hideDivision, idPrefix }) {
+  const state = { tenantId: null, ready: false, readyCbs: [] };
+
+  const box = el('div', { class: 'tenant-box' });
+  box.appendChild(el('h4', { text: title }));
+
+  const fileSel = el('select', { id: idPrefix + '-file' });
+  fileSel.appendChild(el('option', { value: '', text: '— choose .ionapi —' }));
+
+  const companyInp = el('input', { id: idPrefix + '-company', placeholder: 'e.g. 100', style: 'width:80px' });
+  const divisionInp = el('input', { id: idPrefix + '-division', placeholder: 'e.g. 100', style: 'width:80px' });
+  const divisionFld = el('div', { class: 'fld' }, [el('label', { text: 'Division' }), divisionInp]);
+  if (hideDivision) { divisionInp.disabled = true; divisionInp.placeholder = 'n/a (global)'; }
+
+  const connectBtn = el('button', { class: 'secondary', text: 'Connect' });
+  const readyDiv = el('div', { class: 'ready off' }, [
+    el('span', { class: 'dot' }),
+    el('span', { text: '' }),
+  ]);
+  const errDiv = el('div', { class: 'err-note' });
+
+  const row = el('div', { class: 'tenant-row' }, [
+    el('div', { class: 'fld grow' }, [el('label', { text: '.ionapi file' }), fileSel]),
+    el('div', { class: 'fld' }, [el('label', { text: 'Company' }), companyInp]),
+    divisionFld,
+    connectBtn,
+  ]);
+  box.appendChild(row);
+  box.appendChild(readyDiv);
+  box.appendChild(errDiv);
+
+  loadIonapiFiles().then(files => {
+    files.forEach(f => fileSel.appendChild(el('option', { value: f, text: f })));
+  }).catch(e => { errDiv.textContent = 'Could not list .ionapi files: ' + e.message; });
+
+  connectBtn.addEventListener('click', async () => {
+    errDiv.textContent = '';
+    const ionapi_file = fileSel.value;
+    if (!ionapi_file) { errDiv.textContent = 'Choose an .ionapi file first.'; return; }
+    connectBtn.disabled = true;
+    connectBtn.textContent = 'Connecting…';
+    try {
+      const j = await api('/api/tenant/connect', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ionapi_file,
+          company: companyInp.value.trim(),
+          division: hideDivision ? '' : divisionInp.value.trim(),
+          global_scope: !!forceGlobal,
+          label: title,
+        }),
+      });
+      state.tenantId = j.tenant_id;
+      state.ready = true;
+      readyDiv.classList.remove('off');
+      readyDiv.querySelector('span:last-child').textContent =
+        `Ready — ${j.ti} (${j.ionapi_file})`;
+      state.readyCbs.forEach(cb => cb());
+    } catch (e) {
+      errDiv.textContent = e.message;
+    } finally {
+      connectBtn.disabled = false;
+      connectBtn.textContent = 'Connect';
+    }
+  });
+
+  return {
+    container: box,
+    get tenantId() { return state.tenantId; },
+    get ready() { return state.ready; },
+    onReady(cb) { state.readyCbs.push(cb); },
+  };
+}
+
+/* =============================================================================
+   Shared step-action helper: renders a row of buttons that only appear once
+   the prior step succeeded, mirroring the CLI's own step order
+   (fetch-diff -> [export ->] upload -> process-in-m3, or fetch-diff -> apply).
+============================================================================= */
+function clearNode(node) { node.innerHTML = ''; }
+
+/**
+ * Same as runJob(), but also returns the job_id (so a later "export" or
+ * "apply" call can pass {job_id} back per the route map's _job_result()
+ * pattern). Falls back to jobId:null for a synchronous response (no job_id
+ * at all, or an explicit job_id:null meaning "nothing to do").
+ */
+async function runJobWithId(prefix, url, body) {
+  banner(prefix, '');
+  const first = await api(url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body || {}),
+  });
+  if (!first.job_id) return { jobId: null, result: first };
+
+  showProgress(prefix);
+  try {
+    for (;;) {
+      await new Promise(r => setTimeout(r, 1500));
+      const { job } = await api('/api/job/' + first.job_id);
+      updateProgress(prefix, job);
+      if (job.status === 'done') return { jobId: first.job_id, result: job.result };
+      if (job.status === 'error') throw new Error(job.error || 'Job failed');
+    }
+  } finally {
+    hideProgress(prefix);
+  }
+}
+
+/**
+ * The common EVS100 chain shared by Panel Views / Sorting Options /
+ * Sorting Orders / Transl Data: fetch-diff already ran (jobId known) ->
+ * Export (POST {job_id} -> {file, download, message[, counts]}) ->
+ * Upload to DEST (POST {dest_tenant_id, filename} -> job) ->
+ * Process in M3 (POST {dest_tenant_id, filename} -> job).
+ * Renders into `box`, appending buttons/links left to right as each step
+ * completes. `getDest()` returns the tab's DEST (or single) tenant form.
+ */
+function renderExportChain(prefix, box, jobId, { exportUrl, uploadUrl, processUrl, getDest, onExportResult }) {
+  const exportBtn = el('button', { class: 'primary', text: 'Export to EVS100' });
+  box.appendChild(exportBtn);
+  exportBtn.addEventListener('click', async () => {
+    exportBtn.disabled = true;
+    try {
+      const j = await api(exportUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: jobId }),
+      });
+      banner(prefix, j.message, 'success');
+      if (onExportResult) onExportResult(j);
+      renderUpload(j.file);
+    } catch (e) { banner(prefix, e.message, 'error'); }
+    finally { exportBtn.disabled = false; }
+  });
+
+  function renderUpload(filename) {
+    box.appendChild(el('a', {
+      href: '/api/download/evs100/' + encodeURIComponent(filename),
+      text: 'Download ' + filename, style: 'margin-left:12px',
+    }));
+    const uploadBtn = el('button', { class: 'secondary', text: 'Upload to DEST', style: 'margin-left:12px' });
+    box.appendChild(uploadBtn);
+    uploadBtn.addEventListener('click', async () => {
+      const dest = getDest();
+      if (!dest.ready) return banner(prefix, 'Connect the DEST tenant first.', 'error');
+      uploadBtn.disabled = true;
+      try {
+        const r = await runJob(prefix, uploadUrl, { dest_tenant_id: dest.tenantId, filename });
+        banner(prefix, r.message, r.ok ? 'success' : 'error');
+        if (r.ok) renderProcess(filename);
+      } catch (e) { banner(prefix, e.message, 'error'); }
+      finally { uploadBtn.disabled = false; }
+    });
+  }
+
+  function renderProcess(filename) {
+    const processBtn = el('button', { class: 'secondary', text: 'Process in M3', style: 'margin-left:12px' });
+    box.appendChild(processBtn);
+    processBtn.addEventListener('click', async () => {
+      const dest = getDest();
+      processBtn.disabled = true;
+      try {
+        const r = await runJob(prefix, processUrl, { dest_tenant_id: dest.tenantId, filename });
+        banner(prefix, r.message, r.ok ? 'success' : 'error');
+      } catch (e) { banner(prefix, e.message, 'error'); }
+      finally { processBtn.disabled = false; }
+    });
+  }
+}
+
+function countsLine(el_, pairs) {
+  el_.innerHTML = pairs.map(([label, val]) => `<span><b>${val}</b> ${esc(label)}</span>`).join('');
+}
+
+/* =============================================================================
+   PANEL VIEWS  (SOURCE + DEST, optional PGNM filter, EVS100 file)
+============================================================================= */
+(() => {
+  const source = mkTenantForm({ title: 'SOURCE', idPrefix: 'pv-src' });
+  const dest = mkTenantForm({ title: 'DEST', idPrefix: 'pv-dst' });
+  $('#pv-tenants').append(source.container, dest.container);
+
+  function renderPreview(preview) {
+    const tb = $('#pv-tbody'); clearNode(tb);
+    $('#pv-tablewrap').hidden = !preview.length;
+    preview.forEach(r => {
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: r.PGNM }), el('td', { text: r.PIC1 }), el('td', { text: r.PAVR }),
+        el('td', {}, el('span', { class: 'pill ' + r.STATUS.toLowerCase(), text: r.STATUS })),
+        el('td', { class: 'wrap', text: r.DIFF }),
+      ]));
+    });
+  }
+
+  $('#pv-run').addEventListener('click', async () => {
+    if (!source.ready || !dest.ready) return banner('pv', 'Connect both SOURCE and DEST tenants first.', 'error');
+    const btn = $('#pv-run'); btn.disabled = true;
+    clearNode($('#pv-counts')); clearNode($('#pv-step-actions')); $('#pv-tablewrap').hidden = true;
+    try {
+      const { jobId, result } = await runJobWithId('pv', '/api/panel-views/fetch-diff', {
+        source_tenant_id: source.tenantId, dest_tenant_id: dest.tenantId,
+        pgnm_filter: $('#pv-pgnm').value.trim(),
+      });
+      const c = result.counts;
+      countsLine($('#pv-counts'), [['SOURCE', c.source], ['DEST', c.dest], ['differing', c.differing]]);
+      renderPreview(result.preview);
+      banner('pv', `${c.differing} view(s) differ.`, 'success');
+      if (result.differing.length) {
+        renderExportChain('pv', $('#pv-step-actions'), jobId, {
+          exportUrl: '/api/panel-views/export',
+          uploadUrl: '/api/panel-views/upload',
+          processUrl: '/api/panel-views/process-in-m3',
+          getDest: () => dest,
+        });
+      }
+    } catch (e) { banner('pv', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   PARTNER MEDIA  (SOURCE + DEST, direct write, always-generated summary xlsx)
+============================================================================= */
+(() => {
+  const source = mkTenantForm({ title: 'SOURCE', idPrefix: 'pm-src' });
+  const dest = mkTenantForm({ title: 'DEST', idPrefix: 'pm-dst' });
+  $('#pm-tenants').append(source.container, dest.container);
+
+  function renderPreview(preview) {
+    const tb = $('#pm-tbody'); clearNode(tb);
+    $('#pm-tablewrap').hidden = !preview.length;
+    preview.forEach(r => {
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: r.DIVI }), el('td', { text: r.DONR }), el('td', { text: r.DOVA }),
+        el('td', { text: r.MEPF }), el('td', { text: r.PRF1 }), el('td', { text: r.PRF2 }),
+        el('td', { text: r.MEDC }), el('td', { text: r.SEQN }),
+        el('td', {}, el('span', { class: 'pill ' + r.ACTION.toLowerCase(), text: r.ACTION })),
+        el('td', { text: r.TXN }),
+        el('td', { class: 'wrap', text: r.CHANGES }),
+      ]));
+    });
+  }
+
+  function renderApplyStep(jobId) {
+    const box = $('#pm-step-actions');
+    const applyBtn = el('button', { class: 'primary', text: 'Apply to DEST' });
+    box.appendChild(applyBtn);
+    applyBtn.addEventListener('click', async () => {
+      if (!dest.ready) return banner('pm', 'Connect DEST tenant first.', 'error');
+      applyBtn.disabled = true;
+      try {
+        const r = await runJob('pm', '/api/partner-media/apply', { job_id: jobId, dest_tenant_id: dest.tenantId });
+        const c = r.counts;
+        banner('pm', 'Apply complete — see summary below.', 'success');
+        const out = el('div', { class: 'card', style: 'margin-top:12px' });
+        out.appendChild(el('h3', { text: 'Apply result' }));
+        out.appendChild(el('div', { class: 'counts', html:
+          `<span><b>${c.dlt_success}</b> deleted / <b>${c.dlt_failed}</b> failed</span>` +
+          `<span><b>${c.update_success}</b> updated / <b>${c.update_failed}</b> failed / <b>${c.update_skipped}</b> skipped</span>` +
+          `<span><b>${c.add_success}</b> added / <b>${c.add_failed}</b> failed / <b>${c.add_skipped}</b> skipped</span>`
+        }));
+        out.appendChild(el('a', { href: '/api/download/partner_media/' + encodeURIComponent(r.summary_file), text: 'Download ' + r.summary_file }));
+        box.appendChild(out);
+      } catch (e) { banner('pm', e.message, 'error'); }
+      finally { applyBtn.disabled = false; }
+    });
+  }
+
+  $('#pm-run').addEventListener('click', async () => {
+    if (!source.ready || !dest.ready) return banner('pm', 'Connect both SOURCE and DEST tenants first.', 'error');
+    const btn = $('#pm-run'); btn.disabled = true;
+    clearNode($('#pm-counts')); clearNode($('#pm-step-actions')); $('#pm-tablewrap').hidden = true;
+    try {
+      const { jobId, result } = await runJobWithId('pm', '/api/partner-media/fetch-diff', {
+        source_tenant_id: source.tenantId, dest_tenant_id: dest.tenantId,
+      });
+      const c = result.counts;
+      countsLine($('#pm-counts'), [['SOURCE', c.source], ['DEST', c.dest], ['to update', c.to_update], ['to add', c.to_add]]);
+      renderPreview(result.preview);
+      banner('pm', `${c.to_update} to update, ${c.to_add} to add.`, 'success');
+      if (result.preview.length) renderApplyStep(jobId);
+    } catch (e) { banner('pm', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   PARTNER REF  (SOURCE + DEST, direct write, error xlsx only on failures)
+============================================================================= */
+(() => {
+  const source = mkTenantForm({ title: 'SOURCE', idPrefix: 'pr-src' });
+  const dest = mkTenantForm({ title: 'DEST', idPrefix: 'pr-dst' });
+  $('#pr-tenants').append(source.container, dest.container);
+
+  function renderPreview(preview) {
+    const tb = $('#pr-tbody'); clearNode(tb);
+    $('#pr-tablewrap').hidden = !preview.length;
+    preview.forEach(r => {
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: r.DIVI }), el('td', { text: r.DONR }), el('td', { text: r.DOVA }),
+        el('td', { text: r.MEPF }), el('td', { text: r.PRF1 }), el('td', { text: r.PRF2 }),
+        el('td', { text: r.TX15 }), el('td', { text: r.TX40 }),
+        el('td', {}, el('span', { class: 'pill ' + r.ACTION.toLowerCase(), text: r.ACTION })),
+        el('td', { class: 'wrap', text: r.CHANGES }),
+      ]));
+    });
+  }
+
+  function renderSummaryTable(title, summary) {
+    const box = el('div', { style: 'margin-top:10px' });
+    box.appendChild(el('h4', { text: title, style: 'font-size:12px;color:var(--doppio-gray);margin-bottom:6px' }));
+    const rows = Object.entries(summary || {});
+    if (!rows.length) { box.appendChild(el('div', { class: 'muted small', text: 'nothing to report' })); return box; }
+    const t = el('table');
+    const tb = el('tbody');
+    rows.forEach(([msg, count]) => {
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: msg, class: msg === 'OK' ? '' : 'wrap' }),
+        el('td', { text: count }),
+      ]));
+    });
+    t.appendChild(tb);
+    box.appendChild(el('div', { class: 'tablewrap' }, t));
+    return box;
+  }
+
+  function renderApplyStep(jobId) {
+    const box = $('#pr-step-actions');
+    const applyBtn = el('button', { class: 'primary', text: 'Apply to DEST' });
+    box.appendChild(applyBtn);
+    applyBtn.addEventListener('click', async () => {
+      if (!dest.ready) return banner('pr', 'Connect DEST tenant first.', 'error');
+      applyBtn.disabled = true;
+      try {
+        const r = await runJob('pr', '/api/partner-ref/apply', { job_id: jobId, dest_tenant_id: dest.tenantId });
+        const c = r.counts;
+        banner('pr', 'Apply complete — see summary below.', 'success');
+        const out = el('div', { class: 'card', style: 'margin-top:12px' });
+        out.appendChild(el('h3', { text: 'Apply result' }));
+        out.appendChild(el('div', { class: 'counts', html:
+          `<span><b>${c.update_success}</b> updated / <b>${c.update_failed}</b> failed</span>` +
+          `<span><b>${c.add_success}</b> added / <b>${c.add_failed}</b> failed</span>`
+        }));
+        out.appendChild(renderSummaryTable('UpdPartnerRef', r.summary && r.summary.UpdPartnerRef));
+        out.appendChild(renderSummaryTable('AddPartnerRef', r.summary && r.summary.AddPartnerRef));
+        if (r.download) out.appendChild(el('a', { href: '/api/download/' + r.download, text: 'Download ' + r.error_file, style: 'display:block;margin-top:8px' }));
+        $('#pr-summary').appendChild(out);
+      } catch (e) { banner('pr', e.message, 'error'); }
+      finally { applyBtn.disabled = false; }
+    });
+  }
+
+  $('#pr-run').addEventListener('click', async () => {
+    if (!source.ready || !dest.ready) return banner('pr', 'Connect both SOURCE and DEST tenants first.', 'error');
+    const btn = $('#pr-run'); btn.disabled = true;
+    clearNode($('#pr-counts')); clearNode($('#pr-step-actions')); clearNode($('#pr-summary')); $('#pr-tablewrap').hidden = true;
+    try {
+      const { jobId, result } = await runJobWithId('pr', '/api/partner-ref/fetch-diff', {
+        source_tenant_id: source.tenantId, dest_tenant_id: dest.tenantId,
+      });
+      const c = result.counts;
+      countsLine($('#pr-counts'), [['SOURCE', c.source], ['DEST', c.dest], ['to update', c.to_update], ['to add', c.to_add]]);
+      renderPreview(result.preview);
+      banner('pr', `${c.to_update} to update, ${c.to_add} to add.`, 'success');
+      if (result.preview.length) renderApplyStep(jobId);
+    } catch (e) { banner('pr', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   SORTING OPTIONS  (SOURCE + DEST, EVS100 file, grouped by file)
+============================================================================= */
+(() => {
+  const source = mkTenantForm({ title: 'SOURCE', idPrefix: 'so-src' });
+  const dest = mkTenantForm({ title: 'DEST', idPrefix: 'so-dst' });
+  $('#so-tenants').append(source.container, dest.container);
+
+  function renderGroups(byFile) {
+    const wrap = $('#so-groups'); clearNode(wrap);
+    Object.entries(byFile).forEach(([fi01, records]) => {
+      const details = el('details', { class: 'groupbox' });
+      details.appendChild(el('summary', { text: `${fi01} (${records.length})` }));
+      const body = el('div', { class: 'body' });
+      const otherKeys = [...new Set(records.flatMap(r => Object.keys(r)))].filter(k => k !== 'FI01');
+      const t = el('table');
+      const thead = el('thead', {}, el('tr', {}, otherKeys.map(k => el('th', { text: k }))));
+      const tbody = el('tbody');
+      records.forEach(r => tbody.appendChild(el('tr', {}, otherKeys.map(k => el('td', { text: r[k] ?? '' })))));
+      t.append(thead, tbody);
+      body.appendChild(el('div', { class: 'tablewrap' }, t));
+      details.appendChild(body);
+      wrap.appendChild(details);
+    });
+  }
+
+  $('#so-run').addEventListener('click', async () => {
+    if (!source.ready || !dest.ready) return banner('so', 'Connect both SOURCE and DEST tenants first.', 'error');
+    const btn = $('#so-run'); btn.disabled = true;
+    clearNode($('#so-counts')); clearNode($('#so-step-actions')); clearNode($('#so-groups'));
+    try {
+      const { jobId, result } = await runJobWithId('so', '/api/sorting-options/fetch-diff', {
+        source_tenant_id: source.tenantId, dest_tenant_id: dest.tenantId,
+      });
+      const c = result.counts;
+      countsLine($('#so-counts'), [['SOURCE', c.source], ['DEST', c.dest], ['missing', c.missing], ['files', c.files]]);
+      renderGroups(result.by_file);
+      banner('so', `${c.missing} sort option(s) missing across ${c.files} file(s).`, 'success');
+      if (result.missing.length) {
+        renderExportChain('so', $('#so-step-actions'), jobId, {
+          exportUrl: '/api/sorting-options/export',
+          uploadUrl: '/api/sorting-options/upload',
+          processUrl: '/api/sorting-options/process-in-m3',
+          getDest: () => dest,
+          onExportResult: j => countsLine($('#so-counts'), [
+            ['SOURCE', c.source], ['DEST', c.dest], ['missing', c.missing], ['files', c.files],
+            ['add', j.counts.add], ['activate', j.counts.activate], ['standard', j.counts.standard],
+          ]),
+        });
+      }
+    } catch (e) { banner('so', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   SORTING ORDERS  (SOURCE + DEST, optional PGNM filter, EVS100 file, grouped by PGNM)
+============================================================================= */
+(() => {
+  const source = mkTenantForm({ title: 'SOURCE', idPrefix: 'sr-src' });
+  const dest = mkTenantForm({ title: 'DEST', idPrefix: 'sr-dst' });
+  $('#sr-tenants').append(source.container, dest.container);
+
+  function renderGroups(byPgnm) {
+    const wrap = $('#sr-groups'); clearNode(wrap);
+    Object.entries(byPgnm).forEach(([pgnm, entries]) => {
+      const details = el('details', { class: 'groupbox' });
+      details.appendChild(el('summary', { text: `${pgnm} (${entries.length})` }));
+      const body = el('div', { class: 'body' });
+      const t = el('table');
+      t.appendChild(el('thead', {}, el('tr', {}, [
+        el('th', { text: 'OP' }), el('th', { text: 'FILE' }), el('th', { text: 'SOPT' }),
+        el('th', { text: 'VIEW' }), el('th', { text: 'CHANGES' }),
+      ])));
+      const tbody = el('tbody');
+      entries.forEach(en => {
+        const changesList = en.CHANGES && en.CHANGES.length
+          ? el('ul', { class: 'changeslist' }, en.CHANGES.map(c => el('li', { text: c })))
+          : el('span', { class: 'muted', text: '—' });
+        tbody.appendChild(el('tr', {}, [
+          el('td', {}, el('span', { class: 'pill ' + en.OP.toLowerCase(), text: en.OP })),
+          el('td', { text: en.FILE }), el('td', { text: en.SOPT }), el('td', { text: en.VIEW }),
+          el('td', { class: 'wrap' }, changesList),
+        ]));
+      });
+      t.appendChild(tbody);
+      body.appendChild(el('div', { class: 'tablewrap' }, t));
+      details.appendChild(body);
+      wrap.appendChild(details);
+    });
+  }
+
+  $('#sr-run').addEventListener('click', async () => {
+    if (!source.ready || !dest.ready) return banner('sr', 'Connect both SOURCE and DEST tenants first.', 'error');
+    const btn = $('#sr-run'); btn.disabled = true;
+    clearNode($('#sr-counts')); clearNode($('#sr-step-actions')); clearNode($('#sr-groups'));
+    try {
+      const { jobId, result } = await runJobWithId('sr', '/api/sorting-orders/fetch-diff', {
+        source_tenant_id: source.tenantId, dest_tenant_id: dest.tenantId,
+        pgnm_filter: $('#sr-pgnm').value.trim(),
+      });
+      const c = result.counts;
+      countsLine($('#sr-counts'), [
+        ['SOURCE', c.source], ['DEST', c.dest], ['to add', c.to_add],
+        ['to change', c.to_chg], ['programs', c.programs],
+      ]);
+      renderGroups(result.by_pgnm);
+      banner('sr', `${c.to_add} to add, ${c.to_chg} to change across ${c.programs} program(s).`, 'success');
+      if (result.to_add.length || result.to_chg.length) {
+        renderExportChain('sr', $('#sr-step-actions'), jobId, {
+          exportUrl: '/api/sorting-orders/export',
+          uploadUrl: '/api/sorting-orders/upload',
+          processUrl: '/api/sorting-orders/process-in-m3',
+          getDest: () => dest,
+        });
+      }
+    } catch (e) { banner('sr', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   TRANSL DATA  (SOURCE + DEST, both global_scope=true, EVS100 file + direct push)
+============================================================================= */
+(() => {
+  const source = mkTenantForm({ title: 'SOURCE', idPrefix: 'td-src', forceGlobal: true, hideDivision: true });
+  const dest = mkTenantForm({ title: 'DEST', idPrefix: 'td-dst', forceGlobal: true, hideDivision: true });
+  $('#td-tenants').append(source.container, dest.container);
+
+  function renderPreview(preview) {
+    const tb = $('#td-tbody'); clearNode(tb);
+    $('#td-tablewrap').hidden = !preview.length;
+    preview.forEach(r => {
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: r.IDTR }), el('td', { text: r.TRQF }), el('td', { text: r.DIVI }),
+        el('td', { text: r.TX15 }), el('td', { text: r.MVXP }), el('td', { text: r.EXTP }),
+        el('td', { text: r.MVXD }), el('td', { text: r.MBMD }), el('td', { class: 'wrap', text: r.TX40 }),
+      ]));
+    });
+  }
+
+  function renderPushApiStep(jobId, box) {
+    const pushBtn = el('button', { class: 'secondary', text: 'Push directly via API to DEST', style: 'margin-left:12px' });
+    box.appendChild(pushBtn);
+    pushBtn.addEventListener('click', async () => {
+      if (!dest.ready) return banner('td', 'Connect DEST tenant first.', 'error');
+      pushBtn.disabled = true;
+      try {
+        const r = await runJob('td', '/api/transl-data/push-api', { dest_tenant_id: dest.tenantId, job_id: jobId });
+        const c = r.counts;
+        banner('td', 'Push complete.', 'success');
+        const out = el('div', { class: 'counts', style: 'margin-top:10px', html:
+          `<span><b>${c.trn_success}</b> headers ok / <b>${c.trn_failed}</b> failed</span>` +
+          `<span><b>${c.trd_success}</b> details ok / <b>${c.trd_failed}</b> failed</span>`
+        });
+        box.appendChild(out);
+        if (r.download) box.appendChild(el('a', { href: '/api/download/' + r.download, text: 'Download ' + r.error_file, style: 'display:block;margin-top:6px' }));
+      } catch (e) { banner('td', e.message, 'error'); }
+      finally { pushBtn.disabled = false; }
+    });
+  }
+
+  $('#td-run').addEventListener('click', async () => {
+    if (!source.ready) return banner('td', 'Connect the SOURCE tenant first.', 'error');
+    const btn = $('#td-run'); btn.disabled = true;
+    clearNode($('#td-counts')); clearNode($('#td-step-actions')); $('#td-tablewrap').hidden = true;
+    try {
+      const { jobId, result } = await runJobWithId('td', '/api/transl-data/fetch-diff', {
+        source_tenant_id: source.tenantId,
+      });
+      const c = result.counts;
+      countsLine($('#td-counts'), [
+        ['headers', c.headers], ['details', c.details],
+        ['translation records', c.trn_records], ['detail records', c.trd_records],
+      ]);
+      renderPreview(result.preview);
+      banner('td', `${c.trd_records} detail record(s) extracted (showing first ${result.preview.length}).`, 'success');
+      if (result.trd_records.length) {
+        const box = $('#td-step-actions');
+        renderExportChain('td', box, jobId, {
+          exportUrl: '/api/transl-data/export',
+          uploadUrl: '/api/transl-data/upload',
+          processUrl: '/api/transl-data/process-in-m3',
+          getDest: () => dest,
+        });
+        renderPushApiStep(jobId, box);
+      }
+    } catch (e) { banner('td', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   FIELD GROUPS  (single tenant, long-running CMS005MI.GenStandard)
+============================================================================= */
+(() => {
+  const tenant = mkTenantForm({ title: 'Tenant', idPrefix: 'fg' });
+  $('#fg-tenants').appendChild(tenant.container);
+
+  $('#fg-run').addEventListener('click', async () => {
+    if (!tenant.ready) return banner('fg', 'Connect a tenant first.', 'error');
+    const btn = $('#fg-run'); btn.disabled = true;
+    clearNode($('#fg-result'));
+    banner('fg', '');
+    try {
+      const first = await api('/api/field-groups/run', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant_id: tenant.tenantId }),
+      });
+      showProgress('fg');
+      $('#fg-phase').classList.add('longrun');
+      let result;
+      for (;;) {
+        await new Promise(r => setTimeout(r, 1500));
+        const { job } = await api('/api/job/' + first.job_id);
+        updateProgress('fg', job);
+        $('#fg-phase').classList.add('longrun');
+        if (job.status === 'done') { result = job.result; break; }
+        if (job.status === 'error') throw new Error(job.error || 'Job failed');
+      }
+      hideProgress('fg');
+      const ok = result.outcome === 'completed';
+      banner('fg', ok
+        ? `Completed — BJNO=${result.bjno}, ${result.attempts} poll(s), ${result.elapsed_seconds}s.`
+        : `Job ended with an error (STAT=${result.stat}).`, ok ? 'success' : 'error');
+      const box = el('div', { class: 'tablewrap' });
+      const t = el('table');
+      const tb = el('tbody');
+      const rows = [['Outcome', result.outcome], ['BJNO', result.bjno], ['Attempts', result.attempts],
+        ['Elapsed (s)', result.elapsed_seconds]];
+      if (result.stat) rows.push(['STAT', result.stat]);
+      rows.forEach(([k, v]) => tb.appendChild(el('tr', {}, [el('td', { text: k }), el('td', { text: v })])));
+      if (result.record) {
+        Object.entries(result.record).forEach(([k, v]) =>
+          tb.appendChild(el('tr', {}, [el('td', { text: k }), el('td', { text: v })])));
+      }
+      t.appendChild(tb); box.appendChild(t);
+      $('#fg-result').appendChild(box);
+    } catch (e) { banner('fg', e.message, 'error'); hideProgress('fg'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   EXPORT SUMMARY  (no tenant, pure .log -> .xlsx converter)
+============================================================================= */
+(() => {
+  function renderResults(results, errors) {
+    const box = $('#es-results'); clearNode(box);
+    (errors || []).forEach(e => box.appendChild(el('div', { class: 'banner error', text: `${e.file}: ${e.message}` })));
+    if (!results || !results.length) return;
+    const t = el('table');
+    t.appendChild(el('thead', {}, el('tr', {}, [
+      el('th', { text: 'Source' }), el('th', { text: 'Status' }), el('th', { text: 'Duration' }),
+      el('th', { text: 'Rows' }), el('th', { text: 'Tables' }), el('th', { text: 'With data' }),
+      el('th', { text: 'Errors' }), el('th', { text: 'Result' }),
+    ])));
+    const tb = el('tbody');
+    results.forEach(r => {
+      if (!r.ok) {
+        tb.appendChild(el('tr', {}, [
+          el('td', { text: r.source || r.file || '?' }),
+          el('td', { class: 'wrap', text: r.message }),
+          ...[1, 2, 3, 4].map(() => el('td', { text: '' })),
+        ]));
+        return;
+      }
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: r.source || '' }),
+        el('td', { text: r.status || '' }),
+        el('td', { text: r.duration || '' }),
+        el('td', { text: r.total_rows ?? '' }),
+        el('td', { text: r.tables ?? '' }),
+        el('td', { text: r.tables_with_data ?? '' }),
+        el('td', { text: r.errors ?? 0 }),
+        el('td', {}, r.download
+          ? el('a', { href: '/api/download/' + r.download, text: r.file })
+          : el('span', { class: 'muted', text: '—' })),
+      ]));
+    });
+    t.appendChild(tb);
+    box.appendChild(el('div', { class: 'tablewrap' }, t));
+  }
+
+  async function upload(files) {
+    if (!files || !files.length) return;
+    const fd = new FormData();
+    [...files].forEach(f => fd.append('files', f));
+    banner('es', '');
+    try {
+      const j = await api('/api/export-summary/upload', { method: 'POST', body: fd });
+      renderResults(j.results, j.errors);
+      banner('es', `${(j.results || []).filter(r => r.ok).length} of ${files.length} file(s) processed.`, 'success');
+    } catch (e) { banner('es', e.message, 'error'); }
+  }
+
+  const drop = $('#es-drop');
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+  drop.addEventListener('drop', e => upload(e.dataTransfer.files));
+  $('#es-file').addEventListener('change', e => upload(e.target.files));
+
+  $('#es-scan').addEventListener('click', async () => {
+    const btn = $('#es-scan'); btn.disabled = true;
+    banner('es', '');
+    try {
+      const j = await api('/api/export-summary/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      renderResults(j.results, []);
+      banner('es', j.message || `${(j.results || []).length} file(s) processed.`, 'success');
+    } catch (e) { banner('es', e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+})();
+
+/* =============================================================================
+   MIGRATION REVIEW  (single tenant, upload/scan .xlsx workbooks)
+============================================================================= */
+(() => {
+  const tenant = mkTenantForm({ title: 'Tenant', idPrefix: 'mr' });
+  $('#mr-tenants').appendChild(tenant.container);
+  const scanBtn = $('#mr-scan');
+  scanBtn.disabled = true;
+  tenant.onReady(() => { scanBtn.disabled = false; });
+
+  function renderUploadBanner(j) {
+    const box = $('#mr-upload-banner'); clearNode(box);
+    box.appendChild(el('div', { class: 'banner ' + ((j.errors || []).length ? 'error' : 'success'), text: j.message }));
+    (j.errors || []).forEach(e => box.appendChild(el('div', { class: 'banner error', text: `${e.file}: ${e.message}` })));
+  }
+
+  async function upload(files) {
+    if (!files || !files.length) return;
+    const fd = new FormData();
+    [...files].forEach(f => fd.append('files', f));
+    try {
+      const j = await api('/api/migration-review/upload', { method: 'POST', body: fd });
+      renderUploadBanner(j);
+    } catch (e) {
+      $('#mr-upload-banner').innerHTML = '';
+      $('#mr-upload-banner').appendChild(el('div', { class: 'banner error', text: e.message }));
+    }
+  }
+
+  const drop = $('#mr-drop');
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+  drop.addEventListener('drop', e => upload(e.dataTransfer.files));
+  $('#mr-file').addEventListener('change', e => upload(e.target.files));
+
+  function renderResults(results) {
+    const box = $('#mr-results'); clearNode(box);
+    if (!results || !results.length) return;
+    const t = el('table');
+    t.appendChild(el('thead', {}, el('tr', {}, [
+      el('th', { text: 'File' }), el('th', { text: 'Message' }), el('th', { text: 'Tables' }),
+      el('th', { text: 'SQLite matched' }), el('th', { text: 'Result' }),
+    ])));
+    const tb = el('tbody');
+    results.forEach(r => {
+      tb.appendChild(el('tr', {}, [
+        el('td', { text: r.file }),
+        el('td', { class: 'wrap', text: r.message }),
+        el('td', { text: r.tables ?? '' }),
+        el('td', { text: (r.sqlite_matched ?? '') + (r.sqlite_total !== undefined ? ' / ' + r.sqlite_total : '') }),
+        el('td', {}, r.download
+          ? el('a', { href: '/api/download/' + r.download, text: r.output_file })
+          : el('span', { class: 'muted', text: '—' })),
+      ]));
+    });
+    t.appendChild(tb);
+    box.appendChild(el('div', { class: 'tablewrap' }, t));
+  }
+
+  scanBtn.addEventListener('click', async () => {
+    if (!tenant.ready) return banner('mr', 'Connect a tenant first.', 'error');
+    scanBtn.disabled = true;
+    clearNode($('#mr-results'));
+    try {
+      const { result } = await runJobWithId('mr', '/api/migration-review/scan', { tenant_id: tenant.tenantId });
+      if (result.results && result.results.length) {
+        renderResults(result.results);
+        banner('mr', `${result.results.filter(r => r.ok).length} of ${result.results.length} workbook(s) processed.`, 'success');
+      } else {
+        banner('mr', result.message || 'No workbooks found.', 'info');
+      }
+    } catch (e) { banner('mr', e.message, 'error'); }
+    finally { scanBtn.disabled = false; }
+  });
+})();
+
+/* ----------------------------------------------------------------- tabs */
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
+  document.querySelectorAll('.pane').forEach(p =>
+    p.classList.toggle('on', p.id === 'pane-' + t.dataset.pane));
+}));
+</script>
+</body>
+</html>

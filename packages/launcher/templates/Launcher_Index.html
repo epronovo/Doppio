@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Launcher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Doppio Group house style - the same tokens as packages/ERP_Concur,
+     packages/deploy_packages, packages/adp_concur and packages/sheet_security. */
+  :root{
+    --chrome:#141416; --chrome2:#232327;
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f6f6f7; --panel3:#fbfbfc;
+    --line:#e6e7e9; --line2:#d9dadd;
+    --ink:#111214; --body:#55585c; --dim:#8a8d92;
+    --accent:#d40814; --accent-hi:#ef1c28; --accent-ink:#ffffff; --accent-wash:#fdecee;
+    --bad:#a4121b; --bad-wash:#fdecee; --bad-line:#f3c6ca;
+    --good:#0d6b39; --good-wash:#e9f6ee; --good-line:#bfe3cd;
+    --warn:#8a6400; --warn-wash:#fbf3de; --warn-line:#eddca4;
+    --sans:"Nunito Sans","Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Poppins","Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:8px; --r-sm:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--body);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;font:14px/1.5 var(--sans);
+       -webkit-font-smoothing:antialiased}
+
+  header{padding:0 22px;height:58px;background:var(--chrome);color:#fff;
+         display:flex;align-items:center;gap:14px;flex:0 0 auto}
+  h1{font:800 19px/1 var(--display);margin:0;letter-spacing:-.4px;color:#fff;
+     display:flex;align-items:baseline;gap:9px;white-space:nowrap}
+  h1 .mark{color:var(--accent);font-size:22px;line-height:0}
+  h1 .app{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+          color:#9b9ea3;padding-left:11px;border-left:1px solid #34343a}
+  .grow{flex:1}
+  header .sub{color:#9b9ea3;font-size:12px}
+
+  select,input,button{font:inherit;color:var(--ink);background:#fff;
+         border:1px solid var(--line2);border-radius:var(--r-sm);padding:6px 10px;outline:none}
+  input:focus,button:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(212,8,20,.12)}
+  button{cursor:pointer;background:#fff;color:var(--ink);font-weight:600}
+  button:hover:not(:disabled){border-color:var(--ink)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.primary:hover:not(:disabled){background:var(--accent-hi);border-color:var(--accent-hi)}
+  button.small{padding:5px 10px;font-size:12.5px}
+  button:disabled{opacity:.35;cursor:not-allowed}
+
+  main{padding:24px 28px 40px;flex:1;min-height:0;overflow:auto;max-width:980px;
+       margin:0 auto;width:100%}
+  h2{font:700 12px/1 var(--display);margin:0 0 12px;text-transform:uppercase;
+     letter-spacing:.09em;color:var(--dim)}
+  .intro{font-size:13px;color:var(--dim);margin:0 0 20px;max-width:680px}
+
+  .cards{display:flex;flex-direction:column;gap:10px}
+  .card{border:1px solid var(--line2);border-radius:var(--r);padding:14px 16px;
+        background:var(--panel3);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .card.running{border-color:var(--good-line);background:var(--good-wash)}
+  .card-main{flex:1;min-width:220px}
+  .card-key{font-weight:800;color:var(--ink);font-size:14px;font-family:var(--mono);
+            display:flex;align-items:center;gap:8px}
+  .card-desc{font-size:12.5px;color:var(--body);margin-top:4px;line-height:1.45}
+  .card-meta{font-size:11px;color:var(--dim);margin-top:7px;font-family:var(--mono);
+             display:flex;gap:14px;flex-wrap:wrap}
+
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--line2);flex:0 0 auto}
+  .dot.on{background:var(--good)}
+  .dot.busy{background:var(--warn);animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  .pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;
+        border:1px solid transparent;font-weight:700}
+  .pill.good{background:var(--good-wash);color:var(--good);border-color:var(--good-line)}
+  .pill.off{background:var(--panel2);color:var(--dim);border-color:var(--line2)}
+
+  .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .actions a.open{font-size:12.5px;font-weight:700;color:var(--ink);text-decoration:none;
+                  border:1px solid var(--line2);border-radius:var(--r-sm);padding:5px 10px}
+  .actions a.open:hover{border-color:var(--ink)}
+
+  .status{font-size:12.5px;margin-top:14px;min-height:16px}
+  .status.bad{color:var(--bad)}
+  .status.good{color:var(--good)}
+
+  .logwrap{width:100%;margin-top:10px}
+  .logwrap[hidden]{display:none}
+  .logwrap pre{background:var(--chrome);color:#d7d8db;border-radius:var(--r-sm);
+               padding:10px 12px;font:11.5px/1.5 var(--mono);max-height:220px;overflow:auto;
+               margin:0;white-space:pre-wrap;word-break:break-all}
+  .toplink{background:none;border:none;color:var(--dim);font-size:11.5px;padding:0;
+           text-decoration:underline;cursor:pointer}
+  .toplink:hover{color:var(--ink);border:none}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Doppio<span class="mark">&#9679;</span><span class="app">Launcher</span></h1>
+  <span class="grow"></span>
+  <span class="sub" id="summary"></span>
+</header>
+
+<main>
+  <h2>packages/ apps</h2>
+  <p class="intro">Every app under packages/ with its own Flask front end shows up here.
+    Start and stop each one on its own, on the port its own <span style="font-family:var(--mono)">--port</span>
+    default already claims. Nothing here changes how an app itself runs - it is still just
+    <span style="font-family:var(--mono)">python3 X_App.py</span> underneath, started and
+    watched for you.</p>
+  <div class="status" id="global-status"></div>
+  <div class="cards" id="apps"></div>
+</main>
+
+<script>
+const $ = s => document.querySelector(s);
+const POLL_MS = 2500;
+const state = { apps: [], logs: {} };
+
+async function api(url, opts) {
+  const res = await fetch(url, opts);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || data.ok === false) throw new Error(data.message || `Request failed (${res.status}).`);
+  return data;
+}
+
+function setGlobalStatus(msg, bad) {
+  const el = $('#global-status');
+  el.textContent = msg || '';
+  el.className = 'status' + (bad ? ' bad' : msg ? ' good' : '');
+  if (msg) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 5000);
+}
+
+async function loadApps() {
+  try {
+    const d = await api('/api/apps');
+    state.apps = d.apps;
+    const running = state.apps.filter(a => a.running).length;
+    $('#summary').textContent = `${running} of ${state.apps.length} running`;
+    render();
+  } catch (e) {
+    setGlobalStatus(e.message, true);
+  }
+}
+
+function render() {
+  const wrap = $('#apps');
+  wrap.innerHTML = '';
+  if (!state.apps.length) {
+    wrap.innerHTML = '<div class="intro">No apps with a *_App.py found under packages/.</div>';
+    return;
+  }
+  for (const a of state.apps) {
+    const card = document.createElement('div');
+    card.className = 'card' + (a.running ? ' running' : '');
+    card.innerHTML = `
+      <div class="card-main">
+        <div class="card-key"><span class="dot ${a.running ? 'on' : ''}" data-dot></span>
+          ${a.key}
+          <span class="pill ${a.running ? 'good' : 'off'}" data-pill>${a.running ? 'running' : 'stopped'}</span>
+        </div>
+        <div class="card-desc">${a.description}</div>
+        <div class="card-meta">
+          <span>port ${a.port}</span>
+          <span data-pidline>${a.running ? 'pid ' + a.pid : ''}</span>
+          <button class="toplink" data-log>view log</button>
+        </div>
+        <div class="logwrap" hidden data-logwrap><pre data-logtext></pre></div>
+      </div>
+      <div class="actions">
+        ${a.running ? `<a class="open" href="http://127.0.0.1:${a.port}" target="_blank" rel="noopener">Open &#8599;</a>` : ''}
+        <button class="small" data-start ${a.running ? 'disabled' : ''}>Start</button>
+        <button class="small" data-restart ${a.running ? '' : 'disabled'}>Restart</button>
+        <button class="small" data-stop ${a.running ? '' : 'disabled'}>Stop</button>
+      </div>`;
+
+    card.querySelector('[data-start]').onclick = () => act(a.key, 'start');
+    card.querySelector('[data-stop]').onclick = () => act(a.key, 'stop');
+    card.querySelector('[data-restart]').onclick = () => act(a.key, 'restart');
+    card.querySelector('[data-log]').onclick = () => toggleLog(a.key, card);
+    wrap.appendChild(card);
+  }
+}
+
+async function act(key, verb) {
+  setGlobalStatus(`${verb === 'start' ? 'Starting' : verb === 'stop' ? 'Stopping' : 'Restarting'} ${key}...`);
+  try {
+    const d = await api(`/api/apps/${key}/${verb}`, { method: 'POST' });
+    setGlobalStatus(d.message);
+  } catch (e) {
+    setGlobalStatus(e.message, true);
+  }
+  await loadApps();
+}
+
+async function toggleLog(key, card) {
+  const box = card.querySelector('[data-logwrap]');
+  if (!box.hidden) { box.hidden = true; return; }
+  box.hidden = false;
+  try {
+    const d = await api(`/api/apps/${key}/log`);
+    card.querySelector('[data-logtext]').textContent = d.log || '(nothing logged yet)';
+    box.scrollTop = box.scrollHeight;
+  } catch (e) {
+    card.querySelector('[data-logtext]').textContent = e.message;
+  }
+}
+
+loadApps();
+setInterval(loadApps, POLL_MS);
+</script>
+</body>
+</html>

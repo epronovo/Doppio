@@ -1,0 +1,377 @@
+"""
+ERP_Concur_Spec - the field layout of every Concur record type in the three
+extract files, one entry per position.
+
+GENERATED - do not hand-edit. Emitted from
+~/Doppio/FMG/Concur_Record_Type_Specifications.xlsx (itself scraped from the
+SAP Help Portal, Concur Invoice Professional Edition Administration Guides,
+version 2026_08) on 2026-09-15 by gen_spec.py. Re-run the
+generator if the workbook gains a record type or a field.
+
+Each record type is (record_type, label, source tab, [fields]) and each field
+is (name, required, proc column). `required` is the guide's own Y / N, kept
+verbatim - 'Y*' on PO 300 Expense Type means "either this or Account Code,
+never both", and 'N*' on a vendor field means "required in some countries".
+The section banners the workbook uses to group the vendor record ('Vendor
+Header', 'Vendor Address Detail') are dropped here: they are headings, not
+positions in the file.
+"""
+from __future__ import annotations
+
+
+# ---------------------------------------------------------------- layouts
+
+SPEC: dict[str, tuple[str, str, str, list[tuple[str, str, str]]]] = {
+    "vendor_100": ('100', 'Import Settings', 'AV v3 - 100 Import Settings', [
+        ('Record Type', 'Y', '(dtsx literal)'),
+        ('Error Threshold', 'Y', '(dtsx literal)'),
+        ('Default Country Code', 'N', '(dtsx literal)'),
+        ('Pay Method Type', 'N', '(dtsx literal)'),
+    ]),
+    "vendor_200": ('200', 'Vendor', 'AV v3 - 200 Vendor', [
+        ('Record Type', 'Y', 'record_type'),
+        ('Vendor Code', 'Y', 'vendor_code'),
+        ('Vendor Name', 'N', 'vendor_name'),
+        ('Tax ID', 'N', 'tax_id'),
+        ('Default Employee ID', 'N', 'default_employee_id'),
+        ('Default Expense Type Name', 'N', 'default_expense_type_name'),
+        ('Account Number', 'N', 'account_number'),
+        ('Tax Type', 'N', 'tax_type'),
+        ('Provincial Tax Identification Number', 'N', 'provincial_tax_identification_number'),
+        ('Vendor includes VAT in Unit Price', 'N', 'vendor_includes_vat_in_unit_price'),
+        ('Vendor_Future_Use_5', 'N', 'vendor_future_use_5'),
+        ('Vendor_Future_Use_6', 'N', 'vendor_future_use_6'),
+        ('Vendor_Future_Use_7', 'N', 'vendor_future_use_7'),
+        ('Vendor_Future_Use_8', 'N', 'vendor_future_use_8'),
+        ('Vendor Address ID', 'N (see note next column)', 'vendor_address_id'),
+        ('Vendor Address Code', 'Y', 'vendor_address_code'),
+        ('Currency', 'Y', 'currency'),
+        ('Payment Term Days', 'N', 'payment_term_days'),
+        ('Pay Method Type', 'N', 'pay_method_type'),
+        ('Shipping Terms', '', 'shipping_terms'),
+        ('Shipping Method', '', 'shipping_method'),
+        ('Discount Term Days', '', 'discount_term_days'),
+        ('Discount Percentage', '', 'discount_percentage'),
+        ('Is Vendor Visible for content Extraction', 'N', 'is_vendor_visible_for_content_extration'),
+        ('Voucher Notes', 'N', 'voucher_notes'),
+        ('Vendor Form Name', 'N', 'vendor_form_name'),
+        ('Delete Address?', 'N', 'delete_address'),
+        ('Address Line 1', 'N', 'address_line_1'),
+        ('Address Line 2', 'N', 'address_line_2'),
+        ('Address Line 3', 'N', 'address_line_3'),
+        ('City', 'N', 'city'),
+        ('State or Province', 'N*', 'state'),
+        ('Postal Code', 'N', 'postal_code'),
+        ('Country Code', 'Y', 'country_code'),
+        ('Contact Phone Number', 'N', 'contact_phone_number'),
+        ('Contact First Name', 'N', 'contact_first_name'),
+        ('Contact Last Name', 'N', 'contact_last_name'),
+        ('Custom_01', 'N', 'custom_field_01'),
+        ('Custom_02', 'N', 'custom_field_02'),
+        ('Custom_03', 'N', 'custom_field_03'),
+        ('Custom_04', 'N', 'custom_field_04'),
+        ('Custom_05', 'N', 'custom_field_05'),
+        ('Custom_06', 'N', 'custom_field_06'),
+        ('Custom_07', 'N', 'custom_field_07'),
+        ('Custom_08', 'N', 'custom_field_08'),
+        ('Custom_09', 'N', 'custom_field_09'),
+        ('Custom_10', 'N', 'custom_field_10'),
+        ('Custom_11', 'N', 'custom_field_11'),
+        ('Custom_12', 'N', 'custom_field_12'),
+        ('Custom_13', 'N', 'custom_field_13'),
+        ('Custom_14', 'N', 'custom_field_14'),
+        ('Custom_15', 'N', 'custom_field_15'),
+        ('Vendor Contact Email Address', 'N*', 'contact_email_address'),
+        ('PO Vendor Contact First Name', 'N', 'po_vendor_contact_first_name'),
+        ('PO Vendor Contact Last Name', 'N', 'po_vendor_contact_last_name'),
+        ('PO Vendor Contact Email Address', 'N', 'po_vendor_contact_email_address'),
+        ('PO Vendor Contact Phone Number', 'N', 'po_vendor_contact_phone_number'),
+        ('Custom_16', 'N', 'custom_field_16'),
+        ('Custom_17', 'N', 'custom_field_17'),
+        ('Custom_18', 'N', 'custom_field_18'),
+        ('Custom_19', 'N', 'custom_field_19'),
+        ('Custom_20', 'N', 'custom_field_20'),
+    ]),
+    "po_200": ('200', 'Request Header', 'PO - 200 Request Header', [
+        ('Record Type', 'Y', 'record_type'),
+        ('Purchase Order Number', 'Y', 'purchase_order_number'),
+        ('Policy External ID', 'Y', 'policy_external_id'),
+        ('Currency Code', 'Y', 'currency_code'),
+        ('Vendor Code', 'Y', 'vendor_code'),
+        ('Vendor Address Code', 'Y', 'vendor_address_code'),
+        ('Order Date', 'Y', 'order_date'),
+        ('Name', 'N', 'name'),
+        ('Description', 'N', 'description'),
+        ('Requested Delivery Date', 'N', 'requested_delivery_date'),
+        ('Requested By', 'N', 'requested_by'),
+        ('Payment Terms', 'N', 'payment_terms'),
+        ('Discount Terms', 'N', 'discount_terms'),
+        ('Discount Percentage', 'N', 'discount_percentage'),
+        ('Tax', 'N', 'tax'),
+        ('Shipping', 'N', 'shipping'),
+        ('Shipping Description', 'N', 'shipping_description'),
+        ('Is Test', 'N', 'is_test'),
+        ('Shipping Terms', 'N', 'shipping_terms'),
+        ('Shipping Method', 'N', 'shipping_method'),
+        ('Needed By Date', 'N', 'needed_by_date'),
+        ('Vendor Account Number', 'N', 'vendor_account_number'),
+        ('Status of the Purchase Order', 'N', 'status_of_the_purchase_order'),
+        ('Vendor Tax Identification Number', 'N', 'vendor_tax_identification_number'),
+        ('Provincial Tax Identification Number', 'N', 'provincial_tax_identification_number'),
+        ('VAT Amount 1', 'N', 'vat_amount_1'),
+        ('VAT Amount 2', 'N', 'vat_amount_2'),
+        ('VAT Rate 1', 'N', 'vat_rate_1'),
+        ('VAT Rate 2', 'N', 'vat_rate_2'),
+        ('Amount without VAT', 'N', 'amount_without_vat'),
+        ('Receipt Type', 'N', 'receipt_type'),
+        ('Ledger Code', 'N', 'ledger_code'),
+        ('Future_Use_16', 'N', 'future_use_16'),
+        ('Future_Use_17', 'N', 'future_use_17'),
+        ('Future_Use_18', 'N', 'future_use_18'),
+        ('Future_Use_19', 'N', 'future_use_19'),
+        ('Future_Use_20', 'N', 'future_use_20'),
+        ('Custom_1', 'N', 'custom_1'),
+        ('Custom_2', 'N', 'custom_2'),
+        ('Custom_3', 'N', 'custom_3'),
+        ('Custom_4', 'N', 'custom_4'),
+        ('Custom_5', 'N', 'custom_5'),
+        ('Custom_6', 'N', 'custom_6'),
+        ('Custom_7', 'N', 'custom_7'),
+        ('Custom_8', 'N', 'custom_8'),
+        ('Custom_9', 'N', 'custom_9'),
+        ('Custom_10', 'N', 'custom_10'),
+        ('Custom_11', 'N', 'custom_11'),
+        ('Custom_12', 'N', 'custom_12'),
+        ('Custom_13', 'N', 'custom_13'),
+        ('Custom_14', 'N', 'custom_14'),
+        ('Custom_15', 'N', 'custom_15'),
+        ('Custom_16', 'N', 'custom_16'),
+        ('Custom_17', 'N', 'custom_17'),
+        ('Custom_18', 'N', 'custom_18'),
+        ('Custom_19', 'N', 'custom_19'),
+        ('Custom_20', 'N', 'custom_20'),
+        ('Custom_21', 'N', 'custom_21'),
+        ('Custom_22', 'N', 'custom_22'),
+        ('Custom_23', 'N', 'custom_23'),
+        ('Custom_24', 'N', 'custom_24'),
+    ]),
+    "po_210": ('210', 'Bill-to Address', 'PO - 210 Bill-to Address', [
+        ('Record Type', 'Y', 'record_type'),
+        ('External ID', 'Y', 'external_id'),
+        ('Name', 'N', 'name'),
+        ('Address 1', 'Y', 'address_1'),
+        ('Address 2', 'N', 'address_2'),
+        ('Address 3', 'N', 'address_3'),
+        ('City', 'Y', 'city'),
+        ('State/Province', 'Y', 'state'),
+        ('Postal Code', 'Y', 'postal_code'),
+        ('Country Code', 'Y', 'country_code'),
+        ('Future_Use_1', 'N', 'future_use_1'),
+        ('Future_Use_2', 'N', 'future_use_2'),
+        ('Future_Use_3', 'N', 'future_use_3'),
+        ('Future_Use_4', 'N', 'future_use_4'),
+        ('Future_Use_5', 'N', 'future_use_5'),
+        ('Future_Use_6', 'N', 'future_use_6'),
+        ('Future_Use_7', 'N', 'future_use_7'),
+        ('Future_Use_8', 'N', 'future_use_8'),
+        ('Future_Use_9', 'N', 'future_use_9'),
+        ('Future_Use_10', 'N', 'future_use_10'),
+    ]),
+    "po_220": ('220', 'Ship-to Address', 'PO - 220 Ship-to Address', [
+        ('Record Type', 'Y', 'record_type'),
+        ('External ID', 'Y', 'external_id'),
+        ('Name', 'N', 'name'),
+        ('Address 1', 'Y', 'address_1'),
+        ('Address 2', 'N', 'address_2'),
+        ('Address 3', 'N', 'address_3'),
+        ('City', 'Y', 'city'),
+        ('State/Province', 'Y', 'state'),
+        ('Postal Code', 'Y', 'postal_code'),
+        ('Country Code', 'Y', 'country_code'),
+        ('Future_Use_1', 'N', 'future_use_1'),
+        ('Future_Use_2', 'N', 'future_use_2'),
+        ('Future_Use_3', 'N', 'future_use_3'),
+        ('Future_Use_4', 'N', 'future_use_4'),
+        ('Future_Use_5', 'N', 'future_use_5'),
+        ('Future_Use_6', 'N', 'future_use_6'),
+        ('Future_Use_7', 'N', 'future_use_7'),
+        ('Future_Use_8', 'N', 'future_use_8'),
+        ('Future_Use_9', 'N', 'future_use_9'),
+        ('Future_Use_10', 'N', 'future_use_10'),
+    ]),
+    "po_300": ('300', 'Line Item', 'PO - 300 Line Item', [
+        ('Record Type', 'Y', 'record_type'),
+        ('External ID', 'Y', 'external_id'),
+        ('Line Number', 'Y', 'line_number'),
+        ('Supplier Part ID', 'N', 'supplier_part_id'),
+        ('Requested Delivery Date', 'N', 'requested_delivery_date'),
+        ('Requested By', 'N', 'requested_by'),
+        ('Expense Type', 'Y*', 'expense_type'),
+        ('Account Code', '', 'account_code'),
+        ('Description', 'N', 'description'),
+        ('Quantity', 'N', 'quantity'),
+        ('Unit Price', 'Y', 'unit_price'),
+        ('Tax', 'N', 'tax'),
+        ('Unit Of Measure Code (UOM Code)', 'N', 'unit_of_measure_code'),
+        ('Is Receipt Required', '', 'is_receipt_required'),
+        ('VAT Amount', 'N', 'vat_amount'),
+        ('VAT Rate', 'N', 'vat_rate'),
+        ('Amount without VAT', 'N', 'amount_without_vat'),
+        ('Receipt Type', 'N', '⚠ future_use_6'),
+        ('Future_Use_7', 'N', 'future_use_7'),
+        ('Future_Use_8', 'N', 'future_use_8'),
+        ('Future_Use_9', 'N', 'future_use_9'),
+        ('Future_Use_10', 'N', 'future_use_10'),
+        ('Future_Use_11', 'N', 'future_use_11'),
+        ('Future_Use_12', 'N', 'future_use_12'),
+        ('Future_Use_13', 'N', 'future_use_13'),
+        ('Future_Use_14', 'N', 'future_use_14'),
+        ('Future_Use_15', 'N', 'future_use_15'),
+        ('Future_Use_16', 'N', 'future_use_16'),
+        ('Future_Use_17', 'N', 'future_use_17'),
+        ('Future_Use_18', 'N', 'future_use_18'),
+        ('Future_Use_19', 'N', 'future_use_19'),
+        ('Future_Use_20', 'N', 'future_use_20'),
+        ('Custom_1', 'N', 'custom_1'),
+        ('Custom_2', 'N', 'custom_2'),
+        ('Custom_3', 'N', 'custom_3'),
+        ('Custom_4', 'N', 'custom_4'),
+        ('Custom_5', 'N', 'custom_5'),
+        ('Custom_6', 'N', 'custom_6'),
+        ('Custom_7', 'N', 'custom_7'),
+        ('Custom_8', 'N', 'custom_8'),
+        ('Custom_9', 'N', 'custom_9'),
+        ('Custom_10', 'N', 'custom_10'),
+        ('Custom_11', 'N', 'custom_11'),
+        ('Custom_12', 'N', 'custom_12'),
+        ('Custom_13', 'N', 'custom_13'),
+        ('Custom_14', 'N', 'custom_14'),
+        ('Custom_15', 'N', 'custom_15'),
+        ('Custom_16', 'N', 'custom_16'),
+        ('Custom_17', 'N', 'custom_17'),
+        ('Custom_18', 'N', 'custom_18'),
+        ('Custom_19', 'N', 'custom_19'),
+        ('Custom_20', 'N', 'custom_20'),
+    ]),
+    "po_400": ('400', 'Line Allocation', 'PO - 400 Line Allocation', [
+        ('Record Type', 'Y', ''),
+        ('Amount', 'Y', ''),
+        ('Future_Use_1', 'N', ''),
+        ('Future_Use_2', 'N', ''),
+        ('Future_Use_3', 'N', ''),
+        ('Future_Use_4', 'N', ''),
+        ('Future_Use_5', 'N', ''),
+        ('Future_Use_6', 'N', ''),
+        ('Future_Use_7', 'N', ''),
+        ('Future_Use_8', 'N', ''),
+        ('Future_Use_9', 'N', ''),
+        ('Future_Use_10', 'N', ''),
+        ('Future_Use_11', 'N', ''),
+        ('Future_Use_12', 'N', ''),
+        ('Future_Use_13', 'N', ''),
+        ('Future_Use_14', 'N', ''),
+        ('Future_Use_15', 'N', ''),
+        ('Future_Use_16', 'N', ''),
+        ('Future_Use_17', 'N', ''),
+        ('Future_Use_18', 'N', ''),
+        ('Future_Use_19', 'N', ''),
+        ('Future_Use_20', 'N', ''),
+        ('Custom_1', 'N', ''),
+        ('Custom_2', 'N', ''),
+        ('Custom_3', 'N', ''),
+        ('Custom_4', 'N', ''),
+        ('Custom_5', 'N', ''),
+        ('Custom_6', 'N', ''),
+        ('Custom_7', 'N', ''),
+        ('Custom_8', 'N', ''),
+        ('Custom_9', 'N', ''),
+        ('Custom_10', 'N', ''),
+        ('Custom_11', 'N', ''),
+        ('Custom_12', 'N', ''),
+        ('Custom_13', 'N', ''),
+        ('Custom_14', 'N', ''),
+        ('Custom_15', 'N', ''),
+        ('Custom_16', 'N', ''),
+        ('Custom_17', 'N', ''),
+        ('Custom_18', 'N', ''),
+        ('Custom_19', 'N', ''),
+        ('Custom_20', 'N', ''),
+    ]),
+    "receipt_200": ('200', 'Receipt', 'PO Receipt v2 - 200 Header', [
+        ('Record Type', 'Y', 'record_type'),
+        ('Purchase Order Number', 'Y', 'purchase_order_number'),
+        ('Line Item External ID', 'Y', 'line_item_external_id'),
+        ('Goods Receipt Number', 'N', 'goods_receipt_number'),
+        ('Delivery Slip Number', 'N', 'delivery_slip_number'),
+        ('UOM Code', 'N', 'uom_code'),
+        ('Received Quantity', 'N', 'received_quantity'),
+        ('Received Date', 'N', 'received_date'),
+        ('Is Deleted', 'N', 'is_deleted'),
+        ('Future_Use_1', 'N', 'future_use_1'),
+        ('Future_Use_2', 'N', 'future_use_2'),
+        ('Future_Use_3', 'N', 'future_use_3'),
+        ('Future_Use_4', 'N', 'future_use_4'),
+        ('Future_Use_5', 'N', 'future_use_5'),
+        ('Future_Use_6', 'N', 'future_use_6'),
+        ('Future_Use_7', 'N', 'future_use_7'),
+        ('Future_Use_8', 'N', 'future_use_8'),
+        ('Future_Use_9', 'N', 'future_use_9'),
+        ('Future_Use_10', 'N', 'future_use_10'),
+        ('Custom_1', 'N', 'custom_1'),
+        ('Custom_2', 'N', 'custom_2'),
+        ('Custom_3', 'N', 'custom_3'),
+        ('Custom_4', 'N', 'custom_4'),
+        ('Custom_5', 'N', 'custom_5'),
+        ('Custom_6', 'N', 'custom_6'),
+        ('Custom_7', 'N', 'custom_7'),
+        ('Custom_8', 'N', 'custom_8'),
+        ('Custom_9', 'N', 'custom_9'),
+        ('Custom_10', 'N', 'custom_10'),
+    ]),
+}
+
+# How wide each record is. A record that arrives with a different field count
+# is reported rather than guessed at - the whole file is positional, so one
+# extra comma shifts every field after it.
+WIDTHS: dict[str, int] = {k: len(v[3]) for k, v in SPEC.items()}
+
+
+def fields(key: str) -> list[tuple[str, str, str]]:
+    """The field list for a spec key, or an empty list if it is unknown."""
+    entry = SPEC.get(key)
+    return list(entry[3]) if entry else []
+
+
+def names(key: str) -> list[str]:
+    return [f[0] for f in fields(key)]
+
+
+def label(key: str) -> str:
+    entry = SPEC.get(key)
+    return entry[1] if entry else key
+
+
+def describe(key: str, values: list[str]) -> list[dict]:
+    """
+    Zip a record's values onto the spec, for the detail panel.
+
+    Positions the record does not reach come back empty, and positions the
+    spec does not know about (a file wider than the guide) come back named
+    "Field <n> (not in the spec)" rather than being dropped - an unexpected
+    field is exactly the thing worth seeing.
+    """
+    out = []
+    spec_fields = fields(key)
+    for i in range(max(len(spec_fields), len(values))):
+        if i < len(spec_fields):
+            name, req, proc = spec_fields[i]
+        else:
+            name, req, proc = f"Field {i + 1} (not in the spec)", "", ""
+        value = values[i] if i < len(values) else ""
+        out.append({
+            "position": i + 1, "name": name, "required": req,
+            "proc": proc, "value": value,
+            "padded": bool(value) and value != value.strip(),
+        })
+    return out
+

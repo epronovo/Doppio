@@ -87,7 +87,7 @@ function Send-SftpFile {
         SshHostKeyFingerprint = $SshKey
         PortNumber = 22
     }
-
+	
 	$session = New-Object WinSCP.Session
 
 	try
@@ -103,6 +103,15 @@ function Send-SftpFile {
 			$transferOptions = New-Object WinSCP.TransferOptions
 			$transferOptions.TransferMode = [WinSCP.TransferMode]::Binary
 			$transferOptions.PreserveTimestamp = $false
+
+			# Concur's inbound automation grabs the filename the instant our transfer
+			# starts and looks for that same name once it's done. WinSCP's default
+			# "transfer to a temporary filename, then rename" behavior races that:
+			# if Concur checks before we rename, the file is invisible to them and
+			# never picked up. This has to be set on TransferOptions.ResumeSupport,
+			# not as a session-level raw setting - "PartialTransfers" isn't a real
+			# WinSCP setting name and was silently doing nothing.
+			$transferOptions.ResumeSupport.State = [WinSCP.TransferResumeSupportState]::Off
 
 			$transferResult = $session.PutFiles($LocalFile, $RemotePath, $false, $transferOptions)
 

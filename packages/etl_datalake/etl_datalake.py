@@ -21,6 +21,16 @@ Steps:
      driven and watched from a browser.
 
 Uses only the Python standard library.
+
+Lives in packages/etl_datalake/ alongside the other package apps
+(packages/m3_security, packages/adp_concur, packages/mig_sync), but two
+things it depends on are deliberately NOT package-local:
+  - ionapi/     the shared repo-root folder of .ionapi tenant-credential
+                files every Infor automation tool in this repo reads.
+  - m3_unpacker.py   stays at the repo root - it is shared with
+                m3_repacker.py, m3_unpacker_db.py, m3_repacker_db.py,
+                build_brazil_csv.py and load_brazil_db.py, not specific
+                to this routine.
 """
 
 import glob
@@ -41,15 +51,22 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+_PKG_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.dirname(os.path.dirname(_PKG_DIR))  # packages/etl_datalake -> packages -> repo root
+
 # The zip files dropped on the status page are M3 Grid Access binary table
 # exports (the same format m3_unpacker.py reads). Reuse its parser so the
-# on-wire decoding stays in one place. m3_unpacker.py lives next to this file.
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# on-wire decoding stays in one place. m3_unpacker.py is a shared repo-root
+# module (see module docstring) - not package-local.
+sys.path.insert(0, _REPO_ROOT)
 import m3_unpacker as m3
 
 # ---------------------------------------------------------------- settings
-DB_PATH = "/Users/ericpronovost/sqlite/etl.db"
-IONAPI_DIR = "/Users/ericpronovost/Doppio/ionapi"
+DB_PATH = os.path.join(os.path.expanduser("~"), "sqlite", "etl.db")
+# ionapi/ is the shared repo-root credential folder (see module docstring) -
+# not package-local, so this points two directories up rather than at
+# _PKG_DIR/"ionapi".
+IONAPI_DIR = os.path.join(_REPO_ROOT, "ionapi")
 DEFAULT_ENV = "DOPPIO_DEM"
 ROUTINE_NAME = "etl_datalake"
 INTERVAL_SECONDS = 60  # 10 minutes
@@ -734,274 +751,14 @@ def etl_load_zip(zip_bytes):
 
 
 # --------------------------------------------------------- step 7: status page
-_STATUS_PAGE_HTML = """<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>ETL Data Lake Status</title>
-<style>
-  body { font-family: -apple-system, Helvetica, Arial, sans-serif; margin: 2rem; background: #111; color: #eee; }
-  h1 { font-size: 1.2rem; }
-  table { border-collapse: collapse; margin-bottom: 1.5rem; }
-  td { padding: 2px 10px 2px 0; vertical-align: top; }
-  td.label { color: #888; }
-  .state { display: inline-block; padding: 2px 10px; border-radius: 4px; font-weight: bold; }
-  .state-idle { background: #274; }
-  .state-sleeping { background: #245; }
-  .state-error { background: #722; }
-  .state-processing, .state-authenticating, .state-pinging,
-  .state-listing-objects, .state-checking-version, .state-starting,
-  .state-waiting-for-selection, .state-stopping, .state-loading-zip { background: #552; }
-  #log { background: #000; color: #9f9; font-family: monospace; font-size: 0.85rem;
-         padding: 1rem; height: 400px; overflow-y: auto; white-space: pre-wrap; }
-  #controls { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  #controls select, #controls input, #controls button { font-size: 1rem; padding: 4px 8px; }
-  #controls input[type=number] { width: 6rem; }
-  #controls button:disabled { opacity: 0.4; }
-  #upload { margin-bottom: 1.5rem; }
-  #dropArea { border: 2px dashed #555; border-radius: 6px; padding: 1.2rem;
-              text-align: center; color: #aaa; background: #181818; cursor: pointer; }
-  #dropArea.dragover { border-color: #9f9; color: #9f9; background: #1c221c; }
-  #dropArea.disabled { opacity: 0.4; cursor: not-allowed; }
-  #dropArea input[type=file] { display: none; }
-  #uploadRow { margin-top: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  #uploadRow button { font-size: 1rem; padding: 4px 8px; }
-  #uploadRow button:disabled { opacity: 0.4; }
-  #zipName { color: #9cf; }
-  #uploadMsg { color: #cc9; }
-  #tabBar { display: flex; gap: 4px; margin-bottom: 1rem; border-bottom: 1px solid #333; }
-  .tabBtn { font-size: 1rem; padding: 6px 14px; background: #1a1a1a; color: #aaa;
-            border: 1px solid #333; border-bottom: none; border-radius: 6px 6px 0 0;
-            cursor: pointer; }
-  .tabBtn.active { background: #222; color: #eee; }
-  .tabPanel { display: none; }
-  .tabPanel.active { display: block; }
-</style>
-</head>
-<body>
-<h1>ETL Data Lake &rarr; SQLite</h1>
-<div id="tabBar">
-  <button class="tabBtn active" data-tab="main">Main</button>
-  <button class="tabBtn" data-tab="loaddb">Load DB</button>
-</div>
-<div id="tab-main" class="tabPanel active">
-  <div id="controls">
-    <label>Environment <select id="envSelect"></select></label>
-    <label>Poll interval (s) <input type="number" id="intervalInput" min="5" step="1"></label>
-    <button id="applyIntervalBtn">Apply interval</button>
-    <label>Since override (UTC) <input type="datetime-local" id="sinceInput" step="1"></label>
-    <button id="applySinceBtn">Apply since</button>
-    <button id="clearSinceBtn">Clear since</button>
-    <button id="startBtn">Start</button>
-    <button id="nowBtn">Now</button>
-    <button id="stopBtn">Stop</button>
-  </div>
-  <table id="fields"></table>
-  <div id="log"></div>
-</div>
-<div id="tab-loaddb" class="tabPanel">
-  <div id="controls">
-    <label>Force object ID <input type="text" id="objectIdInput" placeholder="dl_id" size="28"></label>
-    <button id="loadObjectBtn">Load object</button>
-  </div>
-  <div id="upload">
-    <div id="dropArea">
-      Drop a table export <b>.zip</b> here, or <u>click to browse</u>
-      <input type="file" id="zipInput" accept=".zip,application/zip">
-    </div>
-    <div id="uploadRow">
-      <button id="uploadBtn" disabled>Load zip into database</button>
-      <span id="zipName"></span>
-      <span id="uploadMsg"></span>
-    </div>
-    <div style="color:#777;font-size:0.85rem;margin-top:4px;">
-      Only available while the routine is stopped. Loading truncates each table in
-      the zip and reloads it as the current baseline; tracking resumes on Start.
-    </div>
-  </div>
-</div>
-<script>
-document.querySelectorAll(".tabBtn").forEach(btn => {
-  btn.onclick = () => {
-    document.querySelectorAll(".tabBtn").forEach(b => b.classList.remove("active"));
-    document.querySelectorAll(".tabPanel").forEach(p => p.classList.remove("active"));
-    btn.classList.add("active");
-    document.getElementById(`tab-${btn.dataset.tab}`).classList.add("active");
-  };
-});
-function fmt(v) { return v === null || v === undefined ? "-" : v; }
+# --------------------------------------------------------- step 7: status page
+# The page itself lives in templates/ETL_Index.html, read once at import time -
+# still zero third-party dependencies, just a plain file read.
+_TEMPLATE_PATH = os.path.join(_PKG_DIR, "templates", "ETL_Index.html")
+with open(_TEMPLATE_PATH, "r", encoding="utf-8") as _fh:
+    _STATUS_PAGE_HTML = _fh.read()
 
-const RUNNING_STATES = ["starting", "authenticating", "pinging", "checking-version",
-                         "listing-objects", "processing", "sleeping", "stopping",
-                         "loading-zip"];
 
-let controlsPopulated = false;
-let selectedZip = null;
-let uploading = false;
-
-function populateControls(s) {
-  const select = document.getElementById("envSelect");
-  const envs = s.available_environments || [];
-  select.innerHTML = envs.map(e =>
-    `<option value="${e}" ${e === (s.environment || s.default_environment) ? "selected" : ""}>${e}</option>`
-  ).join("");
-  document.getElementById("intervalInput").value = s.poll_interval_seconds || 60;
-}
-
-async function postForm(path, body) {
-  await fetch(path, {
-    method: "POST",
-    headers: {"Content-Type": "application/x-www-form-urlencoded"},
-    body: body
-  });
-  refresh();
-}
-
-document.getElementById("startBtn").onclick = () => {
-  const env = document.getElementById("envSelect").value;
-  const interval = document.getElementById("intervalInput").value;
-  postForm("/start", `environment=${encodeURIComponent(env)}&interval=${encodeURIComponent(interval)}`);
-};
-document.getElementById("nowBtn").onclick = () => {
-  const env = document.getElementById("envSelect").value;
-  postForm("/now", `environment=${encodeURIComponent(env)}`);
-};
-document.getElementById("stopBtn").onclick = () => postForm("/stop", "");
-document.getElementById("loadObjectBtn").onclick = () => {
-  const obj = document.getElementById("objectIdInput").value.trim();
-  if (!obj) return;
-  postForm("/loadobject", `object_id=${encodeURIComponent(obj)}`);
-  document.getElementById("objectIdInput").value = "";
-};
-document.getElementById("applyIntervalBtn").onclick = () => {
-  const interval = document.getElementById("intervalInput").value;
-  postForm("/interval", `interval=${encodeURIComponent(interval)}`);
-};
-document.getElementById("applySinceBtn").onclick = () => {
-  const since = document.getElementById("sinceInput").value;
-  postForm("/since", `since=${encodeURIComponent(since)}`);
-};
-document.getElementById("clearSinceBtn").onclick = () => {
-  document.getElementById("sinceInput").value = "";
-  postForm("/since", "since=");
-};
-
-// ---- zip upload (drag/drop or browse) ----
-const dropArea = document.getElementById("dropArea");
-const zipInput = document.getElementById("zipInput");
-
-function setSelectedZip(file) {
-  if (dropArea.classList.contains("disabled")) return;
-  selectedZip = file || null;
-  document.getElementById("zipName").textContent = selectedZip ? selectedZip.name : "";
-  document.getElementById("uploadMsg").textContent = "";
-  refresh();
-}
-
-dropArea.onclick = () => { if (!dropArea.classList.contains("disabled")) zipInput.click(); };
-zipInput.onchange = () => setSelectedZip(zipInput.files[0]);
-dropArea.addEventListener("dragover", e => {
-  e.preventDefault();
-  if (!dropArea.classList.contains("disabled")) dropArea.classList.add("dragover");
-});
-dropArea.addEventListener("dragleave", () => dropArea.classList.remove("dragover"));
-dropArea.addEventListener("drop", e => {
-  e.preventDefault();
-  dropArea.classList.remove("dragover");
-  if (dropArea.classList.contains("disabled")) return;
-  if (e.dataTransfer.files && e.dataTransfer.files.length) setSelectedZip(e.dataTransfer.files[0]);
-});
-
-document.getElementById("uploadBtn").onclick = async () => {
-  if (!selectedZip || uploading) return;
-  uploading = true;
-  document.getElementById("uploadMsg").textContent = "Loading… this can take a while for large tables.";
-  refresh();
-  try {
-    const buf = await selectedZip.arrayBuffer();
-    const res = await fetch("/upload", {
-      method: "POST",
-      headers: {"Content-Type": "application/zip", "X-Filename": selectedZip.name},
-      body: buf,
-    });
-    const data = await res.json();
-    if (data.ok) {
-      const parts = data.results.map(r => `${r.table}: ${r.rows < 0 ? "FAILED" : r.rows + " rows"}`);
-      document.getElementById("uploadMsg").textContent = "Loaded — " + parts.join(", ");
-      selectedZip = null;
-      zipInput.value = "";
-      document.getElementById("zipName").textContent = "";
-    } else {
-      document.getElementById("uploadMsg").textContent = "Error: " + (data.error || "upload failed");
-    }
-  } catch (err) {
-    document.getElementById("uploadMsg").textContent = "Error: " + err;
-  } finally {
-    uploading = false;
-    refresh();
-  }
-};
-
-function updateDashboard(s, log) {
-  const running = RUNNING_STATES.includes(s.state);
-  document.getElementById("envSelect").disabled = running;
-  document.getElementById("startBtn").disabled = running || uploading;
-  document.getElementById("stopBtn").disabled = !running;
-
-  // Force-load a single object is only available while the routine is running
-  // (continuous mode), and never during a zip load.
-  const etlRunning = running && s.state !== "loading-zip";
-  document.getElementById("objectIdInput").disabled = !etlRunning;
-  document.getElementById("loadObjectBtn").disabled = !etlRunning;
-
-  // Uploads are only allowed while the routine is inactive.
-  const canUpload = !running && !uploading;
-  dropArea.classList.toggle("disabled", !canUpload);
-  document.getElementById("uploadBtn").disabled = !canUpload || !selectedZip;
-
-  const rows = [
-    ["Environment", fmt(s.environment)],
-    ["State", `<span class="state state-${(s.state||"").replace(/\\s+/g,"-")}">${fmt(s.state)}</span>`],
-    ["Build", fmt(s.build)],
-    ["Poll interval (s)", fmt(s.poll_interval_seconds)],
-    ["Cycle #", fmt(s.cycle_count)],
-    ["Cycle started", fmt(s.cycle_start)],
-    ["Last cycle ended", fmt(s.last_cycle_end)],
-    ["Next run at", fmt(s.next_run_at)],
-    ["Next run since", s.since_override ? `${fmt(s.since_override)} (override)` : "automatic"],
-    ["Objects", `${fmt(s.objects_done)} / ${fmt(s.objects_total)}`],
-    ["Rows (last cycle)", fmt(s.rows_loaded_last_cycle)],
-    ["Rows (total)", fmt(s.rows_loaded_total)],
-    ["Last error", fmt(s.last_error)],
-  ];
-  document.getElementById("fields").innerHTML = rows.map(
-    ([label, value]) => `<tr><td class="label">${label}</td><td>${value}</td></tr>`
-  ).join("");
-
-  const logEl = document.getElementById("log");
-  const atBottom = logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 20;
-  logEl.textContent = log.join("\\n");
-  if (atBottom) logEl.scrollTop = logEl.scrollHeight;
-}
-
-async function refresh() {
-  const res = await fetch("/status.json");
-  const data = await res.json();
-  const s = data.status;
-
-  if (!controlsPopulated) {
-    populateControls(s);
-    controlsPopulated = true;
-  }
-  updateDashboard(s, data.log);
-}
-
-refresh();
-setInterval(refresh, 2000);
-</script>
-</body>
-</html>
-"""
 
 
 class _StatusHandler(BaseHTTPRequestHandler):

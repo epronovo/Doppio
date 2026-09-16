@@ -268,12 +268,15 @@ try {
     # ---------------------------------------------------------------- 9
     Case '9. Passphrase-protected key, passphrase read from a file'
     Reset-Inbox
-    $pass    = 'S0me-Real-Passphrase!'
-    $fprPass = New-TestKey -Email 'withpass@example.invalid' -Passphrase $pass
+    # NOT $pass - at this top-level script scope that IS $script:Pass, the
+    # pass-count Assert increments (PowerShell variable names are
+    # case-insensitive), and clobbering it here silently breaks Assert.
+    $testPass = 'S0me-Real-Passphrase!'
+    $fprPass = New-TestKey -Email 'withpass@example.invalid' -Passphrase $testPass
     Assert 'Passphrase-protected key generated' (-not [string]::IsNullOrWhiteSpace($fprPass))
 
     $passFile = Join-Path $root 'keyphrase.txt'
-    Set-Content -Path $passFile -Value $pass -Encoding ASCII -NoNewline
+    Set-Content -Path $passFile -Value $testPass -Encoding ASCII -NoNewline
     $config.App_PgpPassPhraseLocation = $passFile
 
     $null = New-EncryptedFile -Recipient $fprPass -Name 'protected.txt' -Content 'PROTECTED PAYLOAD'

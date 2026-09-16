@@ -1,7 +1,16 @@
 {
 	"folders": [
 		{
+			"name": "Doppio (all)",
 			"path": "."
+		},
+		{
+			"name": "ADP Concur",
+			"path": "packages/adp_concur"
+		},
+		{
+			"name": "M3 Security",
+			"path": "packages/m3_security"
 		}
 	],
 	"settings": {}

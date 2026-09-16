@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ERP &rarr; Concur</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Doppio Group house style - the same tokens as packages/adp_concur,
+     packages/sheet_security and packages/pgp_keys: near-black chrome, white
+     content, one red accent, light hairline borders, small radii. */
+  :root{
+    --chrome:#141416; --chrome2:#232327;
+    --bg:#ffffff; --panel:#ffffff; --panel2:#f6f6f7; --panel3:#fbfbfc;
+    --line:#e6e7e9; --line2:#d9dadd;
+    --ink:#111214; --body:#55585c; --dim:#8a8d92;
+    --accent:#d40814; --accent-hi:#ef1c28; --accent-ink:#ffffff; --accent-wash:#fdecee;
+    --bad:#a4121b; --bad-wash:#fdecee; --bad-line:#f3c6ca;
+    --warn:#8a5a00; --warn-wash:#fdf4e3; --warn-line:#efdcb4;
+    --good:#0d6b39; --good-wash:#e9f6ee; --good-line:#bfe3cd;
+    --info:#1f4f8f; --info-wash:#eaf1fb; --info-line:#c7dbf5;
+    --sans:"Nunito Sans","Poppins",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --display:"Poppins","Nunito Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --r:8px; --r-sm:6px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--body);height:100vh;overflow:hidden;
+       display:flex;flex-direction:column;font:14px/1.5 var(--sans);
+       -webkit-font-smoothing:antialiased}
+
+  header{padding:0 22px;height:58px;background:var(--chrome);color:#fff;
+         display:flex;align-items:center;gap:14px;flex:0 0 auto}
+  h1{font:800 19px/1 var(--display);margin:0;letter-spacing:-.4px;color:#fff;
+     display:flex;align-items:baseline;gap:9px;white-space:nowrap}
+  h1 .mark{color:var(--accent);font-size:22px;line-height:0}
+  h1 .app{font:600 12px/1 var(--sans);letter-spacing:.14em;text-transform:uppercase;
+          color:#9b9ea3;padding-left:11px;border-left:1px solid #34343a}
+  .grow{flex:1}
+  .sub{color:var(--dim);font-size:12px}
+  header .sub{color:#9b9ea3}
+  header .files{display:flex;gap:6px;align-items:center;flex-wrap:wrap;min-width:0}
+  .fpill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;
+         border:1px solid #3a3a40;color:#c7c9cc;white-space:nowrap}
+  .fpill.on{border-color:#2f6b46;background:#10301f;color:#9fe0b8}
+  .fpill.off{opacity:.55}
+
+  select,input,button,textarea{font:inherit;color:var(--ink);background:#fff;
+         border:1px solid var(--line2);border-radius:var(--r-sm);padding:6px 10px;outline:none}
+  input::placeholder{color:#a8abaf}
+  input:focus,select:focus,textarea:focus{border-color:var(--accent);
+         box-shadow:0 0 0 3px rgba(212,8,20,.12)}
+  button{cursor:pointer;background:#fff;color:var(--ink);font-weight:600}
+  button:hover{border-color:var(--ink)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.primary:hover{background:var(--accent-hi);border-color:var(--accent-hi)}
+  button.danger{color:var(--bad);border-color:var(--bad-line);background:var(--bad-wash)}
+  button.danger:hover{border-color:var(--bad);background:#fbdcdf}
+  button.ghost{background:transparent;color:#c7c9cc;border-color:#3a3a40}
+  button.ghost:hover{color:#fff;border-color:#fff}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  button.small{padding:4px 9px;font-size:12px}
+  input[type=checkbox]{width:auto;padding:0;margin:0;accent-color:var(--accent);cursor:pointer}
+
+  main{padding:0 22px 14px;flex:1;min-height:0;display:flex;flex-direction:column}
+
+  #drop{margin:12px 0 0;border:1px dashed var(--line2);border-radius:var(--r);
+        padding:9px 14px;text-align:center;color:var(--dim);transition:.15s;
+        background:var(--panel3);flex:0 0 auto;font-size:12px;cursor:pointer}
+  #drop.hot{border-color:var(--accent);background:var(--accent-wash);color:var(--ink)}
+  #drop b{color:var(--ink);font-weight:700}
+  #drop .acts{display:inline-flex;gap:6px;margin-left:8px}
+
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-top:10px;
+        flex:0 0 auto;flex-wrap:wrap}
+  .tab{padding:10px 15px;border:none;border-bottom:2px solid transparent;cursor:pointer;
+       color:var(--dim);font-weight:600;margin-bottom:-1px;transition:.12s;background:none}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+  .tab .n{font-size:11px;color:var(--dim);margin-left:6px;font-weight:600}
+  .tab.on .n{color:var(--accent)}
+  .pane{display:none}
+  .pane.on{display:flex;flex-direction:column;flex:1;min-height:0;padding-top:12px}
+  .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:9px;flex:0 0 auto}
+  .countline{font-size:12px;color:var(--dim);margin:0 0 8px;flex:0 0 auto}
+  .countline b{color:var(--ink)}
+
+  .note{border:1px solid var(--line);background:var(--panel3);border-radius:var(--r);
+        padding:10px 13px;margin-bottom:10px;font-size:12.5px;color:var(--body);flex:0 0 auto}
+  .note.danger{border-color:var(--bad-line);background:var(--bad-wash);color:var(--bad)}
+  .note.warn{border-color:var(--warn-line);background:var(--warn-wash);color:var(--warn)}
+  .note.good{border-color:var(--good-line);background:var(--good-wash);color:var(--good)}
+  .note b{color:var(--ink)}
+  .note.danger b,.note.warn b,.note.good b{color:inherit}
+
+  .wrap{flex:1;min-height:90px;overflow:auto;border:1px solid var(--line);
+        border-radius:var(--r);background:var(--panel)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+  th{color:var(--dim);font-weight:700;font-size:11px;text-transform:uppercase;
+     letter-spacing:.07em;position:sticky;top:0;background:var(--panel3);z-index:2;
+     border-bottom:1px solid var(--line2)}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--ink)}
+  th .arrow{opacity:.35;margin-left:4px;font-size:10px}
+  th.sorted{color:var(--accent)}
+  th.sorted .arrow{opacity:1}
+  td{color:var(--body)}
+  td.mono,.mono{font-family:var(--mono);font-size:12px}
+  td.num{text-align:right;font-family:var(--mono);font-size:12px}
+  td.pick{width:28px;padding-right:0}
+  tbody tr{cursor:pointer}
+  tbody tr:hover{background:var(--panel2)}
+  tbody tr.picked{background:var(--accent-wash)}
+  tbody tr.picked:hover{background:#fbdcdf}
+  .empty{padding:34px 20px;text-align:center;color:var(--dim);font-size:13px}
+
+  .pill{display:inline-block;padding:1px 8px;border-radius:20px;font-size:11px;
+        font-weight:600;background:var(--panel2);color:var(--body);border:1px solid var(--line);
+        white-space:nowrap}
+  .pill.good{background:var(--good-wash);color:var(--good);border-color:var(--good-line)}
+  .pill.warn{background:var(--warn-wash);color:var(--warn);border-color:var(--warn-line)}
+  .pill.bad{background:var(--bad-wash);color:var(--bad);border-color:var(--bad-line)}
+  .pill.info{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
+  .pill.ghost{background:transparent;color:var(--dim)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;flex:0 0 auto}
+  .chip{border:1px solid var(--line);background:var(--panel3);border-radius:20px;
+        padding:4px 11px;font-size:12px;font-weight:600;color:var(--body);cursor:pointer}
+  .chip:hover{border-color:var(--ink);color:var(--ink)}
+  .chip.on{border-color:var(--accent);background:var(--accent-wash);color:var(--accent)}
+  .chip .n{color:var(--dim);margin-left:5px;font-weight:700}
+
+  h3{font:700 12px/1 var(--display);margin:18px 0 9px;text-transform:uppercase;
+     letter-spacing:.09em;color:var(--dim);border-top:1px solid var(--line);padding-top:16px}
+  h3:first-child{border-top:none;margin-top:0;padding-top:0}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media (max-width:820px){.cols{grid-template-columns:1fr}}
+  .card{border:1px solid var(--line);border-radius:var(--r);background:var(--panel);
+        overflow:hidden}
+  .card .hd{padding:8px 12px;background:var(--panel3);border-bottom:1px solid var(--line);
+            font:700 11px/1.4 var(--display);text-transform:uppercase;letter-spacing:.08em;
+            color:var(--dim);display:flex;align-items:center;gap:8px}
+  .card .bd{padding:0;max-height:34vh;overflow:auto}
+  .card .bd.pad{padding:12px}
+  .kv{display:grid;grid-template-columns:170px 1fr;gap:6px 12px;font-size:12.5px}
+  .kv dt{color:var(--dim);font-weight:600}
+  .kv dd{margin:0;color:var(--ink);font-family:var(--mono);font-size:12px;
+         overflow-wrap:anywhere}
+
+  /* ------------------------------------------- the record detail panel --- */
+  #panel{position:fixed;top:0;right:0;height:100%;width:min(820px,96vw);z-index:80;
+         background:var(--bg);border-left:1px solid var(--line);transform:translateX(105%);
+         transition:.22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
+         box-shadow:-20px 0 48px rgba(17,18,20,.14)}
+  #panel.on{transform:none}
+  #panel .head{padding:0 18px;height:58px;background:var(--chrome);color:#fff;
+               display:flex;gap:12px;align-items:center;flex:0 0 auto;font:700 15px var(--display)}
+  #panel .head .sub{color:#9b9ea3}
+  #panel .head button{background:transparent;color:#fff;border-color:#3a3a40}
+  #panel .head button:hover{border-color:#fff}
+  #panel .body{padding:16px 18px;overflow:auto;flex:1;background:var(--bg)}
+  #panel .foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;
+               align-items:center;flex:0 0 auto;background:var(--panel3)}
+  .spec th,.spec td{padding:5px 9px;font-size:12px;max-width:420px;white-space:normal}
+  .spec td.p{width:36px;color:var(--dim);font-family:var(--mono);text-align:right}
+  .spec td.v{font-family:var(--mono);color:var(--ink);overflow-wrap:anywhere}
+  .spec tr.blank td.v{color:#b8bbbf}
+  .spec tr.req td.n{color:var(--ink);font-weight:700}
+  .spec td.v em{font-style:normal;background:var(--warn-wash);border:1px solid var(--warn-line);
+                border-radius:3px;padding:0 2px}
+  .spec td.v input{width:100%;min-width:80px;border:1px solid transparent;background:transparent;
+                    padding:2px 4px;border-radius:4px;font:inherit;color:inherit}
+  .spec td.v input:hover{border-color:var(--line2)}
+  .spec td.v input:focus{border-color:var(--accent);background:#fff;outline:none}
+  .spec tr.edited td.v input{background:var(--accent-wash);border-color:var(--accent)}
+  .spec tr.edited td.p{color:var(--accent);font-weight:700}
+  .raw{font-family:var(--mono);font-size:11.5px;background:var(--panel2);
+       border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 11px;
+       overflow-wrap:anywhere;color:var(--ink);margin:0}
+
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140px);
+         background:var(--chrome);color:#fff;border:none;border-radius:var(--r);
+         padding:12px 20px;z-index:90;transition:.22s;max-width:74vw;font-weight:600;
+         box-shadow:0 14px 36px rgba(17,18,20,.28)}
+  #toast.on{transform:translateX(-50%)}
+  #toast.bad{background:var(--bad)}
+
+  ::-webkit-scrollbar{width:11px;height:11px}
+  ::-webkit-scrollbar-thumb{background:#d3d5d8;border-radius:6px;border:3px solid #fff}
+  ::-webkit-scrollbar-thumb:hover{background:#b9bcc0}
+  ::-webkit-scrollbar-track{background:transparent}
+</style>
+</head>
+<body>
+
+<header>
+  <!-- The wordmark reads first; the tool's own name sits behind a rule. -->
+  <h1>Doppio<span class="mark">&#9679;</span><span class="app">ERP &rarr; Concur</span></h1>
+  <div class="files" id="filepills"></div>
+  <span class="grow"></span>
+  <span class="sub" id="selline"></span>
+  <button class="ghost small" id="clear-all">Clear everything</button>
+</header>
+
+<main>
+  <div id="drop">
+    Drop the <b>purchase order</b>, <b>vendor</b> and <b>PO receipt</b> files here &mdash; which is
+    which is worked out from the records inside them, not the file names &mdash; and the
+    <b>import results</b> report Concur sends back, to pick the orders that have to go again.
+    <span class="acts">
+      <button class="small" id="load-input" onclick="event.stopPropagation()">Load from input/</button>
+    </span>
+    <span id="dropmsg"></span>
+    <input type="file" id="file" multiple accept=".txt,.csv,.dat,.tsv,.xls,.xlsx,.xlsm" style="display:none">
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-pane="vendors">Vendors<span class="n" id="n-ven"></span></button>
+    <button class="tab" data-pane="pos">Purchase orders<span class="n" id="n-po"></span></button>
+    <button class="tab" data-pane="lines">Lines<span class="n" id="n-line"></span></button>
+    <button class="tab" data-pane="receipts">Receipts<span class="n" id="n-rec"></span></button>
+    <button class="tab" data-pane="findings">Findings<span class="n" id="n-find"></span></button>
+    <button class="tab" data-pane="results">What Concur said<span class="n" id="n-res"></span></button>
+    <button class="tab" data-pane="extract">Extract<span class="n" id="n-pick"></span></button>
+  </div>
+
+  <!-- ---------------------------------------------------------- vendors -->
+  <div class="pane on" id="pane-vendors">
+    <div class="toolbar">
+      <input id="v-q" placeholder="Search code, name, address code, city, email" style="min-width:280px">
+      <select id="v-picked">
+        <option value="">Picked and not</option>
+        <option value="only">Only picked</option>
+        <option value="not">Only not picked</option>
+      </select>
+      <select id="v-orphans">
+        <option value="">Every vendor</option>
+        <option value="1">No order in this file</option>
+      </select>
+      <select id="v-problems">
+        <option value="">Any</option>
+        <option value="any">With findings</option>
+      </select>
+      <span class="grow"></span>
+      <button class="small" id="v-all">Pick all in view</button>
+      <button class="small" id="v-none">Drop all in view</button>
+    </div>
+    <div class="countline" id="v-count"></div>
+    <div class="wrap"><table id="t-ven"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- -------------------------------------------------- purchase orders -->
+  <div class="pane" id="pane-pos">
+    <div class="toolbar">
+      <input id="p-q" placeholder="Search order, vendor, item, description" style="min-width:280px">
+      <select id="p-picked">
+        <option value="">Picked and not</option>
+        <option value="only">Only picked</option>
+        <option value="not">Only not picked</option>
+      </select>
+      <select id="p-entity"><option value="">Every entity</option></select>
+      <select id="p-problems">
+        <option value="">Any</option>
+        <option value="errors">With errors</option>
+        <option value="any">With findings</option>
+      </select>
+      <span class="grow"></span>
+      <button class="small" id="p-all">Pick all in view</button>
+      <button class="small" id="p-none">Drop all in view</button>
+    </div>
+    <div class="countline" id="p-count"></div>
+    <div class="wrap"><table id="t-po"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ------------------------------------------------------------ lines -->
+  <div class="pane" id="pane-lines">
+    <div class="toolbar">
+      <input id="l-q" placeholder="Search external ID, item, description, account" style="min-width:280px">
+      <select id="l-picked">
+        <option value="">Every order</option>
+        <option value="only">Only picked orders</option>
+        <option value="not">Only orders not picked</option>
+      </select>
+      <select id="l-charges">
+        <option value="">Lines and charges</option>
+        <option value="not">Real lines only</option>
+        <option value="only">Charges only</option>
+      </select>
+      <select id="l-dupes">
+        <option value="">Any key</option>
+        <option value="1">Shared External ID only</option>
+      </select>
+      <button class="small" id="l-synth" title="Add a trivial Quantity × Unit Price 400 to every line that has none — a placeholder, not a real account split. See the info finding it adds.">Fill missing allocations</button>
+    </div>
+    <div class="countline" id="l-count"></div>
+    <div class="wrap"><table id="t-line"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- --------------------------------------------------------- receipts -->
+  <div class="pane" id="pane-receipts">
+    <div class="toolbar">
+      <input id="r-q" placeholder="Search order, line external ID, receipt number, slip" style="min-width:280px">
+      <select id="r-picked">
+        <option value="">Every order</option>
+        <option value="only">Only picked orders</option>
+        <option value="not">Only orders not picked</option>
+      </select>
+      <select id="r-match">
+        <option value="">Any match</option>
+        <option value="matched">Matches a line</option>
+        <option value="orphan">Matches no line</option>
+        <option value="ambiguous">Matches more than one</option>
+      </select>
+      <select id="r-zero">
+        <option value="">Any quantity</option>
+        <option value="1">Zero received only</option>
+      </select>
+    </div>
+    <div class="countline" id="r-count"></div>
+    <div class="wrap"><table id="t-rec"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- --------------------------------------------------------- findings -->
+  <div class="pane" id="pane-findings">
+    <div class="note">Nothing here stops an extract. <b>Error</b> means Concur will reject the
+      record, <b>warning</b> means it will load something wrong, <b>info</b> means it looks odd
+      and is worth an eye. The per-field checks come from
+      <span class="mono">Concur_Record_Type_Specifications.xlsx</span>; the rest are the three
+      matches Concur actually performs.</div>
+    <div class="toolbar">
+      <input id="f-q" placeholder="Search message, record, field" style="min-width:280px">
+      <select id="f-sev">
+        <option value="">Every severity</option>
+        <option value="error">Errors</option>
+        <option value="warning">Warnings</option>
+        <option value="info">Info</option>
+      </select>
+      <select id="f-picked">
+        <option value="">Everything loaded</option>
+        <option value="only">Only what is picked</option>
+      </select>
+      <span class="grow"></span>
+      <button class="small" id="f-rebuild">Re-run the checks</button>
+    </div>
+    <div class="chips" id="f-chips"></div>
+    <div class="countline" id="f-count"></div>
+    <div class="wrap"><table id="t-find"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ---------------------------------------------------------- results -->
+  <div class="pane" id="pane-results">
+    <div class="note" id="res-note"></div>
+    <div class="toolbar">
+      <select id="res-view">
+        <option value="orders">The orders that failed</option>
+        <option value="rows">Every row of the report</option>
+      </select>
+      <input id="res-q" placeholder="Search message, order, external ID" style="min-width:260px">
+      <select id="res-level">
+        <option value="">Every level</option>
+        <option value="Error">Errors</option>
+        <option value="Info">Info</option>
+      </select>
+      <select id="res-picked">
+        <option value="">Picked and not</option>
+        <option value="only">Only picked</option>
+        <option value="not">Only not picked</option>
+      </select>
+      <span class="grow"></span>
+      <button class="primary" id="res-pick">Pick every failed order</button>
+      <button class="small" id="res-drop">Drop them again</button>
+    </div>
+    <div class="chips" id="res-chips"></div>
+    <div class="countline" id="res-count"></div>
+    <div class="wrap"><table id="t-res"><thead></thead><tbody></tbody></table></div>
+  </div>
+
+  <!-- ---------------------------------------------------------- extract -->
+  <div class="pane" id="pane-extract">
+    <div class="note" id="x-note"></div>
+    <div class="toolbar">
+      <input id="x-label" placeholder="Label for the file names &mdash; optional" style="min-width:240px">
+      <button class="primary" id="x-write">Write extract</button>
+      <button class="small" id="x-refresh">Refresh preview</button>
+      <span class="grow"></span>
+      <button class="small danger" id="x-clear">Clear the selection</button>
+    </div>
+    <div style="flex:1;min-height:0;overflow:auto">
+      <div class="cols">
+        <div class="card">
+          <div class="hd">Vendors picked <span class="grow"></span><span id="x-nven" class="sub"></span></div>
+          <div class="bd"><table id="t-xven"><thead></thead><tbody></tbody></table></div>
+        </div>
+        <div class="card">
+          <div class="hd">Purchase orders picked <span class="grow"></span><span id="x-npo" class="sub"></span></div>
+          <div class="bd"><table id="t-xpo"><thead></thead><tbody></tbody></table></div>
+        </div>
+      </div>
+      <h3>What would be written</h3>
+      <div id="x-preview"></div>
+      <h3>Extracts written</h3>
+      <div class="card"><div class="bd"><table id="t-xhist"><thead></thead><tbody></tbody></table></div></div>
+    </div>
+  </div>
+</main>
+
+<div id="panel">
+  <div class="head"><b id="d-title">Record</b><span class="sub" id="d-sub"></span>
+    <span class="grow"></span><button id="d-close">Close</button></div>
+  <div class="body" id="d-body"></div>
+  <div class="foot">
+    <button class="primary" id="d-save" hidden>Save changes</button>
+    <button id="d-pick" hidden>Pick</button>
+    <span class="sub" id="d-state"></span>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* --------------------------------------------------------------- helpers --- */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const el = (t, a = {}, ...kids) => {
+  const node = document.createElement(t);
+  for (const [k, v] of Object.entries(a)) {
+    if (k === 'class') node.className = v;
+    else if (k === 'html') node.innerHTML = v;
+    else if (k.startsWith('on')) node.addEventListener(k.slice(2), v);
+    else if (v !== null && v !== undefined && v !== false) node.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) if (kid !== null && kid !== undefined && kid !== false)
+    node.append(kid.nodeType ? kid : document.createTextNode(kid));
+  return node;
+};
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const num = x => Number(x || 0).toLocaleString();
+const plural = (k, one, many) => `${num(k)} ${k === 1 ? one : (many || one + 's')}`;
+
+let toastTimer = null;
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.classList.toggle('bad', !!bad);
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), bad ? 8000 : 4500);
+}
+
+async function api(url, opts) {
+  const r = await fetch(url, opts);
+  let body;
+  try { body = await r.json(); } catch { body = { status: 'error', message: r.statusText }; }
+  if (!r.ok || body.status === 'error') throw new Error(body.message || 'Request failed');
+  return body;
+}
+const post = (url, body) => api(url, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body || {})
+});
+
+/* Debounce the search boxes so typing does not fire a query per keystroke. */
+function debounce(fn, ms = 220) {
+  let t = null;
+  return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+
+/* ----------------------------------------------------------------- state --- */
+const state = {
+  tab: 'vendors',
+  sort: { vendors: {}, pos: {}, lines: {}, receipts: {} },
+  counts: {}, selection: {}, files: [], extracts: [], results: { loaded: false },
+  findingKind: '',
+  // Which cut of the report is on screen, and which error code is filtered
+  // to. 'orders' is the default because that is the question the report is
+  // read to answer - which orders go again - and 'rows' is there for when the
+  // answer looks wrong.
+  resultView: 'orders', resultCode: '',
+  // The record currently open in the detail panel, if any of its fields are
+  // being edited: { scope, key, pending: {position: value}, refresh }.
+  // `refresh` reloads the panel from the server so a save shows the record
+  // exactly as it now stands, raw line and all.
+  editing: null,
+};
+
+/* ------------------------------------------------------------- editing --- */
+function stageEdit(position, value) {
+  if (!state.editing) return;
+  state.editing.pending[position] = value;
+  $('#d-save').hidden = false;
+}
+
+async function saveEdits() {
+  if (!state.editing || !Object.keys(state.editing.pending).length) return;
+  const { scope, key, pending, refresh } = state.editing;
+  try {
+    const d = await post(`/api/record/${scope}/${key}/edit`, { edits: pending });
+    toast('Saved' + (d.findings_summary
+      ? ` — ${plural(d.findings_summary.total, 'finding')} now cover the loaded files`
+      : ''));
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+$('#d-save').addEventListener('click', saveEdits);
+
+/* --------------------------------------------------------- table plumbing ---
+   One renderer for every list. A column is {key, label, cls, sort, fmt} - fmt
+   gets (row) and may return a string or a node, so a cell can carry a pill
+   without every table needing its own render function. */
+function renderTable(table, columns, rows, opts = {}) {
+  const thead = table.tHead || table.createTHead();
+  const tbody = table.tBodies[0] || table.createTBody();
+  const sort = opts.sortState || {};
+  thead.textContent = '';
+  const head = el('tr');
+  for (const c of columns) {
+    const sorted = c.sort && sort.sort === c.sort;
+    const th = el('th', {
+      class: [c.sort ? 'sortable' : '', sorted ? 'sorted' : '', c.cls || ''].join(' ').trim(),
+      html: esc(c.label) + (c.sort
+        ? `<span class="arrow">${sorted && sort.dir === 'desc' ? '&#9660;' : '&#9650;'}</span>`
+        : '')
+    });
+    if (c.sort && opts.onSort) th.addEventListener('click', () => opts.onSort(c.sort));
+    head.append(th);
+  }
+  thead.append(head);
+
+  tbody.textContent = '';
+  if (!rows.length) {
+    tbody.append(el('tr', {}, el('td', { colspan: columns.length },
+      el('div', { class: 'empty' }, opts.empty || 'Nothing here.'))));
+    return;
+  }
+  for (const row of rows) {
+    const tr = el('tr', { class: row.picked ? 'picked' : '' });
+    if (opts.onRow) tr.addEventListener('click', e => {
+      // The checkbox and the row buttons have their own jobs.
+      if (e.target.closest('input,button')) return;
+      opts.onRow(row);
+    });
+    for (const c of columns) {
+      const td = el('td', { class: c.cls || '' });
+      const v = c.fmt ? c.fmt(row) : row[c.key];
+      if (v === null || v === undefined) td.textContent = '';
+      else if (v.nodeType) td.append(v);
+      else td.textContent = String(v);
+      tr.append(td);
+    }
+    tbody.append(tr);
+  }
+}
+
+function pickBox(checked, onchange) {
+  return el('input', { type: 'checkbox', checked: checked ? 'checked' : false,
+                       onchange: e => onchange(e.target.checked) });
+}
+const pill = (text, cls) => el('span', { class: 'pill ' + (cls || '') }, text);
+
+/* ------------------------------------------------------------ the header --- */
+async function loadStatus() {
+  const d = await api('/api/status');
+  state.counts = d.counts;
+  state.files = d.files;
+  state.selection = d.selection;
+  state.extracts = d.extracts;
+  state.outDir = d.out_dir;
+  state.inputDir = d.input_dir;
+
+  const pills = $('#filepills');
+  pills.textContent = '';
+  const have = Object.fromEntries(d.files.map(f => [f.kind, f]));
+  for (const [kind, label] of Object.entries(d.kinds)) {
+    const f = have[kind];
+    pills.append(el('span', {
+      class: 'fpill ' + (f ? 'on' : 'off'),
+      title: f ? `${f.file_name} - ${num(f.line_count)} line(s), loaded ${f.loaded_at}`
+               : `No ${label.toLowerCase()} file loaded`
+    }, f ? `${label} · ${num(f.line_count)}` : `${label} — none`));
+  }
+
+  const c = d.counts, s = d.selection;
+  $('#n-ven').textContent = num(c.vendors);
+  $('#n-po').textContent = num(c.po_headers);
+  $('#n-line').textContent = num(c.po_lines);
+  $('#n-rec').textContent = num(c.receipts);
+  $('#n-find').textContent = num(c.findings);
+  $('#n-res').textContent = d.results && d.results.loaded
+    ? num(d.results.failed_pos) : '';
+  state.results = d.results || { loaded: false };
+  $('#n-pick').textContent = `${num(s.vendors)}/${num(s.pos)}`;
+  $('#selline').textContent = (s.vendors || s.pos)
+    ? `picked: ${plural(s.vendors, 'vendor')}, ${plural(s.pos, 'order')} → `
+      + `${plural(s.line_rows, 'line')}, ${plural(s.receipt_rows, 'receipt')}`
+    : 'nothing picked';
+}
+
+/* ----------------------------------------------------------- the vendors --- */
+const vArgs = () => new URLSearchParams({
+  q: $('#v-q').value, picked: $('#v-picked').value,
+  orphans: $('#v-orphans').value, problems: $('#v-problems').value,
+  ...state.sort.vendors, size: 500
+});
+
+async function loadVendors() {
+  const d = await api('/api/vendors?' + vArgs());
+  renderTable($('#t-ven'), [
+    { label: '', cls: 'pick',
+      fmt: r => pickBox(r.picked, on => togglePick({ vendors: [r.vendor_code] }, on)) },
+    { key: 'vendor_code', label: 'Vendor code', cls: 'mono', sort: 'vendor_code' },
+    { key: 'vendor_name', label: 'Name', sort: 'vendor_name' },
+    { key: 'vendor_address_code', label: 'Address code', cls: 'mono',
+      sort: 'vendor_address_code' },
+    { key: 'currency', label: 'Ccy', sort: 'currency' },
+    { key: 'payment_term_days', label: 'Terms', cls: 'num', sort: 'payment_term_days' },
+    { label: 'Where', fmt: r => [r.city, r.state, r.country_code].filter(Boolean).join(', ') },
+    { label: 'Orders', cls: 'num',
+      fmt: r => r.n_po ? String(r.n_po) : pill('none', 'ghost') },
+    { label: '', fmt: r => r.n_finding
+        ? pill(r.n_finding + ' finding' + (r.n_finding > 1 ? 's' : ''), 'warn') : '' },
+  ], d.rows, {
+    sortState: state.sort.vendors, onSort: k => sortBy('vendors', k, loadVendors),
+    onRow: r => openDetail('vendor', r.vendor_key),
+    empty: state.counts.vendors ? 'No vendor matches those filters.'
+                                : 'No vendor file loaded yet.'
+  });
+  $('#v-count').innerHTML = `<b>${num(d.total)}</b> vendor record(s) shown`
+    + (state.counts.vendor_codes !== state.counts.vendors
+       ? ` from <b>${num(state.counts.vendor_codes)}</b> distinct vendor code(s)` : '')
+    + '. Picking a vendor takes every order that names it, and their receipts.';
+}
+
+/* ---------------------------------------------------- the purchase orders --- */
+const pArgs = () => new URLSearchParams({
+  q: $('#p-q').value, picked: $('#p-picked').value, entity: $('#p-entity').value,
+  problems: $('#p-problems').value, ...state.sort.pos, size: 500
+});
+
+async function loadPos() {
+  const d = await api('/api/pos?' + pArgs());
+  renderTable($('#t-po'), [
+    { label: '', cls: 'pick',
+      fmt: r => pickBox(r.picked, on => togglePick({ pos: [r.po_number] }, on)) },
+    { key: 'po_number', label: 'Order', cls: 'mono', sort: 'po_number' },
+    { key: 'entity_id', label: 'Entity', cls: 'mono', sort: 'entity_id' },
+    { label: 'Vendor', sort: 'vendor_code',
+      fmt: r => `${r.vendor_code}${r.vendor_name ? ' · ' + r.vendor_name : ''}` },
+    { label: 'Pair', fmt: r => r.vendor_pair_ok
+        ? pill('matched', 'good') : pill('no vendor row', 'bad') },
+    { key: 'order_date', label: 'Ordered', cls: 'mono', sort: 'order_date' },
+    { key: 'currency_code', label: 'Ccy' },
+    { label: 'Lines', cls: 'num',
+      fmt: r => r.n_charge ? `${r.n_line} (${r.n_charge} chg)` : String(r.n_line) },
+    { label: 'Receipts', cls: 'num', fmt: r => String(r.n_receipt) },
+    { label: '', fmt: r => r.n_error
+        ? pill(r.n_error + ' error' + (r.n_error > 1 ? 's' : ''), 'bad')
+        : (r.n_finding ? pill(r.n_finding + ' finding' + (r.n_finding > 1 ? 's' : ''), 'warn') : '') },
+  ], d.rows, {
+    sortState: state.sort.pos, onSort: k => sortBy('pos', k, loadPos),
+    onRow: r => openPo(r.po_key),
+    empty: state.counts.po_headers ? 'No order matches those filters.'
+                                   : 'No purchase order file loaded yet.'
+  });
+  $('#p-count').innerHTML = `<b>${num(d.total)}</b> order(s) shown. `
+    + 'Picking an order takes the vendor behind it. '
+    + '<span class="sub">Pair = whether this order’s (vendor code, vendor address code) '
+    + 'exists in the vendor file — the match Concur makes, and error 2000 when it '
+    + 'misses.</span>';
+}
+
+async function loadEntities() {
+  const d = await api('/api/pos/entities');
+  const sel = $('#p-entity'), keep = sel.value;
+  sel.textContent = '';
+  sel.append(el('option', { value: '' }, 'Every entity'));
+  for (const e of d.rows) sel.append(el('option', { value: e }, e));
+  sel.value = keep;
+}
+
+/* ------------------------------------------------------------- the lines --- */
+const lArgs = () => new URLSearchParams({
+  q: $('#l-q').value, picked: $('#l-picked').value, charges: $('#l-charges').value,
+  dupes: $('#l-dupes').value, ...state.sort.lines, size: 500
+});
+
+async function loadLines() {
+  const d = await api('/api/lines?' + lArgs());
+  renderTable($('#t-line'), [
+    { key: 'po_number', label: 'Order', cls: 'mono', sort: 'po_number' },
+    { key: 'line_number', label: '#', cls: 'num', sort: 'line_number' },
+    { label: 'External ID', cls: 'mono', sort: 'external_id',
+      fmt: r => r.n_share_key > 1
+        ? el('span', {}, r.external_id + ' ', pill('shared ×' + r.n_share_key, 'bad'))
+        : r.external_id },
+    { key: 'supplier_part_id', label: 'Item', sort: 'supplier_part_id' },
+    { label: 'Description', sort: 'description',
+      fmt: r => r.description || (r.is_charge ? '(charge, no description)' : '') },
+    { key: 'quantity', label: 'Qty', cls: 'num', sort: 'quantity' },
+    { key: 'unit_price', label: 'Unit price', cls: 'num', sort: 'unit_price' },
+    { key: 'uom', label: 'UOM' },
+    { label: 'Expense / account', cls: 'mono',
+      fmt: r => (r.expense_type && r.account_code)
+        ? `${r.expense_type} + ${r.account_code}`
+        : (r.expense_type || r.account_code || pill('neither', 'bad')) },
+    { label: 'Kind', fmt: r => r.is_charge ? pill('charge', 'warn') : '' },
+    { label: 'Receipts', cls: 'num', fmt: r => String(r.n_receipt) },
+  ], d.rows, {
+    sortState: state.sort.lines, onSort: k => sortBy('lines', k, loadLines),
+    onRow: r => openDetail('line', r.line_key),
+    empty: state.counts.po_lines ? 'No line matches those filters.'
+                                 : 'No purchase order file loaded yet.'
+  });
+  $('#l-count').innerHTML = `<b>${num(d.total)}</b> line record(s) shown`
+    + (state.counts.po_charges
+       ? `, <b>${num(state.counts.po_charges)}</b> of them charge rows` : '')
+    + '. <span class="sub">Lines follow their order — they are not picked '
+    + 'separately.</span>';
+}
+
+/* ---------------------------------------------------------- the receipts --- */
+const rArgs = () => new URLSearchParams({
+  q: $('#r-q').value, picked: $('#r-picked').value, match: $('#r-match').value,
+  zero: $('#r-zero').value, ...state.sort.receipts, size: 500
+});
+
+async function loadReceipts() {
+  const d = await api('/api/receipts?' + rArgs());
+  renderTable($('#t-rec'), [
+    { label: 'Order', cls: 'mono', sort: 'po_number',
+      fmt: r => r.n_header ? r.po_number
+        : el('span', {}, r.po_number + ' ', pill('no order', 'warn')) },
+    { label: 'Line External ID', cls: 'mono', sort: 'line_item_external_id',
+      fmt: r => r.n_line === 1 ? r.line_item_external_id
+        : el('span', {}, r.line_item_external_id + ' ',
+             pill(r.n_line ? 'ambiguous ×' + r.n_line : 'no line', 'bad')) },
+    { key: 'goods_receipt_number', label: 'Goods receipt', cls: 'mono',
+      sort: 'goods_receipt_number' },
+    { key: 'delivery_slip_number', label: 'Delivery slip', cls: 'mono',
+      sort: 'delivery_slip_number' },
+    { key: 'uom', label: 'UOM' },
+    { label: 'Received', cls: 'num', sort: 'received_quantity',
+      fmt: r => Number(r.received_quantity) === 0 ? pill('0', 'warn') : r.received_quantity },
+    { key: 'received_date', label: 'Date', cls: 'mono', sort: 'received_date' },
+    { label: 'Order picked', fmt: r => r.picked ? pill('picked', 'good') : '' },
+  ], d.rows, {
+    sortState: state.sort.receipts, onSort: k => sortBy('receipts', k, loadReceipts),
+    onRow: r => openDetail('receipt', r.receipt_key),
+    empty: state.counts.receipts ? 'No receipt matches those filters.'
+                                 : 'No receipt file loaded yet.'
+  });
+  $('#r-count').innerHTML = `<b>${num(d.total)}</b> receipt record(s) shown. `
+    + '<span class="sub">A receipt is taken into an extract by its order number; one that '
+    + 'matches no line is kept in the cut on purpose — that is the error-1001 case worth '
+    + 'reproducing.</span>';
+}
+
+/* ---------------------------------------------------------- the findings --- */
+const fArgs = () => new URLSearchParams({
+  q: $('#f-q').value, severity: $('#f-sev').value, picked: $('#f-picked').value,
+  kind: state.findingKind || '', size: 500
+});
+
+async function loadFindings() {
+  const d = await api('/api/findings?' + fArgs());
+  const chips = $('#f-chips');
+  chips.textContent = '';
+  chips.append(el('button', {
+    class: 'chip ' + (state.findingKind ? '' : 'on'),
+    onclick: () => { state.findingKind = ''; loadFindings(); }
+  }, 'Everything'));
+  for (const s of d.summary) {
+    chips.append(el('button', {
+      class: 'chip ' + (state.findingKind === s.kind ? 'on' : ''),
+      title: s.sample,
+      onclick: () => { state.findingKind = s.kind; loadFindings(); }
+    }, s.kind.replace(/_/g, ' '), el('span', { class: 'n' }, s.n)));
+  }
+  renderTable($('#t-find'), [
+    { label: 'Severity', fmt: r => pill(r.severity,
+        r.severity === 'error' ? 'bad' : (r.severity === 'warning' ? 'warn' : 'info')) },
+    { label: 'Check', fmt: r => r.kind.replace(/_/g, ' ') },
+    { key: 'label', label: 'Record' },
+    { key: 'field', label: 'Field' },
+    { key: 'message', label: 'What it says' },
+  ], d.rows, {
+    onRow: r => r.ref_key && openDetail(r.scope, r.ref_key),
+    empty: state.counts.findings ? 'Nothing matches those filters.' : 'Nothing to report.'
+  });
+  $('#f-count').innerHTML = `<b>${num(d.total)}</b> finding(s) shown of `
+    + `${num(state.counts.findings)} — ${num(state.counts.findings_error)} error(s), `
+    + `${num(state.counts.findings_warning)} warning(s). Click a row to open the record.`;
+}
+
+/* ------------------------------------------------------ what Concur said ---
+   The report read two ways. "The orders that failed" is the list the Pick
+   button acts on - one row per order, however many times the report
+   complained about it. "Every row of the report" is the report itself, in its
+   own order, for when that list looks wrong. */
+const resArgs = () => new URLSearchParams({
+  q: $('#res-q').value, level: $('#res-level').value,
+  picked: $('#res-picked').value, code: state.resultCode || '', size: 1000
+});
+
+function resultsNote(s) {
+  const box = $('#res-note');
+  if (!s || !s.loaded) {
+    box.className = 'note';
+    box.innerHTML = 'No results report loaded. Drop the <b>import results</b> '
+      + 'spreadsheet Concur returns for a run — the same one that arrives as '
+      + '<span class="mono">Purchase_Order_Import_&lt;entity&gt; Run-&lt;n&gt;.xls</span> — '
+      + 'and every order it rejected can be picked in one go. It resolves against '
+      + 'the purchase order file that was sent, so load that file too: the report’s '
+      + 'Record Identifier is a line number in it, and most messages name no order '
+      + 'at all.';
+    return;
+  }
+  const bits = [];
+  bits.push(`<b>${esc(s.run || s.file)}</b> — ${esc(s.file)}, loaded ${esc(s.loaded_at)}.`);
+  if (s.stated_imported !== null && s.stated_imported !== undefined)
+    bits.push(`Concur says <b>${num(s.stated_imported)}</b> order(s) imported and `
+      + `<b>${num(s.stated_failed)}</b> failed.`);
+  bits.push(`${plural(s.rows, 'row')} read, ${plural(s.errors, 'error')}, `
+    + `resolving to <b>${num(s.failed_pos)}</b> order(s)`
+    + (s.po_file ? ` against <span class="mono">${esc(s.po_file)}</span>` : '')
+    + '.');
+
+  // The alignment check, spelled out. It is the only thing standing between
+  // "31 orders picked" and "31 of somebody else's orders picked".
+  let cls = 'note';
+  if (s.misaligned) {
+    cls = 'note danger';
+    bits.push(`<b>${num(s.misaligned)} of ${num(s.aligned + s.misaligned)}</b> messages that `
+      + 'name an order name a different one from the order at that line of the loaded '
+      + 'purchase order file. <b>This report answers a different file.</b> Load the '
+      + 'purchase order file this run was sent, or every order resolved from a line '
+      + 'number here is the wrong one.');
+  } else if (s.aligned) {
+    bits.push(`All <b>${num(s.aligned)}</b> message(s) that name an order landed on that `
+      + 'same order in the purchase order file, so the two are from the same run.');
+  } else if (s.failed_pos) {
+    cls = 'note warn';
+    bits.push('No message in this report names an order, so nothing cross-checks the '
+      + 'line numbers. Make sure the loaded purchase order file is the one this run sent.');
+  }
+  if (s.unresolved) {
+    cls = cls === 'note' ? 'note warn' : cls;
+    bits.push(`<b>${num(s.unresolved)}</b> error row(s) name no order and match no line of `
+      + 'the loaded file, so they cannot be picked.');
+  }
+  if (s.stated_failed !== null && s.stated_failed !== undefined
+      && s.stated_failed !== s.failed_pos) {
+    cls = cls === 'note danger' ? cls : 'note warn';
+    bits.push(`Concur’s own count (<b>${num(s.stated_failed)}</b>) and what these rows `
+      + `resolve to (<b>${num(s.failed_pos)}</b>) disagree.`);
+  }
+  if (s.failed_in_file !== s.failed_pos)
+    bits.push(`<b>${num(s.failed_pos - s.failed_in_file)}</b> of them are not in the purchase `
+      + 'order file that is loaded, so nothing would be written for them.');
+  box.className = cls;
+  box.innerHTML = bits.join(' ');
+}
+
+function resultsChips(s) {
+  const chips = $('#res-chips');
+  chips.textContent = '';
+  if (!s || !s.loaded || state.resultView === 'orders') return;
+  chips.append(el('button', {
+    class: 'chip ' + (state.resultCode ? '' : 'on'),
+    onclick: () => { state.resultCode = ''; loadResults(); }
+  }, 'Everything'));
+  for (const c of s.codes) {
+    chips.append(el('button', {
+      class: 'chip ' + (state.resultCode === c.code ? 'on' : ''),
+      title: c.sample,
+      onclick: () => { state.resultCode = c.code; loadResults(); }
+    }, c.code, el('span', { class: 'n' }, c.n)));
+  }
+}
+
+async function loadResults() {
+  const byOrder = state.resultView === 'orders';
+  // The row filters mean nothing to a list that is one row per order, so they
+  // are switched off rather than quietly ignored.
+  for (const id of ['#res-q', '#res-level', '#res-picked']) $(id).disabled = byOrder;
+
+  const d = byOrder ? await api('/api/results/orders')
+                    : await api('/api/results?' + resArgs());
+  const s = d.summary;
+  resultsNote(s);
+  resultsChips(s);
+
+  const pickBtn = $('#res-pick');
+  pickBtn.disabled = !(s.loaded && s.failed_pos);
+  pickBtn.textContent = s.loaded && s.failed_pos
+    ? `Pick every failed order (${num(s.failed_pos)})` : 'Pick every failed order';
+  $('#res-drop').disabled = !(s.loaded && s.failed_pos);
+
+  if (byOrder) {
+    renderTable($('#t-res'), [
+      { label: '', cls: 'pick',
+        fmt: r => pickBox(r.picked, on => togglePick({ pos: [r.po_number] }, on)) },
+      { key: 'po_number', label: 'Order', cls: 'mono' },
+      { label: 'Vendor', cls: 'mono', fmt: r => r.vendor_code || '—' },
+      { label: 'In the file', fmt: r => r.po_key
+          ? pill('yes', 'good') : pill('not loaded', 'warn') },
+      { label: 'Concur said', fmt: r => r.codes
+          ? 'error ' + r.codes.split(',').join(', ') : 'record sequence' },
+      { label: 'Rows', cls: 'num', fmt: r => String(r.n_row) },
+      { key: 'first_record', label: 'First record', cls: 'num' },
+      { key: 'sample', label: 'Message' },
+    ], d.rows, {
+      onRow: r => r.po_key && openPo(r.po_key),
+      empty: s.loaded ? 'The report names no failed order.'
+                      : 'No results report loaded.'
+    });
+    $('#res-count').innerHTML = `<b>${num(d.rows.length)}</b> order(s) to reprocess`
+      + (s.loaded ? `, <b>${num(s.failed_picked)}</b> of them already picked` : '')
+      + '. <span class="sub">Picking them takes their vendors, lines and receipts, '
+      + 'exactly as picking an order by hand does — then write the extract.</span>';
+  } else {
+    renderTable($('#t-res'), [
+      { label: 'Level', fmt: r => pill(r.level,
+          r.level === 'Error' ? 'bad' : (r.level === 'Info' ? 'info' : 'warn')) },
+      { key: 'record_id', label: 'Record', cls: 'num' },
+      { label: 'Is', fmt: r => r.resolved_scope
+          ? ({ po: '200 header', line: '300 line', address: '210/220' })[r.resolved_scope]
+          : '' },
+      { label: 'Order', cls: 'mono', fmt: r => r.po_number
+          ? el('span', {}, r.po_number + ' ',
+               r.aligned === 0 ? pill('names ' + r.stated_po, 'bad')
+                 : (r.stated_po ? '' : pill('by line', 'ghost')))
+          : (r.level === 'Info' ? '' : pill('unresolved', 'warn')) },
+      { label: 'Code', fmt: r => r.error_code || '' },
+      { key: 'text', label: 'What Concur said' },
+      { label: '', fmt: r => r.picked ? pill('picked', 'good') : '' },
+    ], d.rows, {
+      onRow: r => r.po_key && openPo(r.po_key),
+      empty: s.loaded ? 'No row matches those filters.' : 'No results report loaded.'
+    });
+    $('#res-count').innerHTML = `<b>${num(d.total)}</b> row(s) shown of `
+      + `${num(s.rows || 0)}. <span class="sub">Record is the line number in the `
+      + 'purchase order file that was sent — “by line” means the message named no '
+      + 'order, and this is the order whose records sit at that line.</span>';
+  }
+}
+
+async function pickFailed(on) {
+  try {
+    const d = await post('/api/results/pick', { on });
+    toast((on ? `${plural(d.orders, 'failed order')} picked — ${d.reason}` 
+              : `${plural(d.orders, 'failed order')} dropped`)
+      + `. Now ${plural(d.vendors, 'vendor')}, ${plural(d.pos, 'order')}, `
+      + `${plural(d.line_rows, 'line')}, ${plural(d.receipt_rows, 'receipt')}.`);
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+$('#res-pick').addEventListener('click', () => pickFailed(true));
+$('#res-drop').addEventListener('click', () => pickFailed(false));
+
+/* ----------------------------------------------------------- the extract --- */
+async function loadExtract() {
+  const [sel, prev] = await Promise.all([
+    api('/api/selection'), api('/api/extract/preview')]);
+  const s = sel.summary;
+  $('#x-nven').textContent = num(sel.vendors.length);
+  $('#x-npo').textContent = num(sel.pos.length);
+
+  renderTable($('#t-xven'), [
+    { key: 'id', label: 'Code', cls: 'mono' },
+    { label: 'Name', fmt: r => r.name || '(not in the vendor file)' },
+    { label: 'How', fmt: r => r.direct ? pill('picked', 'good') : pill(r.reason, 'ghost') },
+    { label: '', cls: 'pick', fmt: r => el('button', {
+        class: 'small', onclick: () => togglePick({ vendors: [r.id] }, false) }, 'Drop') },
+  ], sel.vendors, { empty: 'No vendor picked.' });
+
+  renderTable($('#t-xpo'), [
+    { key: 'id', label: 'Order', cls: 'mono' },
+    { label: 'Vendor', cls: 'mono', fmt: r => r.vendor_code || '—' },
+    { label: 'Contents', fmt: r => r.po_key
+        ? `${plural(r.n_line, 'line')}, ${plural(r.n_receipt, 'receipt')}`
+        : pill('not in this file', 'warn') },
+    { label: 'How', fmt: r => r.direct ? pill('picked', 'good') : pill(r.reason, 'ghost') },
+    { label: '', cls: 'pick', fmt: r => el('button', {
+        class: 'small', onclick: () => togglePick({ pos: [r.id] }, false) }, 'Drop') },
+  ], sel.pos, { empty: 'No purchase order picked.' });
+
+  const box = $('#x-preview');
+  box.textContent = '';
+  const labels = { po: 'Purchase order', vendor: 'Vendor', receipt: 'PO receipt' };
+  for (const [kind, p] of Object.entries(prev.preview)) {
+    const card = el('div', { class: 'card', style: 'margin-bottom:10px' });
+    if (!p.loaded) {
+      card.append(el('div', { class: 'hd' }, labels[kind] + ' file'),
+        el('div', { class: 'bd pad' }, el('span', { class: 'sub' },
+          'Not loaded, so no file would be written for it.')));
+    } else {
+      card.append(el('div', { class: 'hd' },
+        labels[kind] + ' file',
+        el('span', { class: 'grow' }),
+        el('span', { class: 'sub' },
+          `${plural(p.rows, 'line')} from ${p.source} · `
+          + Object.entries(p.counts).filter(([k]) => k !== 'settings_source')
+              .map(([k, v]) => `${k}=${v}`).join(', '))));
+      const bd = el('div', { class: 'bd pad' });
+      if (!p.rows) bd.append(el('span', { class: 'sub' },
+        'Nothing picked resolves to a record in this file, so it would be skipped.'));
+      else {
+        for (const line of p.head)
+          bd.append(el('p', { class: 'raw', style: 'margin-bottom:4px' }, line));
+        if (p.tail.length) {
+          bd.append(el('div', { class: 'sub', style: 'margin:4px 0' }, '…'));
+          for (const line of p.tail)
+            bd.append(el('p', { class: 'raw', style: 'margin-bottom:4px' }, line));
+        }
+      }
+      card.append(bd);
+    }
+    box.append(card);
+  }
+
+  const unresolved = s.unresolved_vendors.length || s.unresolved_pos.length;
+  $('#x-note').className = 'note' + (unresolved ? ' warn' : '');
+  $('#x-note').innerHTML = unresolved
+    ? 'Picked but not in the files currently loaded, so nothing will be written for them: '
+      + '<b>' + esc([...s.unresolved_vendors.map(v => 'vendor ' + v),
+                     ...s.unresolved_pos.map(p => 'PO ' + p)].join(', ')) + '</b>. '
+      + 'They stay picked in case the right file is dropped next.'
+    : 'Every line written is the line that came in — same bytes, same order, same line '
+      + 'endings. The files are named <span class="mono">_Selection_</span> rather than '
+      + '<span class="mono">purchase_order_import_*</span> so a partial file cannot be '
+      + 'mistaken for the nightly one. They land in <span class="mono">'
+      + esc(state.outDir || 'output/') + '</span> with a manifest beside them.';
+
+  renderTable($('#t-xhist'), [
+    { key: 'stamp', label: 'When', cls: 'mono' },
+    { key: 'label', label: 'Label' },
+    { key: 'scope', label: 'Scope' },
+    { label: 'Rows', fmt: r => `${r.n_po} order(s), ${r.n_line} line(s), `
+        + `${r.n_vendor} vendor(s), ${r.n_receipt} receipt(s)` },
+    { label: '', fmt: r => el('button', { class: 'small',
+        onclick: () => downloadExtract(r.extract_key) }, 'Files…') },
+  ], state.extracts || [], { empty: 'Nothing written yet.' });
+}
+
+async function downloadExtract(key) {
+  const d = await api('/api/extracts/' + key);
+  for (const f of d.files) window.open('/api/download/' + encodeURIComponent(f.name), '_blank');
+  toast(`${plural(d.files.length, 'file')} opened for download.`);
+}
+
+$('#x-write').addEventListener('click', async () => {
+  const btn = $('#x-write');
+  btn.disabled = true;
+  try {
+    const d = await post('/api/extract', { label: $('#x-label').value, verify: true });
+    const v = d.verify;
+    toast(`${plural(d.files.length, 'file')} written`
+      + (v ? ` — ${num(v.checked)} line(s) checked against the source, `
+             + (v.ok ? 'all unchanged.' : `${v.unknown} NOT FOUND.`) : '.'),
+      !!(v && !v.ok));
+    await Promise.all([loadStatus(), loadExtract()]);
+  } catch (e) { toast(e.message, true); }
+  btn.disabled = false;
+});
+
+$('#x-refresh').addEventListener('click', loadExtract);
+$('#x-clear').addEventListener('click', async () => {
+  await post('/api/selection/clear');
+  toast('Selection cleared.');
+  await refresh();
+});
+
+/* ---------------------------------------------------------- the picking --- */
+async function togglePick(what, on) {
+  try {
+    const d = await post(on ? '/api/selection/add' : '/api/selection/remove',
+                         { ...what, reason: 'picked on the ' + state.tab + ' tab' });
+    // Say what came along, because that is the whole behaviour of the tool and
+    // a silent extra order in the extract is a surprise later.
+    const bits = [];
+    if (on) {
+      if (what.vendors && d.added_pos) bits.push(`${plural(d.added_pos, 'order')} came with it`);
+      if (what.pos && d.added_vendors) bits.push(`${plural(d.added_vendors, 'vendor')} came with it`);
+    } else {
+      if (what.vendors && d.removed_pos) bits.push(`${plural(d.removed_pos, 'order')} dropped too`);
+      if (what.pos && d.removed_vendors) bits.push(`${plural(d.removed_vendors, 'vendor')} dropped too`);
+    }
+    toast((on ? 'Picked' : 'Dropped') + (bits.length ? ' — ' + bits.join(', ') : '')
+      + `. Now ${plural(d.vendors, 'vendor')}, ${plural(d.pos, 'order')}, `
+      + `${plural(d.receipt_rows, 'receipt')}.`);
+    if (on) focusOtherTabsOnPicked();
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+}
+
+async function pickAllInView(which, on) {
+  const url = which === 'vendors' ? '/api/vendors/keys?' + vArgs()
+                                  : '/api/pos/keys?' + pArgs();
+  const d = await api(url);
+  if (!d.ids.length) { toast('Nothing in view.'); return; }
+  await togglePick(which === 'vendors' ? { vendors: d.ids } : { pos: d.ids }, on);
+}
+
+$('#v-all').addEventListener('click', () => pickAllInView('vendors', true));
+$('#v-none').addEventListener('click', () => pickAllInView('vendors', false));
+$('#p-all').addEventListener('click', () => pickAllInView('pos', true));
+$('#p-none').addEventListener('click', () => pickAllInView('pos', false));
+
+/* ------------------------------------------------------- the detail panel --- */
+function specTable(fields) {
+  // Position 1 (Record Type) is never editable - see edit_record() - so it
+  // always renders as plain text even while the rest of the record does not.
+  const editing = state.editing;
+  const t = el('table', { class: 'spec' });
+  t.append(el('thead', {}, el('tr', {},
+    el('th', { class: 'p' }, '#'), el('th', {}, 'Field'), el('th', {}, 'Req'),
+    el('th', {}, 'Value'), el('th', {}, 'Proc column'))));
+  const tbody = el('tbody');
+  for (const f of fields) {
+    const canEdit = editing && f.position > 1;
+    tbody.append(el('tr', {
+      class: [f.value ? '' : 'blank', f.required === 'Y' ? 'req' : ''].join(' ').trim()
+    },
+      el('td', { class: 'p' }, f.position),
+      el('td', { class: 'n' }, f.name),
+      el('td', {}, f.required || ''),
+      canEdit
+        ? el('td', { class: 'v' }, el('input', {
+            value: f.value || '', spellcheck: 'false', autocomplete: 'off',
+            oninput: e => stageEdit(f.position, e.target.value),
+          }))
+        // Padding is shown rather than described: the highlight is the only
+        // way to see a trailing space in a postal code.
+        : el('td', { class: 'v', html: f.value
+            ? (f.padded ? '<em>' + esc(f.value) + '</em>' : esc(f.value))
+            : '&mdash;' }),
+      el('td', { class: 'mono' }, f.proc || '')));
+  }
+  t.append(tbody);
+  return t;
+}
+
+function findingList(findings) {
+  if (!findings || !findings.length) return null;
+  const box = el('div', {});
+  for (const f of findings) {
+    box.append(el('div', {
+      class: 'note ' + (f.severity === 'error' ? 'danger'
+                        : f.severity === 'warning' ? 'warn' : ''),
+      style: 'margin-bottom:7px'
+    }, el('b', {}, f.kind.replace(/_/g, ' ') + (f.field ? ` · ${f.field}` : '')),
+       ' ' + f.message));
+  }
+  return box;
+}
+
+function miniTable(headers, rows) {
+  const t = el('table', { class: 'spec' });
+  t.append(el('thead', {}, el('tr', {}, headers.map(h => el('th', {}, h)))));
+  const tbody = el('tbody');
+  for (const r of rows) tbody.append(r);
+  t.append(tbody);
+  return el('div', { class: 'card' }, el('div', { class: 'bd' }, t));
+}
+
+async function openDetail(scope, key) {
+  try {
+    const d = await api(`/api/record/${scope}/${key}`);
+    $('#d-title').textContent = d.spec_label + ' record';
+    $('#d-sub').textContent = `line ${d.row.line_no} of the file · `
+      + `${d.fields.length} field(s), spec width ${d.expected_width}`;
+    const body = $('#d-body');
+    body.textContent = '';
+    const f = findingList(d.findings);
+    if (f) { body.append(el('h3', {}, 'Findings on this record')); body.append(f); }
+
+    $('#d-save').hidden = true;
+    state.editing = { scope, key, pending: {}, refresh: () => openDetail(scope, key) };
+    body.append(el('h3', {}, 'The line as it is in the file'),
+                el('p', { class: 'raw' }, d.row.raw),
+                el('h3', {}, 'Field by field'),
+                el('div', { class: 'card' }, el('div', { class: 'bd' }, specTable(d.fields))));
+
+    const pickBtn = $('#d-pick');
+    pickBtn.hidden = true;
+    $('#d-state').textContent = (scope === 'line' || scope === 'address'
+                                  || scope === 'allocation')
+      ? 'Lines, allocations and addresses follow their order — pick the order to take them.'
+      : (scope === 'receipt' ? 'Receipts follow their order.' : '');
+    if (scope === 'vendor') {
+      const picked = (await api('/api/selection')).vendors
+        .some(v => v.id === d.row.vendor_code);
+      pickBtn.hidden = false;
+      pickBtn.textContent = picked ? 'Drop this vendor' : 'Pick this vendor';
+      pickBtn.onclick = async () => {
+        await togglePick({ vendors: [d.row.vendor_code] }, !picked);
+        openDetail(scope, key);
+      };
+      $('#d-state').textContent = picked
+        ? 'In the extract, with its orders and their receipts.' : '';
+    }
+    $('#panel').classList.add('on');
+  } catch (e) { toast(e.message, true); }
+}
+
+async function openPo(poKey) {
+  try {
+    const [d, rec] = await Promise.all([
+      api('/api/pos/' + poKey), api('/api/record/po/' + poKey)]);
+    $('#d-title').textContent = 'Purchase order ' + d.header.po_number;
+    $('#d-sub').textContent = `entity ${d.header.entity_id || '—'} · `
+      + `line ${d.header.line_no} of the file`;
+    const body = $('#d-body');
+    body.textContent = '';
+
+    const f = findingList(d.findings);
+    if (f) { body.append(el('h3', {}, 'Findings on this order')); body.append(f); }
+
+    body.append(el('h3', {}, 'Header'));
+    const kv = el('dl', { class: 'kv' });
+    for (const [k, v] of [
+      ['Order', d.header.po_number],
+      ['Vendor code', d.header.vendor_code],
+      ['Vendor address code', d.header.vendor_address_code],
+      ['In the vendor file', d.vendors.length
+        ? d.vendors.map(v => `${v.vendor_name} (address code ${v.vendor_address_code})`).join('; ')
+        : 'not present — Concur would answer error 2000'],
+      ['Order date', d.header.order_date],
+      ['Currency', d.header.currency_code],
+      ['Payment terms', d.header.payment_terms],
+      ['Ledger code', d.header.ledger_code],
+      ['Policy external ID', d.header.policy_external_id],
+      ['Tax / shipping', `${d.header.tax} / ${d.header.shipping}`],
+    ]) kv.append(el('dt', {}, k), el('dd', {}, v || '—'));
+    body.append(kv);
+
+    $('#d-save').hidden = true;
+    state.editing = { scope: 'po', key: poKey, pending: {}, refresh: () => openPo(poKey) };
+    body.append(el('h3', {}, 'Header fields'),
+                el('div', { class: 'card' }, el('div', { class: 'bd' }, specTable(rec.fields))));
+
+    body.append(el('h3', {}, `Lines (${d.lines.length})`));
+    body.append(miniTable(
+      ['#', 'External ID', 'Item', 'Description', 'Qty', 'Price', 'Account', 'Receipts', 'Alloc'],
+      d.lines.map(l => el('tr', { onclick: () => openDetail('line', l.line_key) },
+        el('td', {}, l.line_number),
+        el('td', { class: 'v' }, l.external_id,
+          l.n_share_key > 1 ? el('span', {}, ' ', pill('shared', 'bad')) : ''),
+        el('td', {}, l.supplier_part_id),
+        el('td', {}, l.description || (l.is_charge ? '(charge, no description)' : '')),
+        el('td', { class: 'v' }, l.quantity),
+        el('td', { class: 'v' }, l.unit_price),
+        el('td', { class: 'v' }, l.account_code || l.expense_type || '—'),
+        el('td', {}, String(l.n_receipt)),
+        el('td', {}, String(l.n_allocation))))));
+
+    if (d.allocations.length) {
+      body.append(el('h3', {}, `Line allocations (${d.allocations.length})`));
+      body.append(miniTable(['Line', 'Amount', ''],
+        d.allocations.map(a => el('tr',
+          { onclick: () => openDetail('allocation', a.alloc_key) },
+          el('td', {}, a.line_key
+            ? (d.lines.find(l => l.line_key === a.line_key)?.line_number ?? a.line_key)
+            : el('span', {}, '—', pill('no line', 'bad'))),
+          el('td', { class: 'v' }, a.amount),
+          el('td', {}, a.synthetic
+            ? pill('synthesized — not from the file', 'info') : '')))));
+    }
+
+    body.append(el('h3', {}, `Bill-to and ship-to (${d.addresses.length})`));
+    body.append(miniTable(['Type', 'External ID', 'Name', 'Address', 'City'],
+      d.addresses.map(a => el('tr', { onclick: () => openDetail('address', a.addr_key) },
+        el('td', {}, a.record_type === '210' ? '210 bill-to' : '220 ship-to'),
+        el('td', { class: 'v' }, a.external_id),
+        el('td', {}, a.name),
+        el('td', {}, [a.address1, a.address2, a.address3].filter(Boolean).join(' / ')),
+        el('td', {}, [a.city, a.state, a.postal_code, a.country_code]
+          .filter(Boolean).join(', '))))));
+
+    body.append(el('h3', {}, `Receipts (${d.receipts.length})`));
+    body.append(miniTable(
+      ['Goods receipt', 'Line external ID', 'Slip', 'Qty', 'Date'],
+      d.receipts.map(r => el('tr', { onclick: () => openDetail('receipt', r.receipt_key) },
+        el('td', { class: 'v' }, r.goods_receipt_number),
+        el('td', { class: 'v' }, r.line_item_external_id),
+        el('td', { class: 'v' }, r.delivery_slip_number),
+        el('td', { class: 'v' }, r.received_quantity),
+        el('td', { class: 'v' }, r.received_date)))));
+
+    body.append(el('h3', {}, 'The header line as it is in the file'),
+                el('p', { class: 'raw' }, d.header.raw));
+
+    const pickBtn = $('#d-pick');
+    pickBtn.hidden = false;
+    pickBtn.textContent = d.picked ? 'Drop this order' : 'Pick this order';
+    pickBtn.onclick = async () => {
+      await togglePick({ pos: [d.header.po_number] }, !d.picked);
+      openPo(poKey);
+    };
+    $('#d-state').textContent = d.picked
+      ? 'In the extract, with its lines, addresses and receipts.' : '';
+    $('#panel').classList.add('on');
+  } catch (e) { toast(e.message, true); }
+}
+
+$('#d-close').addEventListener('click', () => $('#panel').classList.remove('on'));
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $('#panel').classList.remove('on');
+});
+
+/* ------------------------------------------------------------------ tabs --- */
+function sortBy(which, key, reload) {
+  const s = state.sort[which];
+  if (s.sort === key) s.dir = s.dir === 'desc' ? 'asc' : 'desc';
+  else { s.sort = key; s.dir = 'asc'; }
+  reload();
+}
+
+const LOADERS = {
+  vendors: loadVendors, pos: loadPos, lines: loadLines,
+  receipts: loadReceipts, findings: loadFindings, results: loadResults,
+  extract: loadExtract,
+};
+
+// tab -> its "picked" filter select. Extract has no such filter — it always
+// shows the selection itself.
+const PICKED_FILTERS = {
+  vendors: '#v-picked', pos: '#p-picked', lines: '#l-picked',
+  receipts: '#r-picked', findings: '#f-picked', results: '#res-picked',
+};
+
+// After a pick, every tab BUT the one it happened on switches to "only
+// picked" - so a tab you have not looked at yet is already narrowed down
+// when you get there, without cutting the list out from under you on the
+// tab you are actively picking more things from.
+function focusOtherTabsOnPicked() {
+  for (const [tab, sel] of Object.entries(PICKED_FILTERS)) {
+    if (tab === state.tab) continue;
+    $(sel).value = 'only';
+  }
+}
+
+function showTab(name) {
+  $$('.tab').forEach(t => t.classList.toggle('on', t.dataset.pane === name));
+  $$('.pane').forEach(p => p.classList.toggle('on', p.id === 'pane-' + name));
+  state.tab = name;
+  LOADERS[name]().catch(e => toast(e.message, true));
+}
+$$('.tab').forEach(t => t.addEventListener('click', () => showTab(t.dataset.pane)));
+
+/* Reload the header and whichever list is open. Called after anything that
+   changes what is loaded or what is picked, so no two tabs can disagree. */
+async function refresh() {
+  await loadStatus();
+  await LOADERS[state.tab]();
+}
+
+for (const [id, fn] of [
+  ['#v-q', loadVendors], ['#p-q', loadPos], ['#l-q', loadLines],
+  ['#r-q', loadReceipts], ['#f-q', loadFindings], ['#res-q', loadResults]]) {
+  $(id).addEventListener('input', debounce(fn));
+}
+$('#res-view').addEventListener('change', e => { state.resultView = e.target.value; });
+for (const [id, fn] of [
+  ['#v-picked', loadVendors], ['#v-orphans', loadVendors], ['#v-problems', loadVendors],
+  ['#p-picked', loadPos], ['#p-entity', loadPos], ['#p-problems', loadPos],
+  ['#l-picked', loadLines], ['#l-charges', loadLines], ['#l-dupes', loadLines],
+  ['#r-picked', loadReceipts], ['#r-match', loadReceipts], ['#r-zero', loadReceipts],
+  ['#f-sev', loadFindings], ['#f-picked', loadFindings],
+  ['#res-level', loadResults], ['#res-picked', loadResults],
+  ['#res-view', loadResults]]) {
+  $(id).addEventListener('change', fn);
+}
+
+$('#f-rebuild').addEventListener('click', async () => {
+  try {
+    const d = await post('/api/findings/rebuild');
+    toast(`${plural(d.findings.total, 'finding')} — ${d.findings.error} error(s), `
+      + `${d.findings.warning} warning(s), ${d.findings.info} info.`);
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#l-synth').addEventListener('click', async () => {
+  if (!confirm('Add a 400 (Quantity × Unit Price) to every line that has none?\n\n'
+    + 'This is a trivial placeholder, not a real account split — for a line '
+    + 'that already has a real one, nothing changes. Each one added is marked '
+    + 'synthetic and shows up as an info finding, and will go out in an '
+    + 'extract if its line is picked.'))
+    return;
+  try {
+    const d = await post('/api/allocations/synthesize');
+    toast(d.added.added
+      ? `Added ${plural(d.added.added, 'allocation')} `
+        + `(${d.added.lines_seen} line(s) had none`
+        + (d.added.skipped_no_price
+           ? `, ${d.added.skipped_no_price} skipped — no Unit Price to compute from`
+           : '') + ').'
+      : 'Nothing to add — every line already has an allocation.');
+    await refresh();
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#clear-all').addEventListener('click', async () => {
+  if (!confirm('Forget the loaded files, the findings and the selection?\n\n'
+    + 'Nothing on disk is touched — the files in input/ and the extracts in '
+    + 'output/ stay where they are.')) return;
+  await post('/api/clear', { selection: true });
+  $('#dropmsg').innerHTML = '<b>Nothing loaded.</b>';
+  toast('Cleared. Drop the files again when you want them back.');
+  await refresh();
+});
+
+/* ------------------------------------------------------------------ drop --- */
+const drop = $('#drop');
+drop.addEventListener('click', () => $('#file').click());
+$('#file').addEventListener('change', e => upload(e.target.files));
+['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add('hot');
+}));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove('hot');
+}));
+drop.addEventListener('drop', e => upload(e.dataTransfer.files));
+
+function reportLoad(d) {
+  const lines = [];
+  let report = null;
+  for (const l of d.loaded) {
+    if (l.kind === 'results') {
+      report = l;
+      lines.push(`${l.file} → ${l.label}: ${l.rows} row(s), `
+        + `${l.failed_pos} order(s) to reprocess`);
+      continue;
+    }
+    const bits = Object.entries(l)
+      .filter(([k, v]) => typeof v === 'number' && k !== 'file_id' && k !== 'lines' && v)
+      .map(([k, v]) => `${v} ${k}`);
+    lines.push(`${l.file} → ${l.label}: ${bits.join(', ') || l.lines + ' lines'}`);
+  }
+  for (const e of d.errors || []) lines.push(`${e.file}: ${e.message}`);
+  $('#dropmsg').innerHTML = '<b>' + esc(lines.join(' · ')) + '</b>';
+  const f = d.findings;
+  if (report) {
+    // A report was in the drop, so show what it says rather than leaving it
+    // on whichever tab happened to be open.
+    toast(`${report.run || 'The report'}: ${plural(report.failed_pos, 'order')} failed`
+      + (report.misaligned ? ` — ${report.misaligned} message(s) name a different order `
+                             + 'than the loaded file has at that line.' : '.'),
+      !!report.misaligned);
+    showTab('results');
+    return;
+  }
+  toast(`Loaded. ${plural(f.total, 'finding')} — ${f.error} error(s), `
+    + `${f.warning} warning(s), ${f.info} info.`);
+}
+
+async function upload(files) {
+  if (!files || !files.length) return;
+  const fd = new FormData();
+  for (const f of files) fd.append('files', f);
+  $('#dropmsg').textContent = 'Loading…';
+  try {
+    reportLoad(await api('/api/upload', { method: 'POST', body: fd }));
+    await Promise.all([loadEntities(), refresh()]);
+  } catch (e) { $('#dropmsg').textContent = ''; toast(e.message, true); }
+}
+
+$('#load-input').addEventListener('click', async () => {
+  $('#dropmsg').textContent = 'Loading…';
+  try {
+    reportLoad(await post('/api/input/load', {}));
+    await Promise.all([loadEntities(), refresh()]);
+  } catch (e) { $('#dropmsg').textContent = ''; toast(e.message, true); }
+});
+
+/* ------------------------------------------------------------------ boot --- */
+(async () => {
+  try {
+    await loadStatus();
+    await loadEntities();
+    await loadVendors();
+    if (!state.files.length) {
+      const d = await api('/api/input');
+      $('#dropmsg').innerHTML = d.rows.length
+        ? '<b>' + esc(`${d.rows.length} file(s) waiting in input/ — "Load from input/" takes them.`) + '</b>'
+        : '<b>Nothing loaded yet.</b>';
+    }
+  } catch (e) { toast(e.message, true); }
+})();
+</script>
+</body>
+</html>

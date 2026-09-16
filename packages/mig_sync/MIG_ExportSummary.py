@@ -2,38 +2,32 @@
 """
 MIG_ExportSummary.py
 ====================
-Reads .log files from the input folder (or specified paths) and produces a
-detailed Excel workbook summary for each file.
+Reads .log files (M3 IES/export component logs) and produces a detailed
+Excel workbook summary for each one. This routine never talks to M3 - it is
+a pure .log -> .xlsx converter, plus a lookup against the shared
+~/sqlite/doppio.db (table m3tables, populated by an unrelated tool) for
+table descriptions and ownership.
 
-Output: Same filename as the log, with .xlsx extension, saved alongside the log.
-
-Usage:
-    python MIG_ExportSummary.py                     # scan current folder for *.log
-    python MIG_ExportSummary.py path/to/file.log    # specific file(s)
-    python MIG_ExportSummary.py /path/to/folder     # all *.log in folder
+Ported to a library used by MIG_App.py: process_log() now takes an explicit
+out_dir instead of hard-coding ~/Doppio/output, and the sys.argv-driven
+main() is kept only for standalone convenience behind __main__ - the web
+route calls process_log() directly per uploaded/scanned file.
 """
 
-import re
-import sys
 import os
+import re
 import sqlite3
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 
-try:
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from openpyxl.utils import get_column_letter
-    from openpyxl.styles.numbers import FORMAT_NUMBER_COMMA_SEPARATED1
-except ImportError:
-    print("Installing openpyxl...")
-    os.system(f"{sys.executable} -m pip install openpyxl --quiet")
-    from openpyxl import Workbook
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from openpyxl.utils import get_column_letter
+from openpyxl import Workbook
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
 
-
-DB_PATH = Path.home() / 'sqlite' / 'doppio.db'
+# Shared with M3_Security_DB / ADP_Concur_Db's own default - override with
+# MIG_SYNC_DB same as the rest of this package, same default otherwise.
+DB_PATH = Path(os.environ.get("MIG_SYNC_DB", str(Path.home() / "sqlite" / "doppio.db")))
 
 
 def _load_column_flags():
@@ -805,47 +799,57 @@ def build_workbook(log_path, data):
 # Entry point
 # ---------------------------------------------------------------------------
 
-def process_log(log_path):
+# Package-local default output location - overridden per-call by MIG_App.py,
+# which passes packages/mig_sync/output/mig_sync/export_summary explicitly.
+DEFAULT_OUTPUT_FOLDER = Path(__file__).parent / "output" / "mig_sync" / "export_summary"
+
+
+def process_log(log_path, out_dir=None):
+    """
+    Parse one .log file and write its Excel summary into out_dir (default
+    DEFAULT_OUTPUT_FOLDER). Returns a result dict instead of printing:
+        {"ok": bool, "path": str | None, "message": str,
+         "status": str, "total_rows": int, "tables": int,
+         "tables_with_data": int, "errors": int}
+    """
     log_path = Path(log_path).resolve()
     if not log_path.exists():
-        print(f"  [ERROR] File not found: {log_path}")
-        return False
+        return {"ok": False, "path": None, "message": f"File not found: {log_path}"}
 
-    print(f"  Parsing  : {log_path.name}")
     data = parse_log(log_path)
-
     wb = build_workbook(log_path, data)
 
-    meta      = data['meta']
+    meta = data['meta']
     datasource = re.sub(r'[^\w\-]', '_', meta.get('datasource', 'UNKNOWN'))
-    company    = meta.get('company', '000')
-    footer     = data['footer']
-    start_ts   = footer.get('start_time')
-    dt_tag     = start_ts.strftime('%Y%m%d_%H%M%S') if start_ts else 'nodate'
+    company = meta.get('company', '000')
+    footer = data['footer']
+    start_ts = footer.get('start_time')
+    dt_tag = start_ts.strftime('%Y%m%d_%H%M%S') if start_ts else 'nodate'
 
-    out_dir = DEFAULT_OUTPUT_FOLDER
+    out_dir = Path(out_dir) if out_dir else DEFAULT_OUTPUT_FOLDER
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"{datasource}_{company}_{dt_tag}.xlsx"
     wb.save(str(out_path))
 
-    footer = data['footer']
     tables = data['summary_rows']
-    print(f"  Status   : {footer.get('status','?').upper()}")
-    print(f"  Duration : {footer.get('total_time','?')}")
-    print(f"  Records  : {footer.get('total_rows', 0):,}")
-    print(f"  Tables   : {len(tables):,}  ({sum(1 for t in tables if t['records'] > 0):,} with data)")
-    print(f"  Errors   : {len(data['errors'])}")
-    print(f"  Saved    : {out_path.name}")
-    print()
-    return True
-
-
-DEFAULT_INPUT_FOLDER  = Path.home() / 'Doppio' / 'input'
-DEFAULT_OUTPUT_FOLDER = Path.home() / 'Doppio' / 'output'
+    return {
+        "ok": True,
+        "path": str(out_path),
+        "file": out_path.name,
+        "source": log_path.name,
+        "message": f"{log_path.name} -> {out_path.name}",
+        "status": footer.get('status', '?').upper(),
+        "duration": footer.get('total_time', '?'),
+        "total_rows": footer.get('total_rows', 0),
+        "tables": len(tables),
+        "tables_with_data": sum(1 for t in tables if t['records'] > 0),
+        "errors": len(data['errors']),
+    }
 
 
 def main():
-    targets = sys.argv[1:] if len(sys.argv) > 1 else [str(DEFAULT_INPUT_FOLDER)]
+    """Standalone CLI convenience - not used by MIG_App.py."""
+    targets = sys.argv[1:] if len(sys.argv) > 1 else [os.getcwd()]
 
     log_files = []
     for t in targets:
@@ -862,10 +866,12 @@ def main():
         print("Usage: python MIG_ExportSummary.py [file.log | folder]")
         return
 
-    print(f"\nMIG_ExportSummary — processing {len(log_files)} file(s)\n{'='*55}")
+    print(f"\nMIG_ExportSummary - processing {len(log_files)} file(s)\n{'=' * 55}")
     ok = 0
     for lf in log_files:
-        ok += process_log(lf)
+        res = process_log(lf)
+        print(f"  {'OK' if res['ok'] else 'ERROR'} : {res['message']}")
+        ok += res["ok"]
     print(f"Done. {ok}/{len(log_files)} file(s) processed successfully.")
 
 

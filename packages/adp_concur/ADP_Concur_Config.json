@@ -1,0 +1,68 @@
+{
+  "login_id": {
+    "sources": [
+      "work_email"
+    ],
+    "suffix": ".new.uat",
+    "replace_domain": "",
+    "prefix": "",
+    "lowercase": false,
+    "bare_domain": ""
+  },
+  "login_id_by_roster": {},
+  "password": "Welcome01",
+  "import_settings": {
+    "error_threshold": "0",
+    "password_generation": "SSO",
+    "existing_record_handling": "UPDATE",
+    "language_code": "EN",
+    "validate_expense_group": "N",
+    "validate_payment_group": "N"
+  },
+  "records_by_roster": {
+    "us": [
+      "305",
+      "350",
+      "360"
+    ],
+    "non_us": [
+      "305",
+      "360"
+    ]
+  },
+  "records_enabled": {
+    "305": true,
+    "350": false,
+    "360": true
+  },
+  "scope": {
+    "305": "all",
+    "350": "all",
+    "360": "all",
+    "320": "all"
+  },
+  "blank_fields": {
+    "305": [],
+    "350": [],
+    "360": [],
+    "320": []
+  },
+  "extract": {
+    "delimiter": ",",
+    "quote": "minimal",
+    "line_ending": "\r\n",
+    "encoding": "utf-8",
+    "order": "by_type",
+    "file_name": "FMG_Concur_Employee_{stamp}.txt",
+    "selection_file_name": "FMG_Concur_Employee_Selection_{stamp}.txt",
+    "outbound_dir": "",
+    "file_name_320": "FMG_Concur_UpdateID_{stamp}.txt"
+  },
+  "block_on": {
+    "unmapped": true,
+    "missing_login_id": true,
+    "missing_employee_id": true,
+    "broken_supervisor": true,
+    "org_unit_2_code": false
+  }
+}

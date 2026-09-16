@@ -137,11 +137,86 @@ function Decrypt-Files {
 }
 
 
+<#
+    Process_Files
+    -------------
+    Routes each plaintext extract sitting in $SavePath to the subfolder the
+    matching ConcurImport SSIS pipeline watches, per
+    FMG/ConcurImport/ConcurImport-Technical-Reference.md §2 and §7:
+
+      CONCURSAEEXTRACT*.TXT            -> ConcurTravelExpense\
+                                           (TravelAndExpense_Incoming watches
+                                           this folder directly, non-recursive)
+      invoice_header.txt, invoice_detail.txt
+                                        -> ConcurInvoice\import\
+                                           (Invoice_Import needs BOTH present)
+
+    Runs after Decrypt-Files against the same $SavePath, so it only ever sees
+    plaintext: an encrypted file that failed to decrypt was left in place by
+    Decrypt-Files (still .pgp/.gpg) and does not match either pattern here,
+    so it is skipped and retried on the next run rather than routed empty.
+
+    A file that matches neither pattern is left where it landed rather than
+    guessed at - Concur has only ever sent these two extract shapes to this
+    endpoint (see the technical reference's package inventory), so an
+    unrecognised name is more likely a naming change worth noticing than
+    something safe to route silently.
+#>
+function Process_Files {
+
+    $teDestination      = Join-Path $SavePath "ConcurTravelExpense"
+    $invoiceDestination = Join-Path $SavePath "ConcurInvoice\import"
+
+    foreach ($dir in @($teDestination, $invoiceDestination)) {
+        if (-not (Test-Path $dir)) {
+            New-Item -Path $dir -ItemType Directory -Force | Out-Null
+            Write-Host "Created Directory $dir"
+        }
+    }
+
+    # Top-level only - mirrors the non-recursive ForEachFileEnumerator the
+    # T&E package itself uses, and keeps this from reaching into the
+    # destination folders or the "encrypted" archive subfolder.
+    $candidates = @(Get-ChildItem -Path $SavePath -File)
+
+    if ($candidates.Count -eq 0) {
+        Write-Host "No files to route"
+        return
+    }
+
+    foreach ($file in $candidates) {
+
+        # -like/-in are case-insensitive by default, matching the SSIS side
+        # ("Travel and Expense File Exists" counts matches lower-cased).
+        if ($file.Name -like "CONCURSAEEXTRACT*.TXT") {
+            $destination = $teDestination
+        }
+        elseif ($file.Name -in @("invoice_header.txt", "invoice_detail.txt")) {
+            $destination = $invoiceDestination
+        }
+        else {
+            Write-Host "Skipping $($file.Name) - does not match a known Concur extract pattern"
+            continue
+        }
+
+        $target = Join-Path $destination $file.Name
+        if (Test-Path $target) {
+            Write-Error "Routing target already exists, skipping: $target"
+            continue
+        }
+
+        Write-Host "Routing $($file.Name) -> $destination"
+        Move-Item -Path $file.FullName -Destination $destination -Force -ErrorAction Stop
+    }
+
+}
+
+
 function main {
     try{
         Get_Files
         Decrypt-Files
-		#Process_Files
+        Process_Files
     }
     catch{
         Write-Error $_

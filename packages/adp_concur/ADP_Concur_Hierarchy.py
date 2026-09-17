@@ -128,7 +128,7 @@ def ADP_Concur_chain_up(conn: sqlite3.Connection, file_number: str) -> dict:
 
 def ADP_Concur_direct_reports(conn: sqlite3.Connection, file_number: str,
                               picked_only: bool = False,
-                              status: str = "") -> tuple[list[dict], int]:
+                              status: str = "", source: str = "") -> tuple[list[dict], int]:
     """
     Everyone whose supervisor_id is this person, and how many were filtered out.
 
@@ -151,7 +151,7 @@ def ADP_Concur_direct_reports(conn: sqlite3.Connection, file_number: str,
         """, (file_number,))])
     for r in rows:
         r["picked"] = bool(r["picked"])
-    kept = [r for r in rows if wants(r, picked_only, status)]
+    kept = [r for r in rows if wants(r, picked_only, status, source)]
     return kept, len(rows) - len(kept)
 
 
@@ -216,7 +216,8 @@ def ADP_Concur_roots(conn: sqlite3.Connection) -> list[dict]:
     return _decorate(rows)
 
 
-def wants(node: dict, picked_only: bool = False, status: str = "") -> bool:
+def wants(node: dict, picked_only: bool = False, status: str = "",
+         source: str = "") -> bool:
     """
     Whether one person is somebody the current view is asking to see.
 
@@ -230,11 +231,13 @@ def wants(node: dict, picked_only: bool = False, status: str = "") -> bool:
         return False
     if status == "inactive" and node.get("concur_status") != "N":
         return False
+    if source and (node.get("source") or "") != source:
+        return False
     return True
 
 
 def ADP_Concur_forest(conn: sqlite3.Connection, picked_only: bool = False,
-                      status: str = "") -> list[dict]:
+                      status: str = "", source: str = "") -> list[dict]:
     """
     The whole hierarchy as nested nodes, roots first.
 
@@ -262,10 +265,10 @@ def ADP_Concur_forest(conn: sqlite3.Connection, picked_only: bool = False,
     for node in rows.values():
         node["name"] = _name(node)
         node["picked"] = bool(node["picked"])
-        node["wanted"] = wants(node, picked_only, status)
+        node["wanted"] = wants(node, picked_only, status, source)
         node["children"] = []
 
-    if picked_only or status:
+    if picked_only or status or source:
         # Keep everyone the filter wants, and every ancestor of one. Walking up
         # from each match is cheaper than walking the whole tree down, and
         # easier to be sure is right: a node survives exactly when it matched

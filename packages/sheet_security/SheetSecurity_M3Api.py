@@ -36,6 +36,7 @@ which USID/EMAL the record's M3ID/UMSG should carry.
 from __future__ import annotations
 
 import base64
+import datetime
 import difflib
 import json
 import logging
@@ -64,15 +65,91 @@ EXT124_FIELD_ORDER = EXT124_KEY_FIELDS + EXT124_VALUE_FIELDS
 
 # AUTH is a plain M3 field with no built-in value list; these are the codes
 # seen in actual use elsewhere in this repo (SEC_GrantAccess.py, Doppio.bas).
+# 0/1 are a pair - 1 grants a user access to a tenant, 0 is that same grant
+# blocked rather than deleted, which is why both show up together on the
+# Users tab in the Flask app.
 AUTH_LABELS = {
+    "0": "0 — User access blocked",
     "1": "1 — User access",
     "20": "20 — Tenant registration",
     "99": "99 — Pending request",
 }
 
+# ---------------------------------------------------------------------------
+# EXPORTMI/Select over EXTXSM - the raw table behind EXT124MI.
+#
+# LstUsrInfo returns PCID/TNNM/AUTH/HASH/M3ID/UMSG only. The list view also
+# wants the audit trail EXT124MI doesn't expose - when a record was
+# registered (EXRGDT/EXRGTM), when it was last changed (EXLMDT/EXLMTS) and
+# by what change (EXCHNO/EXCHID) - which means reading the table directly
+# through EXPORTMI/Select instead, the same call SEC_GrantAccess.py and
+# Doppio.bas already make against this table.
+# ---------------------------------------------------------------------------
+
+EXPORTMI_SEP = "^"
+EXTXSM_QUERY = ("EXPCID,EXTNNM,EXM3ID,EXAUTH,EXUMSG,EXLMTS,EXLMDT,EXRGDT,EXRGTM,"
+                "EXCHNO,EXCHID,EXHASH from EXTXSM")
+
+# EXTXSM's own column names, folded down to the names the rest of this app
+# already uses (PCID/TNNM/AUTH/HASH/M3ID/UMSG match LstUsrInfo's; the rest
+# are new).
+EXTXSM_FIELD_MAP = {
+    "EXPCID": "PCID", "EXTNNM": "TNNM", "EXM3ID": "M3ID", "EXAUTH": "AUTH",
+    "EXUMSG": "UMSG", "EXLMTS": "LMTS", "EXLMDT": "LMDT", "EXRGDT": "RGDT",
+    "EXRGTM": "RGTM", "EXCHNO": "CHNO", "EXCHID": "CHID", "EXHASH": "HASH",
+}
+# USERNAME/DOMAIN/COMPUTERNAME aren't real EXTXSM columns - the Flask app
+# decodes them out of an AUTH=99 record's HASH (see _decode_review_hash())
+# and slots them in here so the Review tab shows them in a sensible spot.
+EXTXSM_FIELD_ORDER = ("PCID", "TNNM", "AUTH", "M3ID", "UMSG",
+                      "USERNAME", "DOMAIN", "COMPUTERNAME",
+                      "RGDT", "RGTM", "LMDT", "LMTS", "CHNO", "CHID", "HASH")
+
 
 class M3ApiError(RuntimeError):
     """Anything that goes wrong talking to M3."""
+
+
+def _parse_exportmi_rows(records: list[dict], field_map: dict[str, str] | None = None) -> list[dict]:
+    """
+    Turn EXPORTMI/Select's REPL rows (called with HDRS=1, so the first row is
+    a header of column names) into a list of dicts, one per data row.
+    field_map renames raw table columns (e.g. "EXPCID") to the names the rest
+    of this app already uses ("PCID"); a column not in it keeps its raw name.
+    """
+    repl_rows = [r.get("REPL", "") for r in records if r.get("REPL")]
+    if not repl_rows:
+        return []
+    field_map = field_map or {}
+    header = [c.strip() for c in repl_rows[0].rstrip(EXPORTMI_SEP).split(EXPORTMI_SEP)]
+    columns = [field_map.get(c, c) for c in header]
+
+    out = []
+    for raw in repl_rows[1:]:
+        values = raw.rstrip(EXPORTMI_SEP).split(EXPORTMI_SEP)
+        values += [""] * (len(columns) - len(values))
+        out.append({columns[i]: values[i].strip() for i in range(len(columns))})
+    return out
+
+
+def format_java_timestamp(value) -> str:
+    """
+    EXLMTS is a Java timestamp - milliseconds since the Unix epoch, the same
+    unit System.currentTimeMillis() returns. Blank or zero means the record
+    has never been changed since it was registered.
+    """
+    raw = str(value or "").strip()
+    if not raw or raw == "0":
+        return ""
+    try:
+        millis = int(float(raw))
+    except ValueError:
+        return raw
+    try:
+        return (datetime.datetime.fromtimestamp(millis / 1000, tz=datetime.timezone.utc)
+                .strftime("%Y-%m-%d %H:%M:%S UTC"))
+    except (OverflowError, OSError, ValueError):
+        return raw
 
 
 # ---------------------------------------------------------------------------
@@ -309,6 +386,27 @@ class M3Client:
         rec = {"PCID": pcid, "TNNM": tnnm, "AUTH": str(auth)}
         return self.execute("EXT124MI", [{"transaction": "DelUsrInfo", "record": rec}])
 
+    # ---- EXPORTMI - EXTXSM read straight off the table -----------------
+    def list_extxsm(self) -> list[dict]:
+        """
+        EXPORTMI/Select over EXTXSM - every security record, with the
+        registration/last-changed audit columns LstUsrInfo does not carry.
+
+        EXLMTS comes back as a Java timestamp (milliseconds since the Unix
+        epoch) - formatted here so the list never shows a bare 13-digit
+        number.
+        """
+        body = self.execute("EXPORTMI", [{
+            "transaction": "Select",
+            "record": {"QERY": EXTXSM_QUERY, "SEPC": EXPORTMI_SEP, "HDRS": "1"},
+            "selectedColumns": ["QERY", "SEPC", "HDRS", "REPL"],
+        }])
+        rows = _parse_exportmi_rows(self._records(body, "Select"), EXTXSM_FIELD_MAP)
+        for row in rows:
+            if "LMTS" in row:
+                row["LMTS"] = format_java_timestamp(row["LMTS"])
+        return rows
+
     # ---- MNS150MI - the M3 user directory -----------------------------
     def list_user_data(self) -> list[dict]:
         """MNS150MI/LstUserData - USID / name / email / status for every M3 user."""
@@ -413,15 +511,49 @@ def guess_m3_user(tenant_name: str, pcid: str,
 # it is just base64 + json.loads; encoding is json.dumps (compact) + base64.
 # ---------------------------------------------------------------------------
 
+_LEGAL_ESCAPE = re.compile(r'\\(?:["\\/bfnrt]|u[0-9A-Fa-f]{4})')
+
+
+def _escape_bare_backslashes(text: str) -> str:
+    """
+    Double every backslash that is not the start of a legal JSON escape
+    (\\\\ \\" \\/ \\b \\f \\n \\r \\t \\uXXXX).
+
+    Windows paths in this telemetry ("C:\\Users\\Name") show up with bare
+    single backslashes, which is invalid JSON on its own. A naive fix would
+    treat any "\\u" as the start of a unicode escape and leave it alone, but
+    a lowercase network path segment - "\\\\fileserver\\users\\jdoe" - has a
+    "\\u" that is not followed by four hex digits, which is exactly the
+    "Invalid \\uXXXX escape" error this works around: only a backslash
+    followed by four real hex digits counts as \\uXXXX, so "\\users" still
+    gets escaped like any other bare backslash.
+    """
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        if text[i] == "\\":
+            m = _LEGAL_ESCAPE.match(text, i)
+            if m:
+                out.append(m.group())
+                i = m.end()
+                continue
+            out.append("\\\\")
+            i += 1
+            continue
+        out.append(text[i])
+        i += 1
+    return "".join(out)
+
+
 def decode_hash_blob(value: str) -> dict:
     """
     Base64-decode a HASH value and parse it as JSON.
 
     Mirrors SEC_GrantAccess._decode_exhash(): padded to a multiple of 4
-    before decoding, and on a JSON parse failure, bare backslashes that are
-    not part of a legal escape (\\\\ \\" \\/ \\b \\f \\n \\r \\t \\uXXXX) are
-    escaped and the parse is retried - Windows profile paths like
-    "C:\\Users\\Name" show up unescaped in these blobs.
+    before decoding, and on a JSON parse failure, bare backslashes are
+    escaped (see _escape_bare_backslashes) and the parse is retried -
+    Windows profile paths like "C:\\Users\\Name" show up unescaped in these
+    blobs.
     """
     value = (value or "").strip()
     if not value:
@@ -445,7 +577,7 @@ def decode_hash_blob(value: str) -> dict:
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        fixed = re.sub(r'\\(?![\\"/bfnrtu])', r'\\\\', text)
+        fixed = _escape_bare_backslashes(text)
         try:
             return json.loads(fixed)
         except json.JSONDecodeError as exc:

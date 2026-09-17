@@ -6,9 +6,16 @@ Everything the capture holds lives in one SQLite file, by default
 An explicit --db argument wins, then the ADP_CONCUR_DB environment variable,
 then the default.
 
-The shape of the data follows Kelly's workbook: one sheet of raw ADP export
-columns, six lookup tabs that map ADP values onto Concur values, and three
-record layouts (305, 350, 360) that are built by referencing them.
+The shape of the data follows Kelly's workbook: two sheets of raw HR export
+columns - ADP and UKG - eight lookup tabs that map their values onto Concur
+values, and four record layouts (305, 350, 360, 700) built by referencing them.
+
+Both sources land in one employee table. They describe the same thing in
+different words, so the raw columns are mapped onto one shared set of names on
+the way in and `source` records which system a row came from; only the
+derivations and the record types differ after that. That is what lets one
+extract carry both, with a UKG approver sorted above the ADP person who reports
+to them.
 """
 from __future__ import annotations
 
@@ -58,49 +65,116 @@ ADP_COLUMNS: list[tuple[str, str]] = [
     ("Pay Grade Description", "pay_grade_desc"),                       # AB
 ]
 
-# Columns the non-US roster carries instead of ADP's, because those people are
-# maintained by hand on the '305 Non US Non SE' tab in Concur's own terms
-# rather than being derived from an ADP report. Editable like the ADP columns.
-NON_US_COLUMNS: list[tuple[str, str]] = [
-    ("Ledger Code", "ledger_code"),
-    ("Org Unit 2", "org_unit_2_raw"),
+# The UKG export. UKG describes an employee in its own words, so the columns
+# that mean the same thing as ADP's are given ADP's database name and land in
+# the same place - Employee Number is a File Number, Salary Grade is a Pay
+# Grade Code, Employment Status is a Position Status. What is left over is
+# genuinely UKG's own and is listed below.
+#
+# UKG has no separate first and last name columns; it has one 'Last Suffix,
+# First MI' field, which the workbook splits with FIND/LEFT/MID. The importer
+# does the same split, so legal_first_name and legal_last_name are populated
+# for both sources and the Employees tab does not have to care.
+UKG_COLUMNS: list[tuple[str, str]] = [
+    ("Company Code", "payroll_company_code"),                          # A
+    ("Pay Group Code", "pay_group_code"),                              # B
+    ("Pay Group", "pay_group"),                                        # C
+    ("Employee Number", "file_number"),                                # D
+    ("Employment Type", "employee_type"),                              # E
+    ("Employee Name (Last Suffix, First MI)", "employee_name_raw"),     # F
+    ("Job Code", "job_code"),                                          # G
+    ("Job Family", "job_family"),                                      # J
+    ("Job", "job_title"),                                              # K
+    ("Alternate Title", "alternate_title"),                            # L
+    ("Seniority Date", "seniority_date"),                              # O
+    ("Salary Grade", "pay_grade_code"),                                # Q
+    ("Supervisor Employee Number", "supervisor_id_raw"),               # R
+    ("Supervisor Name (Last Suffix, First MI)", "reports_to_legal_name"),  # S
+    ("Site Location", "site_location"),                                # T
+    ("Site Location Code", "site_location_code"),                      # U
+    ("Last Hire Date", "hire_date"),                                   # V
+    ("Original Hire Date", "original_hire_date"),                      # W
+    ("Employment Status", "position_status"),                          # X
+    ("Employment Status Code", "employment_status_code"),              # Y
+    ("Local Currency Code", "local_currency_code"),                    # AE
+    ("Org Level 3 Code", "org_level_3_code"),                          # AI
+    ("Country", "country_name"),                                       # AL
+    ("Country Code", "legal_country_code"),                            # AM
+    ("Org Level 1", "org_level_1"),                                    # AN
+    ("Org Level 4 Code", "org_level_4_code"),                          # AO
+    ("E-mail Address", "work_email"),                                  # AQ
+]
+
+# The columns only UKG has, in the order the editor shows them. Everything else
+# in UKG_COLUMNS reuses an ADP column name and is already in ADP_COLUMNS.
+UKG_ONLY_COLUMNS: list[tuple[str, str]] = [
+    (h, c) for h, c in UKG_COLUMNS
+    if c not in {name for _, name in ADP_COLUMNS}
+]
+
+# Held for people keyed in by hand, who have no export sheet behind them.
+MANUAL_COLUMNS: list[tuple[str, str]] = [
     ("Password", "password"),
 ]
 
-# The two populations the workbook maintains separately. Each has its own
-# derivation rules and its own extract, because they are two different loads
-# into Concur, not one load with a filter on it.
-ROSTERS = {
-    "us": {"label": "US (from ADP)", "records": ["305", "350", "360"]},
-    "non_us": {"label": "Non-US / non-SE", "records": ["305", "360"]},
+# Where an employee came from. This replaced the US / non-US rosters: the
+# workbook no longer splits the company by geography, it splits it by the
+# system of record, and the two systems need different derivations and produce
+# different record types. One extract carries both.
+#
+# 'workbook' is the old non-US tab and is kept only so rows loaded by an
+# earlier version can still be found and cleared - nothing writes it now.
+SOURCES = {
+    "adp": {"label": "ADP", "records": ["305", "350", "360", "700"]},
+    "ukg": {"label": "UKG", "records": ["305", "360", "700"]},
+    "manual": {"label": "Added by hand", "records": ["305", "350", "360", "700"]},
+    "workbook": {"label": "Non-US tab (retired)", "records": ["305", "360"]},
 }
+
+# Every record type the extract can write, in the order it writes them.
+RECORD_TYPES = ["305", "350", "360", "700"]
 
 # The derived columns Kelly builds with lookups, AC..AM. These are recomputed
 # by ADP_Concur_Map.ADP_Concur_derive() rather than imported, so a map change
 # takes effect without reloading the workbook - but they are stored so the
 # Employees tab can show them and the export does not have to recompute.
+# Both sheets end in a block of derived columns, and both blocks compute the
+# same fourteen things - ADP in AC..AO, UKG in AZ..BL. The letters differ, the
+# meanings do not, so there is one list and the formulas behind it branch by
+# source in ADP_Concur_Map.
 DERIVED_COLUMNS: list[tuple[str, str]] = [
-    ("SupervisorID Formatted", "supervisor_id"),        # AC
-    ("Org Unit 1", "org_unit_1"),                       # AD
-    ("Org Unit 2", "org_unit_2"),                       # AE
-    ("Concur Profile", "concur_profile"),               # AF
-    ("Travel Profile", "travel_profile"),               # AG
-    ("Legal Country", "legal_country"),                 # AH
-    ("Locale Code", "locale_code"),                     # AI
-    ("Reimbursement Currency", "reimbursement_currency"),  # AJ
-    ("Preferred Name", "preferred_name"),               # AK
-    ("Status", "concur_status"),                        # AL
-    ("Term Date", "term_date"),                         # AM
+    ("SupervisorID Formatted", "supervisor_id"),        # ADP AC / UKG AZ
+    ("Org Unit 1", "org_unit_1"),                       # ADP AD / UKG BA
+    ("Org Unit 2", "org_unit_2"),                       # ADP AE / UKG BB
+    ("Concur Profile", "concur_profile"),               # ADP AF / UKG BC
+    ("Travel Profile", "travel_profile"),               # ADP AG / UKG BD
+    ("Invoice Approval Limit", "invoice_limit"),        # ADP AH / UKG BE
+    ("Legal Country", "legal_country"),                 # ADP AI / UKG BF
+    ("Locale Code", "locale_code"),                     # ADP AJ / UKG BG
+    ("Reimbursement Currency", "reimbursement_currency"),  # ADP AK / UKG BH
+    ("Preferred Name", "preferred_name"),               # ADP AL / UKG BI
+    ("Status", "concur_status"),                        # ADP AM / UKG BJ
+    ("Term Date", "term_date"),                         # ADP AN / UKG BK
+    ("Invoice Access", "invoice_access"),               # ADP AO / UKG BL
     ("Login ID", "login_id"),                           # not in the workbook
 ]
 
 # What the employee editor is allowed to write. The derived columns stay out -
 # they are rebuilt from the maps - and so does employee_key.
 EMPLOYEE_EDITABLE_FIELDS = ([name for _, name in ADP_COLUMNS]
-                            + [name for _, name in NON_US_COLUMNS])
+                            + [name for _, name in UKG_ONLY_COLUMNS]
+                            + [name for _, name in MANUAL_COLUMNS])
 
-# The three record types the flat file carries, in the order they are written.
-RECORD_TYPES = ["305", "350", "360"]
+
+def overridden_set(value: str | None) -> set[str]:
+    """Parse the comma-list `ADP_Concur_Employees.overridden_fields` carries."""
+    return {f for f in (value or "").split(",") if f}
+
+
+def merge_overridden_fields(current: str | None, changed: set[str]) -> str:
+    """Union newly hand-edited field names into a row's existing comma-list."""
+    return ",".join(sorted(overridden_set(current) | changed))
+
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -146,28 +220,45 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_Employees (
     org_unit_2              TEXT,
     concur_profile          TEXT,
     travel_profile          TEXT,
+    invoice_limit           TEXT,    -- Salary Map 'Invoice Approval' - the 700's limit
     legal_country           TEXT,
     locale_code             TEXT,
     reimbursement_currency  TEXT,
     preferred_name          TEXT,
     concur_status           TEXT,
     term_date               TEXT,
+    invoice_access          TEXT,    -- Y/N - drives the 360 roles and whether a 700 is written
     login_id                TEXT,
-    -- Carried rather than derived. The non-US roster is maintained by hand on
-    -- its own tab in Concur's own terms, so these arrive already answered.
+    -- UKG's own columns. Everything else it sends reuses an ADP column above,
+    -- because it means the same thing under a different heading.
+    pay_group_code          TEXT,
+    pay_group               TEXT,
+    employee_name_raw       TEXT,    -- 'Last Suffix, First MI', split on the way in
+    job_code                TEXT,
+    job_family              TEXT,
+    alternate_title         TEXT,
+    seniority_date          TEXT,
+    site_location           TEXT,
+    site_location_code      TEXT,    -- UKG's Org Unit 1
+    original_hire_date      TEXT,
+    employment_status_code  TEXT,
+    local_currency_code     TEXT,
+    org_level_3_code        TEXT,    -- UKG's Org Unit 2
+    country_name            TEXT,
+    org_level_1             TEXT,
+    org_level_4_code        TEXT,
+    -- Carried rather than derived, for people keyed in by hand.
     ledger_code             TEXT,
     org_unit_2_raw          TEXT,
     password                TEXT,
     -- housekeeping
-    roster                  TEXT    NOT NULL DEFAULT 'us',    -- 'us' | 'non_us'
-    source                  TEXT    NOT NULL DEFAULT 'adp',   -- 'adp' | 'manual' | 'workbook'
+    roster                  TEXT    NOT NULL DEFAULT 'us',    -- retired; see SOURCES
+    source                  TEXT    NOT NULL DEFAULT 'adp',   -- 'adp' | 'ukg' | 'manual'
     row_state               TEXT    NOT NULL DEFAULT 'unchanged',
     include_305             INTEGER NOT NULL DEFAULT 1,
     include_350             INTEGER NOT NULL DEFAULT 1,
     include_360             INTEGER NOT NULL DEFAULT 1,
-    -- On by default like the three above: SAP wants Login ID changes carried
-    -- by the 320 rather than the 305, so the normal population needs one.
-    include_320             INTEGER NOT NULL DEFAULT 1,
+    include_700             INTEGER NOT NULL DEFAULT 1,
     import_id               INTEGER,
     source_row              INTEGER,
     -- ADP sends one row per employment record, so a transfer arrives as the
@@ -176,6 +267,12 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_Employees (
     -- which one was taken.
     duplicate_rows          INTEGER NOT NULL DEFAULT 1,
     duplicate_note          TEXT,
+    -- Comma-bounded list of EMPLOYEE_EDITABLE_FIELDS names ('' when none) a
+    -- hand edit has changed away from what ADP/UKG last sent. The next
+    -- import leaves exactly these columns alone instead of overwriting them
+    -- with the sheet's own value - see api_employee_save() and the ADP/UKG
+    -- upsert in ADP_Concur_Import.py.
+    overridden_fields       TEXT    NOT NULL DEFAULT '',
     derived_at              TEXT,
     created_at              TEXT    NOT NULL DEFAULT (datetime('now')),
     modified_at             TEXT,
@@ -196,8 +293,11 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_StatusMap (
 
 CREATE TABLE IF NOT EXISTS ADP_Concur_CountryMap (
     map_key      INTEGER PRIMARY KEY AUTOINCREMENT,
-    adp_country  TEXT NOT NULL,      -- 'Legal / Preferred Address: Country Code'
+    adp_country  TEXT NOT NULL,      -- ADP's 'USA' / UKG's 'CHN'
     concur_country TEXT,             -- the two-character code Concur wants
+    country_name TEXT,               -- 'United States'
+    currency_code TEXT,              -- UKG takes its reimbursement currency here
+    currency_name TEXT,
     row_state    TEXT NOT NULL DEFAULT 'unchanged',
     UNIQUE (adp_country)
 );
@@ -230,6 +330,7 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_SalaryMap (
     pay_grade_desc TEXT,
     expense_map    TEXT,             -- 'Expense Map'  -> Concur Profile
     travel_map     TEXT,             -- 'Travel Map'   -> Travel Profile
+    invoice_map    TEXT,             -- 'Invoice Approval' -> the 700's Approval Limit
     row_state      TEXT NOT NULL DEFAULT 'unchanged',
     UNIQUE (pay_grade_code)
 );
@@ -336,12 +437,36 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_Extracts (
     n_305       INTEGER NOT NULL DEFAULT 0,
     n_350       INTEGER NOT NULL DEFAULT 0,
     n_360       INTEGER NOT NULL DEFAULT 0,
-    -- Always 0 on a 305/350/360 file and vice versa - the 320 is its own file,
-    -- never merged with the other three. See ADP_Concur_export_320.
-    n_320       INTEGER NOT NULL DEFAULT 0,
     scope       TEXT,                 -- 'active' | 'all'
     delimiter   TEXT,
     written_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ------------------------------------------------------------- new maps
+-- Which Concur roles get handed out automatically. Reference for now: the
+-- record builders do not read it, because the 305's role flags are literals
+-- on the template. Loaded so the tab is visible and so the day somebody wants
+-- the roles driven by it, the data is already here.
+CREATE TABLE IF NOT EXISTS ADP_Concur_RoleMap (
+    map_key   INTEGER PRIMARY KEY AUTOINCREMENT,
+    role      TEXT NOT NULL,
+    category  TEXT,
+    automatic TEXT,                  -- Y / N
+    row_state TEXT NOT NULL DEFAULT 'unchanged',
+    UNIQUE (role)
+);
+
+-- Named people whose invoice access is decided by hand rather than by their
+-- pay grade. Keyed on File Number, and it wins over the Salary Map: this is
+-- how somebody with no invoice approval limit is still given access, and how
+-- somebody who would get it by grade is refused it.
+CREATE TABLE IF NOT EXISTS ADP_Concur_InvoiceMap (
+    map_key       INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_number   TEXT NOT NULL,
+    employee_name TEXT,
+    access        TEXT,              -- Y / N
+    row_state     TEXT NOT NULL DEFAULT 'unchanged',
+    UNIQUE (file_number)
 );
 
 -- ------------------------------------------------------------ load results
@@ -397,6 +522,7 @@ CREATE INDEX IF NOT EXISTS ix_adpc_exc_sev ON ADP_Concur_Exceptions (severity);
 CREATE INDEX IF NOT EXISTS ix_adpc_res_load ON ADP_Concur_Results (load_key);
 CREATE INDEX IF NOT EXISTS ix_adpc_res_emp  ON ADP_Concur_Results (file_number);
 CREATE INDEX IF NOT EXISTS ix_adpc_res_cat  ON ADP_Concur_Results (category);
+CREATE INDEX IF NOT EXISTS ix_adpc_invmap_fn ON ADP_Concur_InvoiceMap (file_number);
 """
 
 # Every column added to ADP_Concur_Employees after the first release. SQLite
@@ -413,8 +539,32 @@ MIGRATIONS: list[tuple[str, str, str]] = [
     ("ADP_Concur_Employees", "org_unit_2_raw", "TEXT"),
     ("ADP_Concur_Employees", "password", "TEXT"),
     ("ADP_Concur_Employees", "roster", "TEXT NOT NULL DEFAULT 'us'"),
-    ("ADP_Concur_Employees", "include_320", "INTEGER NOT NULL DEFAULT 1"),
-    ("ADP_Concur_Extracts", "n_320", "INTEGER NOT NULL DEFAULT 0"),
+    # The UKG source, the 700 record and the two derived values that came with
+    # the 15 September workbook.
+    ("ADP_Concur_Employees", "invoice_limit", "TEXT"),
+    ("ADP_Concur_Employees", "invoice_access", "TEXT"),
+    ("ADP_Concur_Employees", "include_700", "INTEGER NOT NULL DEFAULT 1"),
+    ("ADP_Concur_Employees", "pay_group_code", "TEXT"),
+    ("ADP_Concur_Employees", "pay_group", "TEXT"),
+    ("ADP_Concur_Employees", "employee_name_raw", "TEXT"),
+    ("ADP_Concur_Employees", "job_code", "TEXT"),
+    ("ADP_Concur_Employees", "job_family", "TEXT"),
+    ("ADP_Concur_Employees", "alternate_title", "TEXT"),
+    ("ADP_Concur_Employees", "seniority_date", "TEXT"),
+    ("ADP_Concur_Employees", "site_location", "TEXT"),
+    ("ADP_Concur_Employees", "site_location_code", "TEXT"),
+    ("ADP_Concur_Employees", "original_hire_date", "TEXT"),
+    ("ADP_Concur_Employees", "employment_status_code", "TEXT"),
+    ("ADP_Concur_Employees", "local_currency_code", "TEXT"),
+    ("ADP_Concur_Employees", "org_level_3_code", "TEXT"),
+    ("ADP_Concur_Employees", "country_name", "TEXT"),
+    ("ADP_Concur_Employees", "org_level_1", "TEXT"),
+    ("ADP_Concur_Employees", "org_level_4_code", "TEXT"),
+    ("ADP_Concur_Employees", "overridden_fields", "TEXT NOT NULL DEFAULT ''"),
+    ("ADP_Concur_SalaryMap", "invoice_map", "TEXT"),
+    ("ADP_Concur_CountryMap", "country_name", "TEXT"),
+    ("ADP_Concur_CountryMap", "currency_code", "TEXT"),
+    ("ADP_Concur_CountryMap", "currency_name", "TEXT"),
 ]
 
 

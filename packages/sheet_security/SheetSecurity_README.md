@@ -1,16 +1,25 @@
 # sheet_security — Doppio API Sheet security manager
 
 A small Flask app for managing the API Sheet's own access-control table,
-which lives in the custom M3 program **EXT124MI** (the same program
-`SEC_GrantAccess.py` and the Xtend workbook write through). It lists every
-record with `LstUsrInfo`, and adds / edits / deletes them with
-`AddUsrInfo` / `UpdUsrInfo` / `DelUsrInfo` — live against whichever tenant
-you pick, no local copy or export/import step.
+**EXTXSM**, which the custom M3 program `EXT124MI` (the same program
+`SEC_GrantAccess.py` and the Xtend workbook write through) reads and writes.
+It lists every record straight off the table with `EXPORTMI/Select`, and
+adds / edits / deletes them with `EXT124MI`'s `AddUsrInfo` / `UpdUsrInfo` /
+`DelUsrInfo` — live against whichever tenant you pick, no local copy or
+export/import step.
+
+The list splits into three tabs by `AUTH`:
+
+| Tab | AUTH | What it holds |
+|-----|------|----------------|
+| **Tenants** | `20` | A customer tenant's registration — its `HASH` is an encoded `.ionapi` file (see Extract Type 20, below) |
+| **Users** | `1` / `0` | A user's access to a tenant — `1` granted, `0` that same grant blocked |
+| **Review** | `99` | Someone who has attempted to use the sheet without a grant yet — has a **Delete all** action, since this tab is meant to be cleared out once its requests are handled |
 
 | File | Role |
 |------|------|
 | `SheetSecurity_App.py` | Flask routes |
-| `SheetSecurity_M3Api.py` | `M3Client` (EXT124MI + MNS150MI over m3api-rest), the "find M3 user" guesser, HASH decode/encode, and the AUTH=20 → `.ionapi` extractor |
+| `SheetSecurity_M3Api.py` | `M3Client` (EXT124MI + EXPORTMI + MNS150MI over m3api-rest), the "find M3 user" guesser, HASH decode/encode, and the AUTH=20 → `.ionapi` extractor |
 | `templates/SheetSecurity_Index.html` | The page — table, add/edit panel |
 
 ## Quick start
@@ -31,8 +40,9 @@ A security record's key is **PCID + TNNM + AUTH**:
 
 - `PCID` — the login / person id the record is for
 - `TNNM` — the customer tenant name it grants access to (e.g. `NUTRACORP TST`)
-- `AUTH` — the access level (`1` user access, `20` tenant registration,
-  `99` pending request — see `AUTH_LABELS` in `SheetSecurity_M3Api.py`)
+- `AUTH` — the access level (`1` user access, `0` that access blocked, `20`
+  tenant registration, `99` pending request — see `AUTH_LABELS` in
+  `SheetSecurity_M3Api.py`)
 
 `HASH`, `M3ID` and `UMSG` are the value fields carried on top of that key.
 `M3ID` holds an M3 USID and `UMSG` an email address once a record has been
@@ -40,15 +50,76 @@ matched to a real M3 user. The key fields are locked once a record is
 opened for editing — changing PCID, TNNM or AUTH means deleting the record
 and adding a new one, since that is what actually changes on EXT124MI.
 
+The list also carries EXTXSM's own audit columns, which `EXT124MI/LstUsrInfo`
+does not return: `RGDT` / `RGTM` (registered), `LMDT` / `LMTS` (last
+changed) and `CHNO` / `CHID` (the change number and who made it). `LMTS` is
+a Java timestamp — milliseconds since the Unix epoch — so it is formatted
+into a plain UTC date/time (`format_java_timestamp()` in
+`SheetSecurity_M3Api.py`) rather than shown as a 13-digit number.
+
+Each tab hides the columns that are not useful in a list (`TAB_HIDDEN_COLUMNS`
+in `templates/SheetSecurity_Index.html`) — they are still on the add/edit
+panel, just not worth a column in a table this narrow:
+
+| Tab | Hidden from the list |
+|-----|----------------------|
+| Tenants | `M3ID`, `RGDT`, `RGTM`, `LMDT`, `HASH` |
+| Users | `RGDT`, `RGTM`, `LMDT`, `HASH` |
+| Review | `UMSG`, `RGDT`, `RGTM`, `LMDT`, `HASH` |
+
+`HASH` ends up hidden everywhere, for three different reasons: a tenant's is
+an `.ionapi` blob (opened on the edit panel, or written out wholesale by
+Extract Type 20), a user grant's is normally empty, and a review request's is
+decoded server-side instead — see below.
+
+Opening any record for edit decodes its `HASH` automatically (the same call
+"Decrypt HASH → JSON" makes) so the JSON is already there rather than making
+that a second click; a HASH that fails to decode just leaves the box
+collapsed with a note, rather than an error dialog.
+
+## The Review tab's HASH
+
+An AUTH=99 record's `HASH` isn't an `.ionapi` — it's workbook telemetry, a
+JSON blob describing whoever the Xtend workbook let make a request it had no
+grant for:
+
+```json
+{
+  "userName": "chrita", "userDomain": "HMABIQR", "computerName": "JANEADAM",
+  "localIP": "192.168.0.120", "publicIP": "72.153.216.187",
+  "userProfile": "C:\\Users\\chrita",
+  "osName": "Microsoft Windows 10 Enterprise", "osVersion": "10.0.15063",
+  "sheetVersion": "v1.27"
+}
+```
+
+Rather than show that raw blob, the Review list decodes it server-side
+(`_decode_review_hash()` in `SheetSecurity_App.py`) and shows `USERNAME`,
+`DOMAIN` and `COMPUTERNAME` as their own columns — who tried to use the
+sheet and from where, at a glance. A blob that fails to decode leaves those
+columns blank rather than breaking the list; the full HASH is still on the
+edit panel if it needs a closer look.
+
+Decoding a Windows path like `C:\Users\Name` out of this blob means fixing
+up backslashes that aren't valid JSON on their own — `decode_hash_blob()` in
+`SheetSecurity_M3Api.py` walks the text and doubles every backslash that
+isn't the start of a real escape sequence. A lowercase path segment like
+`\users\` needs care here: a naive check would see `\u` and assume it starts
+a `\uXXXX` unicode escape, then fail with "Invalid \uXXXX escape" the moment
+what follows isn't four hex digits — which is exactly the bug this walk
+fixes, by only treating `\u` as an escape when it actually is followed by
+four hex digits.
+
 EXT124MI is a private extension with no entry in the shared M3 API
-metadata this repo otherwise draws on, so `LstUsrInfo` / `GetUsrInfo` are
-called with no `selectedColumns` filter — whatever field layout the
-program actually returns comes through as-is. The table's columns are
-built from that response rather than a hardcoded list, so an unexpected
-field is shown rather than silently dropped. `HASH` can run long (it is
-sometimes an encoded `.ionapi` blob); the list only ever sends a truncated
-copy to the browser, and the full value is re-read with `GetUsrInfo` when a
-row is opened for editing.
+metadata this repo otherwise draws on, so `EXPORTMI/Select` is called with
+no fixed column list beyond the query itself, and `GetUsrInfo` (used to
+re-read one record) with no `selectedColumns` filter — whatever field
+layout the program actually returns comes through as-is. The table's
+columns are built from that response rather than a hardcoded list, so an
+unexpected field is shown rather than silently dropped. `HASH` can run long
+(it is sometimes an encoded `.ionapi` blob); the list only ever sends a
+truncated copy to the browser, and the full value is re-read with
+`GetUsrInfo` when a row is opened for editing.
 
 ## Find M3 user
 

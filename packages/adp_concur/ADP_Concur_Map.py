@@ -20,9 +20,12 @@ ADP_Concur_Config.json rather than in code.
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from datetime import date, datetime
 from pathlib import Path
+
+from ADP_Concur_Db import DERIVED_COLUMNS, SOURCES
 
 CONFIG_PATH = Path(__file__).parent / "ADP_Concur_Config.json"
 
@@ -37,7 +40,13 @@ UNMAPPED = {
     "locale_code": "ADP and BU Language Code Not Mapped",
     "reimbursement_currency": "BU Currency Not Mapped",
     "concur_status": "Position Status Not Mapped",
-    # The non-US tab's own wording, for the one lookup only it performs.
+    "invoice_limit": "Invoice Approval Not Mapped",
+    # UKG's sheet words its own country miss differently from ADP's, and the
+    # wording is the point - a value that fails should be recognisable to
+    # whoever is looking at the tab it came from.
+    "ukg_country": "Country Not Mapped",
+    # The retired non-US tab's own wording, kept so an older database's stored
+    # values still read as failures rather than as data.
     "country_currency": "Country Currency Not Mapped",
 }
 
@@ -67,10 +76,10 @@ DEFAULT_CONFIG = {
         # Used when the chosen source is the file number, which has no '@'.
         "bare_domain": "",
     },
-    # Per-roster overrides, merged over login_id above. Empty because both
-    # rosters currently agree; kept because they have disagreed before and the
+    # Per-source overrides, merged over login_id above. Empty because both
+    # sources currently agree; kept because they have disagreed before and the
     # mechanism is what let the extract match each tab while they did.
-    "login_id_by_roster": {},
+    "login_id_by_source": {},
     "password": "Welcome01",
     # ------------------------------------------------- the 100 record
     # Import Settings, one per file, written as the first line. Seven fields,
@@ -109,33 +118,36 @@ DEFAULT_CONFIG = {
     # because it is a real question: the July file carried 305 and 360 only,
     # and the workbook has since grown a 350 tab. Drop "350" here to go back to
     # what loaded before.
-    "records_by_roster": {
-        "us": ["305", "350", "360"],
-        "non_us": ["305", "360"],
+    # Which record types each source writes. In config rather than in code
+    # because it is a real question and it has already changed twice: the July
+    # file carried 305 and 360 only, the September workbook added 350 and 700,
+    # and every 350 Concur has seen so far has been rejected on its Travel
+    # Class Name. Drop "350" from the adp list to go back to what loaded.
+    "records_by_source": {
+        "adp": ["305", "350", "360", "700"],
+        "ukg": ["305", "360", "700"],
+        "manual": ["305", "350", "360", "700"],
     },
-    # Master switch per record type - turn one off and it is written nowhere,
-    # in any file, whatever records_by_roster says. This exists because
-    # records_by_roster only ever applied to a roster-scoped file: the plain
-    # 'Preview' / 'Write extract' buttons write one combined file with no
-    # roster and always carried all three types regardless of that setting.
-    # This is the one switch both paths obey.
-    "records_enabled": {"305": True, "350": True, "360": True},
-    # Which people reach each record type. 'active' means concur_status = 'Y'.
-    "scope": {"305": "all", "350": "active", "360": "active", "320": "all"},
+    # Which people reach each record type. Always 'all' - active and
+    # terminated people alike - except: 'invoice' means invoice_access = 'Y',
+    # which is what the 700 is for; 'off' leaves the record type out of the
+    # extract entirely, for the days every 350 Concur has seen gets rejected
+    # on its Travel Class Name and the simplest fix is to stop sending it.
+    "scope": {"305": "all", "350": "all", "360": "all", "700": "invoice"},
     # Columns to write empty whatever the field map says, per record type.
     #
     # This exists because a column can be right by the workbook and still wrong
     # by the tenant. Concur's Run-18 result warned 120 times that Custom 5 -
-    # then the Org Unit 2 department code, now Org Unit 1 - "could not be
-    # resolved to an existing custom list item", and the July file that loaded
-    # cleanly left Custom 5 blank on all 216 of its 305 records. Whether the
-    # list is missing from the tenant or the column is simply not wanted is a
-    # question for SAP, and this is how you answer it without editing code:
-    # add "Z" to blank it, take it out to send it again.
+    # the Org Unit 2 department code - "could not be resolved to an existing
+    # custom list item", and the July file that loaded cleanly left Custom 5
+    # blank on all 216 of its 305 records. Whether the list is missing from the
+    # tenant or the column is simply not wanted is a question for SAP, and this
+    # is how you answer it without editing code: add "Z" to blank it, take it
+    # out to send it again.
     #
     # Nothing is blanked by default - the extract still reproduces the
     # workbook, and every departure from it stays a decision somebody made.
-    "blank_fields": {"305": [], "350": [], "360": [], "320": []},
+    "blank_fields": {"305": [], "350": [], "360": [], "700": []},
     # Flat file shape.
     "extract": {
         "delimiter": ",",
@@ -148,10 +160,6 @@ DEFAULT_CONFIG = {
         # mistaken for the full company sitting in the same pickup folder.
         "selection_file_name": "FMG_Concur_Employee_Selection_{stamp}.txt",
         "outbound_dir": "",          # blank = output/adp_concur/ beside this file
-        # The 320 is a separate file by SAP's own rule - see
-        # ADP_Concur_Export.ADP_Concur_export_320 - so it gets its own name
-        # rather than sharing file_name above.
-        "file_name_320": "FMG_Concur_UpdateID_{stamp}.txt",
     },
     # Rows the extract refuses to write, and why. Turn one off to let it
     # through and see what Concur says.
@@ -258,8 +266,13 @@ def load_maps(conn: sqlite3.Connection) -> dict:
         _s(r["language_desc"]): _s(r["adp_language"])
         for r in conn.execute("SELECT * FROM ADP_Concur_LanguageMap")
     }
+    # The Salary Map grew a third column, 'Invoice Approval' - the currency
+    # amount a grade may approve, which becomes the 700 record's limit. The
+    # key is trimmed because the UKG sheet looks it up with TRIM() and its
+    # Salary Grade arrives padded.
     maps["salary"] = {
-        _s(r["pay_grade_code"]): (_s(r["expense_map"]), _s(r["travel_map"]))
+        _s(r["pay_grade_code"]): (_s(r["expense_map"]), _s(r["travel_map"]),
+                                  _s(r["invoice_map"]))
         for r in conn.execute("SELECT * FROM ADP_Concur_SalaryMap")
     }
     maps["supervisor"] = {
@@ -284,8 +297,8 @@ def load_maps(conn: sqlite3.Connection) -> dict:
     maps["org_by_bu"] = by_bu
     maps["org_by_dept"] = by_dept
 
-    # Only the non-US roster reads these two: country -> locale, and
-    # country -> currency code.
+    # The country blocks beside the Country and Language maps: country ->
+    # locale, and country -> currency code.
     maps["locale"] = {
         _s(r["country_code"]).upper(): _s(r["locale_code"])
         for r in conn.execute("SELECT * FROM ADP_Concur_LocaleMap")
@@ -293,6 +306,21 @@ def load_maps(conn: sqlite3.Connection) -> dict:
     maps["country_ref"] = {
         _s(r["country_code"]).upper(): _s(r["currency_code"])
         for r in conn.execute("SELECT * FROM ADP_Concur_CountryRef")
+    }
+
+    # The Country Map now carries the currency as well as the two-character
+    # code, which is where UKG gets its reimbursement currency - it has no
+    # business unit, so the Org Map route the ADP sheet uses is not open to it.
+    maps["country_currency"] = {
+        _s(r["adp_country"]).upper(): _s(r["currency_code"])
+        for r in conn.execute("SELECT * FROM ADP_Concur_CountryMap")
+    }
+
+    # Invoice access by name. Keyed on File Number, and the workbook trims it
+    # ('203011   ' appears with trailing spaces), so it is trimmed here too.
+    maps["invoice_access"] = {
+        _s(r["file_number"]): _s(r["access"]).upper()
+        for r in conn.execute("SELECT * FROM ADP_Concur_InvoiceMap")
     }
     return maps
 
@@ -424,8 +452,8 @@ def ADP_Concur_login_id(emp: dict, cfg: dict) -> str:
     SAP wants and the whole extract follows it.
     """
     rule = dict(cfg.get("login_id", {}))
-    rule.update((cfg.get("login_id_by_roster") or {}).get(
-        _s(emp.get("roster")) or "us", {}))
+    rule.update((cfg.get("login_id_by_source") or {}).get(
+        _s(emp.get("source")) or "adp", {}))
     value = ""
     for src in rule.get("sources") or ["work_email"]:
         value = _s(emp.get(src))
@@ -448,83 +476,163 @@ def ADP_Concur_login_id(emp: dict, cfg: dict) -> str:
 # ------------------------------------------------------------------- derive
 
 
-DERIVED_FIELDS = ["supervisor_id", "org_unit_1", "org_unit_2", "concur_profile",
-                  "travel_profile", "legal_country", "locale_code",
-                  "reimbursement_currency", "preferred_name", "concur_status",
-                  "term_date", "login_id"]
+DERIVED_FIELDS = [name for _, name in DERIVED_COLUMNS]
 
 
-def derive_non_us(emp: dict, maps: dict, cfg: dict) -> dict:
+def ADP_Concur_invoice_limit(emp: dict, maps: dict, access: str) -> str:
     """
-    The same twelve values, for somebody on the non-US roster.
+    ADP AH: =IFERROR(VLOOKUP(AA5,'Salary Map'!A:E,5,FALSE),"Invoice Approval Not Mapped")
+    UKG BE: =IF(BL2="N",0,IFERROR(VLOOKUP(TRIM(Q2),'Salary Map'!A:E,5,FALSE),"Salary Not Mapped"))
 
-    A separate function rather than branches inside the US one, because it is
-    genuinely a different derivation: those people are not in ADP at all. Their
-    tab is maintained by hand in Concur's own terms, so most of what is a
-    lookup for a US employee arrives already answered - the country is already
-    a two-character code, the org unit is the ledger code, the status is
-    already Y. What is left is three lookups, and each quotes the formula on
-    the '305 Non US Non SE' tab that it stands in for.
+    How much this person may approve, from their pay grade. It is the whole
+    content of the 700 record.
+
+    The two sheets differ in one way that matters and is kept: UKG short-
+    circuits to 0 when invoice access is N, ADP does not. So an ADP employee
+    with no access still carries a limit in the sheet, and it simply never
+    reaches a 700 because the 700 is conditional on access anyway. Reproduced
+    rather than reconciled - it changes nothing in the file, and the day
+    somebody reads the column it should say what their sheet says.
+
+    The lookup key is trimmed for both, because UKG wraps it in TRIM() and its
+    Salary Grade does arrive padded.
+    """
+    if _s(emp.get("source")) == "ukg" and access == "N":
+        return "0"
+    hit = maps["salary"].get(_s(emp.get("pay_grade_code")))
+    if not hit:
+        return UNMAPPED["invoice_limit"]
+    return hit[2]
+
+
+def ADP_Concur_invoice_access(emp: dict, maps: dict, limit_hit) -> str:
+    """
+    ADP AO: =IFERROR(VLOOKUP(P5,'Invoice Exception Map'!A:C,3,FALSE),IF(AH5>0,"Y","N"))
+    UKG BL: =IFERROR(VLOOKUP(D2,'Invoice Exception Map'!A:C,3,FALSE),"N")
+
+    Whether this person gets Concur Invoice at all. It drives four flags on the
+    360, both 360 approver fields, and whether a 700 is written.
+
+    The Invoice Exception Map is checked first for both, and it is the whole
+    answer for UKG: nobody in UKG gets invoice access by grade, only by name.
+    ADP falls back to the pay grade - an approval limit above zero means
+    access. That asymmetry is the sheets', not mine, and it is why a UKG
+    employee on the same grade as an ADP one can come out differently.
+    """
+    named = maps["invoice_access"].get(_s(emp.get("file_number")))
+    if named in ("Y", "N"):
+        return named
+    if _s(emp.get("source")) == "ukg":
+        return "N"
+    # IF(AH5>0,"Y","N") - a text limit that is not a number is not > 0.
+    try:
+        return "Y" if float(str(limit_hit).replace(",", "")) > 0 else "N"
+    except (TypeError, ValueError):
+        return "N"
+
+
+def derive_ukg(emp: dict, maps: dict, cfg: dict) -> dict:
+    """
+    The same fourteen values for somebody out of UKG.
+
+    A separate function rather than branches inside the ADP one, because UKG
+    is a different system describing the same people differently - not a
+    variant of the ADP rules. Half of what ADP looks up, UKG already answers:
+    the supervisor is already a bare employee number, the org units are codes
+    on the record, and the status is already Y or N. What is left is four
+    lookups, and each quotes the UKG sheet's own formula.
+
+    Three of the fourteen are deliberately empty because UKG's derived block
+    leaves them empty: BG Local Code, BI Preferred Name and BK Term Date have
+    no formula at all. The 305 UKG tab computes its own locale from the
+    country rather than reading BG, which is why locale_code is filled here
+    and the others are not.
     """
     country = _s(emp.get("legal_country_code")).upper()
 
-    # I: =IFERROR(VLOOKUP(J5,'Language Map'!M:O,3,FALSE),"en_"&J5)
-    locale = maps["locale"].get(country) or (f"en_{country}" if country else "")
+    # BF: =IFERROR(VLOOKUP(AM2,'Country Map'!A:E,2,FALSE),"Country Not Mapped")
+    legal_country = maps["country"].get(_s(emp.get("legal_country_code"))) \
+        or UNMAPPED["ukg_country"]
 
-    # M: =IFERROR(VLOOKUP(J5,'Country Map'!E:H,3,FALSE),"Country Currency Not Mapped")
-    currency = maps["country_ref"].get(country) or UNMAPPED["country_currency"]
+    # 305 UKG column I: =IFERROR(VLOOKUP(J2,'Language Map'!M:O,3,FALSE),"en_"&J2)
+    # J is the Ctry Code, so the locale is looked up from the *derived* country
+    # rather than from the raw one - 'US', not 'USA'.
+    locale = (maps["locale"].get(legal_country.upper())
+              or (f"en_{legal_country}" if legal_country
+                  and "Not Mapped" not in legal_country else ""))
 
-    # X: =IFERROR(VLOOKUP(W5,'Salary Map'!A:D,3,FALSE),"Salary Code Not Mapped")
-    # Note this is column 3, the Expense Map - where the US 305 tab points its
-    # equivalent at column 4, the Travel Map. Both are reproduced as written.
+    # BH: =IFERROR(VLOOKUP(AM2,'Country Map'!A:E,4,FALSE),"Country Not Mapped")
+    currency = maps["country_currency"].get(country) or UNMAPPED["ukg_country"]
+
+    # BC/BD: =IFERROR(VLOOKUP(TRIM(Q2),'Salary Map'!A:E,3|4,FALSE),"Salary Code Not Mapped")
     grade = maps["salary"].get(_s(emp.get("pay_grade_code")))
 
-    # P and AP: =L5. The ledger code is the org unit for this roster.
-    ledger = _s(emp.get("ledger_code"))
+    # BJ: =Y2 - the Employment Status Code, already A/Y/N shaped. UKG writes
+    # 'A' for active, which the Status Map turns into Y like any other value.
+    status = ADP_Concur_status(emp, maps)
 
-    status = _s(emp.get("concur_status")).upper() or "Y"
+    limit_hit = grade[2] if grade else UNMAPPED["invoice_limit"]
+    access = ADP_Concur_invoice_access(emp, maps, limit_hit)
+
     return {
-        # Already a bare Concur Employee ID on this tab, so it passes straight
-        # through - no three-character payroll prefix to strip.
+        # AZ: =R2. Already a bare employee number - no payroll prefix to strip.
+        # The Supervisor Map still wins, for the same reason it does on ADP.
         "supervisor_id": (maps["supervisor"].get(_s(emp.get("file_number")))
                           if _s(emp.get("file_number")) in maps["supervisor"]
                           else _s(emp.get("supervisor_id_raw"))),
-        "org_unit_1": ledger,
-        # Z: =Q5. Blank stays blank; the workbook's formula turns an empty cell
-        # into a literal 0, which is an Excel artifact rather than a value.
-        "org_unit_2": _s(emp.get("org_unit_2_raw")),
+        # BA: =U2, the Site Location Code.  BB: =AI2, Org Level 3 Code.
+        "org_unit_1": _s(emp.get("site_location_code")),
+        "org_unit_2": _s(emp.get("org_level_3_code")),
         "concur_profile": grade[0] if grade else UNMAPPED["concur_profile"],
         "travel_profile": grade[1] if grade else UNMAPPED["travel_profile"],
-        "legal_country": country,
+        "invoice_limit": ADP_Concur_invoice_limit(emp, maps, access),
+        "legal_country": legal_country,
         "locale_code": locale,
         "reimbursement_currency": currency,
-        "preferred_name": ADP_Concur_preferred_name(emp),
-        "concur_status": status if status in ("Y", "N") else "Y",
+        # BI and BK have no formula on the UKG sheet.
+        "preferred_name": "",
+        "concur_status": status,
         "term_date": "",
+        "invoice_access": access,
         "login_id": ADP_Concur_login_id(emp, cfg),
     }
 
 
-def derive_one(emp: dict, maps: dict, cfg: dict) -> dict:
-    """Every derived value for one employee, in the workbook's own order."""
-    if _s(emp.get("roster")) == "non_us":
-        return derive_non_us(emp, maps, cfg)
+def derive_adp(emp: dict, maps: dict, cfg: dict) -> dict:
+    """Every derived value for an ADP employee, in the workbook's own order."""
     legal_country = ADP_Concur_legal_country(emp, maps)
     concur_status = ADP_Concur_status(emp, maps)
+    grade = maps["salary"].get(_s(emp.get("pay_grade_code")))
+    limit_hit = grade[2] if grade else UNMAPPED["invoice_limit"]
+    access = ADP_Concur_invoice_access(emp, maps, limit_hit)
     return {
         "supervisor_id": ADP_Concur_supervisor_id(emp, maps),
         "org_unit_1": ADP_Concur_org_unit_1(emp, maps),
         "org_unit_2": ADP_Concur_org_unit_2(emp, maps),
         "concur_profile": ADP_Concur_concur_profile(emp, maps),
         "travel_profile": ADP_Concur_travel_profile(emp, maps),
+        "invoice_limit": ADP_Concur_invoice_limit(emp, maps, access),
         "legal_country": legal_country,
         "locale_code": ADP_Concur_locale_code(emp, maps, legal_country),
         "reimbursement_currency": ADP_Concur_reimbursement_currency(emp, maps),
         "preferred_name": ADP_Concur_preferred_name(emp),
         "concur_status": concur_status,
         "term_date": ADP_Concur_term_date(emp, concur_status),
+        "invoice_access": access,
         "login_id": ADP_Concur_login_id(emp, cfg),
     }
+
+
+def derive_one(emp: dict, maps: dict, cfg: dict) -> dict:
+    """
+    Every derived value for one employee, by whichever system sent them.
+
+    Somebody keyed in by hand takes the ADP rules: they are typed into the
+    app in ADP's terms, so ADP's lookups are the ones that apply to them.
+    """
+    if _s(emp.get("source")) == "ukg":
+        return derive_ukg(emp, maps, cfg)
+    return derive_adp(emp, maps, cfg)
 
 
 def ADP_Concur_derive(conn: sqlite3.Connection, cfg: dict | None = None,
@@ -559,6 +667,7 @@ def ADP_Concur_derive(conn: sqlite3.Connection, cfg: dict | None = None,
     # connection - they walk the table, not the dicts. Uncommitted is fine:
     # it is the same connection.
     exceptions.extend(check_hierarchy(conn, cfg))
+    exceptions.extend(check_passwords(conn))
 
     cur.execute("DELETE FROM ADP_Concur_Exceptions")
     cur.executemany(
@@ -572,6 +681,46 @@ def ADP_Concur_derive(conn: sqlite3.Connection, cfg: dict | None = None,
     errors = sum(1 for e in exceptions if e[3] == "error")
     return {"employees": len(rows), "exceptions": len(exceptions),
             "errors": errors, "warnings": len(exceptions) - errors}
+
+
+def check_passwords(conn: sqlite3.Connection) -> list[tuple]:
+    """
+    Passwords that look like a spreadsheet fill series rather than a decision.
+
+    Dragging 'Welcome01' down a column gives Welcome02, Welcome03 and so on,
+    which is what the non-US tab carries: 82 people, 82 different passwords,
+    numbered 1 to 82 with no gaps. That is Excel's autofill, not a password
+    policy, and it is worth saying out loud before it becomes 82 real
+    credentials - especially as the 100 record's TEXT setting is what makes
+    Concur use them.
+    """
+    rows = [dict(r) for r in conn.execute(
+        "SELECT employee_key, file_number, "
+        "legal_last_name || ', ' || legal_first_name AS name, password, source "
+        "FROM ADP_Concur_Employees "
+        "WHERE row_state <> 'deleted' AND password <> '' ORDER BY file_number")]
+    series: dict[str, list] = {}
+    for r in rows:
+        m = re.fullmatch(r"(.*?)(\d+)", _s(r["password"]))
+        if m:
+            series.setdefault(m.group(1), []).append((int(m.group(2)), r))
+
+    out = []
+    for stem, entries in series.items():
+        numbers = sorted(n for n, _ in entries)
+        # A run is only suspicious when it is long and unbroken - two people
+        # who happen to be Welcome01 and Welcome02 prove nothing.
+        if len(numbers) < 5 or numbers != list(range(numbers[0], numbers[0] + len(numbers))):
+            continue
+        for _n, r in entries:
+            out.append((r["employee_key"], r["file_number"], r["name"], "warning",
+                        "password",
+                        f"These passwords run {stem}{numbers[0]:02d} "
+                        f"to {stem}{numbers[-1]:02d} with no gaps - a spreadsheet "
+                        "fill series rather than {len} chosen passwords. The 100 "
+                        "record's TEXT setting is what sends them to Concur."
+                        .replace("{len}", str(len(numbers)))))
+    return out
 
 
 def check_hierarchy(conn: sqlite3.Connection, cfg: dict) -> list[tuple]:
@@ -615,29 +764,58 @@ def check_hierarchy(conn: sqlite3.Connection, cfg: dict) -> list[tuple]:
             f"Inside a supervisor loop - following {r['supervisor_id']} upwards "
             "comes back here rather than reaching the top.")
 
-    # Approvers who are in the load but in the *other* file. Splitting the
-    # extract by roster splits these apart: 12 people here report across the
-    # line. Concur has to already know the approver when the record lands, so
-    # the file holding the approver goes first - which is a warning about load
-    # order rather than something wrong with the data.
+    # Approvers who report across the ADP/UKG line. This used to be an error
+    # about load order, because the two rosters were two files and the file
+    # holding the approver had to go first. One combined file, sorted so that
+    # an approver is always written above the people pointing at them, is what
+    # retired that problem - so this is now a note that the chain crosses
+    # systems, which is worth seeing when a name looks wrong, and nothing more.
     for r in conn.execute(
         """
         SELECT e.employee_key, e.file_number,
                e.legal_last_name || ', ' || e.legal_first_name AS name,
-               e.roster, e.supervisor_id, s.roster AS sup_roster,
+               e.source, e.supervisor_id, s.source AS sup_source,
                s.legal_last_name || ', ' || s.legal_first_name AS sup_name
           FROM ADP_Concur_Employees e
           JOIN ADP_Concur_Employees s ON s.file_number = e.supervisor_id
          WHERE e.row_state <> 'deleted' AND s.row_state <> 'deleted'
-           AND e.supervisor_id <> '' AND e.roster <> s.roster
+           AND e.supervisor_id <> '' AND e.source <> s.source
+           AND e.source IN ('adp','ukg') AND s.source IN ('adp','ukg')
         """
     ):
         out.append((r["employee_key"], r["file_number"], r["name"], "warning",
                     "supervisor_chain",
-                    f"Approver {r['sup_name']} ({r['supervisor_id']}) is on the "
-                    f"{r['sup_roster']} roster and this record is on the "
-                    f"{r['roster']} one, so they land in different files. Load "
-                    "the approver's file first."))
+                    f"Reports to {r['sup_name']} ({r['supervisor_id']}), who "
+                    f"comes from {r['sup_source'].upper()} where this record "
+                    f"comes from {r['source'].upper()}. Both are in the same "
+                    "file and the approver is written first, so this is only "
+                    "worth knowing, not fixing."))
+
+    # Approvers who have left. Worth its own check now that the file is sorted
+    # active-first: everybody active is written before anybody inactive, so an
+    # active person reporting to a leaver is the one pairing the sort cannot
+    # put in order, and their approver lands below them. Concur will not
+    # resolve a terminated approver anyway, so the ordering is the symptom
+    # rather than the disease - but this is where it becomes visible.
+    for r in conn.execute(
+        """
+        SELECT e.employee_key, e.file_number,
+               e.legal_last_name || ', ' || e.legal_first_name AS name,
+               e.supervisor_id,
+               s.legal_last_name || ', ' || s.legal_first_name AS sup_name
+          FROM ADP_Concur_Employees e
+          JOIN ADP_Concur_Employees s ON s.file_number = e.supervisor_id
+         WHERE e.row_state <> 'deleted' AND s.row_state <> 'deleted'
+           AND e.supervisor_id <> ''
+           AND e.concur_status = 'Y' AND s.concur_status = 'N'
+        """
+    ):
+        out.append((r["employee_key"], r["file_number"], r["name"], "warning",
+                    "supervisor_chain",
+                    f"Approver {r['sup_name']} ({r['supervisor_id']}) is "
+                    "inactive. An active employee cannot be approved by "
+                    "somebody who has left - they need a live approver, or "
+                    "the leaver needs to stay active until the chain moves."))
 
     # Supervisors who exist but will not be in the file.
     for r in conn.execute(
@@ -712,6 +890,12 @@ def check_one(emp: dict, derived: dict, cfg: dict) -> list[tuple]:
                             + (" (this person is terminated - dropping them "
                                "from the load fixes it too)" if terminated else ""))
 
+    if not derived["supervisor_id"] and not terminated:
+        add("warning", "supervisor_id",
+            "No supervisor. ADP has no Supervisor ID and the Supervisor Map "
+            "has no entry - add one, or leave it if this is the top of the "
+            "food chain.")
+
     if terminated and not derived["term_date"]:
         add("warning", "term_date",
             "Inactive in Concur but ADP has no Termination Date.")
@@ -721,21 +905,37 @@ def check_one(emp: dict, derived: dict, cfg: dict) -> list[tuple]:
             _s(emp.get("duplicate_note")) or
             "ADP sent more than one row for this File Number.")
 
-    if (_s(emp.get("roster")) != "non_us"
-            and _s(emp.get("legal_country_code")) not in ("USA", "US", "")):
-        # Only worth saying on the ADP roster, where a non-US country code
-        # means somebody has turned up in the wrong load. On the non-US roster
-        # it is the entire premise.
-        add("warning", "legal_country_code",
-            f"Non-US employee ({_s(emp.get('legal_country_code'))}) on the ADP "
-            "roster - they may belong on the non-US tab instead.")
+    # Somebody in both exports at once. The two systems overlap - a person
+    # moved from ADP to UKG can appear on both sheets in the same cut - and
+    # since both merge on File Number into one row, whichever loaded last
+    # silently won. Saying so is the only way that gets noticed.
+    if _s(emp.get("duplicate_note")).startswith("Both "):
+        add("warning", "source",
+            _s(emp.get("duplicate_note")))
+
+    # Invoice access granted by name, but with nothing to approve.
+    #
+    # The Invoice Exception Map wins over the pay grade, so somebody can be
+    # given access while their grade's approval limit is 0 - and the 700 then
+    # goes out saying they may approve up to nothing. The workbook does the
+    # same thing, so this is faithful rather than wrong, but it is almost
+    # certainly not what was meant: either the grade needs a limit or the
+    # person does not need the access.
+    if (_s(derived.get("invoice_access")) == "Y"
+            and _s(derived.get("invoice_limit")) in ("0", "0.0", "")):
+        add("warning", "invoice_limit",
+            "Has invoice access from the Invoice Exception Map, but their pay "
+            f"grade ({_s(emp.get('pay_grade_code')) or 'none'}) carries an "
+            "approval limit of "
+            f"{_s(derived.get('invoice_limit')) or 'nothing'}. The 700 will "
+            "say they can approve up to zero.")
 
     # Org Unit 2 has to be a code from a Concur connected list, not a name.
     #
     # Concur's Run-20 result said so in as many words: "Field [OrgUnit2] is
     # configured as a member of connected list [*Division - Department (List
     # Depth: 2)], but it contains an invalid list code [Sales]" - and rejected
-    # the record. The US roster derives this from the Org Map and sends digits,
+    # the record. ADP derives this from the Org Map and sends digits,
     # which Concur accepts; the non-US tabs have it typed in by hand as
     # 'Production', 'SALES', 'G&A', 'Selling' and so on, and every one of those
     # will be refused.
@@ -777,18 +977,6 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         "G":  ("config", "password"),
         "H":  ("field", "work_email"),               # Email Address
         "I":  ("field", "locale_code"),
-        # Ctry Code. The one column here that the US 305 tab does NOT have a
-        # formula for - it is blank on the template, so the extract wrote it
-        # blank, and Concur rejected 13 records outright with "Missing required
-        # field - ctry_code". They were the 13 people who do not exist in
-        # Concur yet; UPDATE does not re-require it for the other 119, which is
-        # why a gap this size stayed invisible for eighteen runs.
-        #
-        # It is filled from the same derived value the template already trusts:
-        # legal_country is AH on sheet 1, and the Locale Code in column I is
-        # literally the language code with AH glued on the end. So 'en_US' in I
-        # and an empty J were always contradicting each other. The non-US tab
-        # types the country in by hand and agrees.
         "J":  ("field", "legal_country"),            # Ctry Code
         "L":  ("field", "org_unit_1"),               # Ledger Code
         "M":  ("field", "reimbursement_currency"),
@@ -796,28 +984,27 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         "P":  ("field", "org_unit_1"),
         "Q":  ("field", "org_unit_2"),
         "W":  ("field", "pay_grade_code"),           # Custom 2 Salary Code
-        # Custom 3 Expense Profile. The Salary Map has two columns - C
-        # 'Expense Map' (Default / Grade 20 / Officers) and D 'Travel Map'
-        # (General / Senior Leadership / VIP) - and the two 305 tabs read
-        # different ones: the US tab has ='1'!AG5, which is VLOOKUP(...,4), the
-        # Travel column; the non-US tab has VLOOKUP(...,3), the Expense column.
-        # A column headed 'Expense Profie' fed from the Travel map is a
-        # transposition in the workbook, and Concur has since said so - it
-        # warned 120 times that 'General' is not a Custom 3 list item.
-        # So both rosters now read the Expense column, and the roster override
-        # this used to need is gone.
-        "X":  ("field", "concur_profile"),           # Custom 3 Expense Profile
-        "Z":  ("field", "org_unit_1"),               # Custom 5 Department
+        # Custom 3 Expense Profile. Both 305 tabs now read the Salary Map's
+        # Expense column - the transposition that had the ADP tab reading the
+        # Travel column is gone from the 15 September workbook, which is what
+        # Concur's Run-20 result had already told us.
+        "X":  ("field", "concur_profile"),
+        # Custom 5 Department: =P5 on both tabs. It is Org Unit 1 now, not the
+        # department code - the workbook changed it after Concur rejected the
+        # department codes as invalid list items.
+        "Z":  ("field", "org_unit_1"),
         "AB": ("field", "term_date"),                # Custom 7 Term Date
         "AC": ("field", "preferred_name"),           # Custom 8 Preferred Name
         "AP": ("field", "org_unit_1"),               # Custom 21 Expense Group
         "BG": ("field", "supervisor_id"),            # Expense Report Approver
         "BK": ("const", "Y"),                        # Expense User
         "BL": ("const", "Y"),                        # Expense / Cash Advance Approver
-        "BU": ("const", "Y"),                        # Invoice User
-        "BV": ("const", "Y"),                        # Invoice Approver
+        # Invoice User and Invoice Approver are no longer flat Y. Both tabs
+        # feed them from Invoice Access, so somebody without it is loaded
+        # without Concur Invoice rather than given it and left unable to use it.
+        "BU": ("field", "invoice_access"),           # Invoice User
+        "BV": ("field", "invoice_access"),           # Invoice Approver
         "CE": ("const", "Y"),                        # Future Use 2
-        "CH": ("const", "Y"),                        # Travel Wizard User
     },
     "350": {
         "A": ("const", "350"),
@@ -828,48 +1015,65 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
     "360": {
         "A":  ("const", "360"),
         "B":  ("field", "file_number"),
-        "C":  ("const", "Y"),                        # Invoice User Role
-        "D":  ("const", "Y"),                        # Invoice Approver Role
-        "I":  ("const", "Y"),                        # Purchase Request User
-        "J":  ("const", "Y"),                        # Purchase Request Approver
+        "C":  ("field", "invoice_access"),           # Invoice User Role
+        "D":  ("field", "invoice_access"),           # Invoice Approver Role
+        "I":  ("field", "invoice_access"),           # Purchase Request User
+        "J":  ("field", "invoice_access"),           # Purchase Request Approver
         "R":  ("field", "supervisor_id"),            # Default PR Approver
         "S":  ("field", "supervisor_id"),            # Payment Approver
         "AC": ("const", "Y"),                        # Display Image In-line
         "AD": ("const", "Y"),                        # Auto Open Image
     },
-    # Update ID Information Import - SAP's "UpdateIDInformationImporter". SAP
-    # is explicit that this, not the 305, is the record that should carry
-    # Login ID changes: "the administrator is strongly encouraged to use this
-    # record type for this purpose instead of any other record type." SAP
-    # also requires it be run on its own, a day ahead of the 305 - never in
-    # the same file (see ADP_Concur_Export.ADP_Concur_export_320).
-    # "C" New Employee ID is left out of the map - there is no "pending
-    # rename" value held anywhere for it, so like any other column this
-    # template does not point at, it writes blank.
-    "320": {
-        "A": ("const", "320"),
-        "B": ("field", "file_number"),               # Current Employee ID
-        "D": ("field", "login_id"),                  # New Login ID
+    # The 700: a payment request approval authority, one per person who has
+    # invoice access. Everything on it is conditional on that - the tabs write
+    # the whole row as =IF($AO5="Y", ..., "") - so the record is not built at
+    # all for anybody else rather than being built empty. selected_employees()
+    # applies that filter; see the 'invoice' scope.
+    "700": {
+        "A": ("const", "700"),
+        "B": ("const", "REQ"),                       # Approval Type
+        "C": ("field", "file_number"),
+        "O": ("field", "invoice_limit"),             # Approval Limit
+        "P": ("field", "reimbursement_currency"),    # Approval Limit Currency
     },
 }
 
-# Where a roster's own tab points a column somewhere else.
+# Where a source's own tab points a column somewhere else.
 #
-# Empty, and worth saying why: the one entry this ever held was Custom 3, where
-# the two 305 tabs read different Salary Map columns. That was reproduced
-# rather than reconciled while which one was right was still a question for
-# SAP. Concur's Run-18 result answered it - the US tab's value was rejected and
-# the non-US tab's was not - so the two are reconciled in FIELD_MAP above and
-# the override is no longer needed. The mechanism stays because the tabs have
-# disagreed before and it is what let each extract match the tab it came from
-# while they did.
-FIELD_MAP_BY_ROSTER: dict[str, dict[str, tuple[str, str]]] = {}
-
+# Four differences between the ADP and UKG tabs, all of them real:
+#
+#  * 305 C Middle Name - UKG has no middle name column at all.
+#  * 305 AB / AC - UKG's derived block leaves Term Date and Preferred Name
+#    empty, so its tab has no formula in either.
+#  * 360 AC Display Image In-line - ADP hard-codes Y, UKG feeds it from
+#    Invoice Access; and AD Auto Open Image is Y on ADP and N on UKG.
+#  * 700 P Approval Limit Currency - ADP writes the employee's reimbursement
+#    currency, UKG hard-codes USD, because a UKG approval limit is stated in
+#    dollars whatever the employee is paid in.
+#
+# Each is written as the tab writes it. A source with no entry here takes the
+# base map above.
+FIELD_MAP_BY_SOURCE: dict[str, dict[str, dict[str, tuple[str, str]]]] = {
+    "ukg": {
+        "305": {
+            "C":  ("const", ""),                     # no middle name in UKG
+            "AB": ("const", ""),                     # no Term Date
+            "AC": ("const", ""),                     # no Preferred Name
+        },
+        "360": {
+            "AC": ("field", "invoice_access"),       # Display Image In-line
+            "AD": ("const", "N"),                    # Auto Open Image
+        },
+        "700": {
+            "P": ("const", "USD"),                   # Approval Limit Currency
+        },
+    },
+}
 
 # Used when the workbook layouts have not been captured, so the record still
 # comes out the right width. Taken from the template Kelly is working from.
 # The 100 record is not in the workbook at all - its width is SAP's.
-DEFAULT_WIDTHS = {"100": 7, "305": 137, "350": 67, "360": 35, "320": 9}
+DEFAULT_WIDTHS = {"100": 7, "305": 137, "350": 67, "360": 35, "700": 16}
 
 # The 100 record's seven fields, in SAP's order. Every one is required, so the
 # record is written in full rather than padded like the employee records.
@@ -930,7 +1134,7 @@ def build_record(emp: dict, record_type: str, width: int, cfg: dict) -> list[str
     """One record as a list of field values, padded to the layout width."""
     out = [""] * width
     fields = dict(FIELD_MAP[record_type])
-    fields.update((FIELD_MAP_BY_ROSTER.get(_s(emp.get("roster")), {})
+    fields.update((FIELD_MAP_BY_SOURCE.get(_s(emp.get("source")), {})
                    .get(record_type, {})))
     for ref, (kind, value) in fields.items():
         idx = column_ref_to_index(ref) - 1
@@ -939,8 +1143,8 @@ def build_record(emp: dict, record_type: str, width: int, cfg: dict) -> list[str
         if kind == "const":
             out[idx] = value
         elif kind == "config":
-            # The non-US tab carries a password per person; the US roster has
-            # none and takes the configured one.
+            # A hand-keyed person can carry their own password; everybody
+            # else takes the configured one.
             if value == "password":
                 out[idx] = _s(emp.get("password")) or _s(cfg.get("password", ""))
             else:
@@ -961,17 +1165,25 @@ def build_record(emp: dict, record_type: str, width: int, cfg: dict) -> list[str
     return out
 
 
+
+def _sources_writing(record_type: str) -> list[str]:
+    """Which sources carry a tab for this record type."""
+    return [name for name, spec in SOURCES.items()
+            if record_type in spec["records"]]
+
+
 def selected_employees(conn: sqlite3.Connection, record_type: str,
                        cfg: dict, keys: list[int] | None = None,
-                       roster: str = "") -> list[dict]:
+                       source: str = "") -> list[dict]:
     """
     The people who belong in one record type.
 
     Four things decide it: the per-record include flag on the employee (so a
     single person can be held back without touching anything else), the
-    configured scope - 'active' drops everyone the Status Map turns into 'N' -
-    the exception list, which keeps blocking errors out of the file, and
-    `keys`, which narrows the whole thing to a chosen set of people.
+    configured scope - always 'all' except the 700's 'invoice', or 'off' to
+    leave the record type out entirely - the exception list, which keeps
+    blocking errors out of the file, and `keys`, which narrows the whole
+    thing to a chosen set of people.
 
     `keys` is how a pilot load is built: pick one manager's organisation on the
     Hierarchy tab and the extract carries those people and nobody else. An
@@ -979,14 +1191,24 @@ def selected_employees(conn: sqlite3.Connection, record_type: str,
     produces an empty file rather than the whole company.
     """
     scope = (cfg.get("scope") or {}).get(record_type, "all")
+    if scope == "off":
+        return []
     sql = (f"SELECT e.* FROM ADP_Concur_Employees e "
            f"WHERE e.row_state <> 'deleted' AND e.include_{record_type} = 1")
     args: list = []
-    if roster:
-        sql += " AND e.roster = ?"
-        args.append(roster)
-    if scope == "active":
-        sql += " AND e.concur_status = 'Y'"
+    if source:
+        sql += " AND e.source = ?"
+        args.append(source)
+    # A source only writes the record types its own tabs carry: UKG has no 350.
+    sql += (" AND e.source IN (" + ",".join(
+        "?" for _ in _sources_writing(record_type)) + ")")
+    args += _sources_writing(record_type)
+    if scope == "invoice":
+        # The 700 exists only for people with invoice access - the tabs write
+        # the whole row as =IF(AccessIsY, ..., "") and an empty row is not a
+        # record. Filtering here rather than emitting blanks keeps the file
+        # free of 700s that say nothing.
+        sql += " AND e.invoice_access = 'Y'"
     if keys is not None:
         if not keys:
             return []

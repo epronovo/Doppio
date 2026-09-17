@@ -129,6 +129,15 @@
   .pill.good{background:var(--good-wash);color:var(--good);border-color:var(--good-line)}
   .pill.warn{background:var(--warn-wash);color:var(--warn);border-color:var(--warn-line)}
   .pill.bad{background:var(--bad-wash);color:var(--bad);border-color:var(--bad-line)}
+  .pill.info{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
+
+  .tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin-top:14px;
+        flex:0 0 auto;flex-wrap:wrap}
+  .tab{padding:10px 16px;border:none;border-bottom:2px solid transparent;cursor:pointer;
+       color:var(--dim);font-weight:600;margin-bottom:-1px;transition:.12s;background:transparent}
+  .tab:hover{color:var(--ink)}
+  .tab.on{color:var(--ink);border-bottom-color:var(--accent)}
+  .tab .n{font-size:11px;color:var(--dim);margin-left:6px;font-weight:600}
 
   #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140px);
          background:var(--chrome);color:#fff;border:none;border-radius:var(--r);
@@ -158,11 +167,17 @@
 
 <main>
   <div class="note danger" id="conn-error" hidden></div>
+  <div class="tabs">
+    <div class="tab on" data-tab="tenants">Tenants<span class="n" id="n-tenants"></span></div>
+    <div class="tab" data-tab="users">Users<span class="n" id="n-users"></span></div>
+    <div class="tab" data-tab="review">Review<span class="n" id="n-review"></span></div>
+  </div>
   <div class="toolbar">
     <input id="q" placeholder="Search every column&hellip;" style="min-width:260px">
     <button id="clear-filters">Clear filters</button>
     <span class="grow"></span>
     <button id="extract-ionapi">Extract Type 20 &rarr; .ionapi files</button>
+    <button class="danger" id="delete-all">Delete all</button>
     <button class="primary" id="add-record">+ Add security record</button>
   </div>
   <div class="countline" id="countline"></div>
@@ -306,9 +321,49 @@ async function api(url, opts) {
 /* ------------------------------------------------------------- state --- */
 const state = {
   tenant: '', columns: [], rows: [], authLabels: {},
-  sort: '', dir: 'asc', filters: {}, q: '',
+  sort: '', dir: 'asc', filters: {}, q: '', tab: 'tenants',
   editing: null,   // {PCID, TNNM, AUTH} of the row being edited, or null when adding
 };
+
+// Which AUTH values belong on each tab - 20 is a tenant registration, 1/0
+// are a user's access granted/blocked, 99 is a pending review request.
+const TAB_AUTH = { tenants: ['20'], users: ['1', '0'], review: ['99'] };
+const TAB_DEFAULT_AUTH = { tenants: '20', users: '1', review: '99' };
+const AUTH_PILL = { '20': 'info', '1': 'good', '0': 'bad', '99': 'warn' };
+
+// Columns hidden from each tab's list - still on the edit panel, just not
+// worth a column in a table this narrow. HASH is never shown in a list: a
+// tenant's is an .ionapi blob, a user grant's is normally empty, and a
+// review request's is decoded into USERNAME/DOMAIN/COMPUTERNAME instead.
+const TAB_HIDDEN_COLUMNS = {
+  tenants: ['M3ID', 'RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME'],
+  users: ['RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME'],
+  review: ['UMSG', 'RGDT', 'RGTM', 'LMDT', 'HASH'],
+};
+
+function tabRows(tab) {
+  const wanted = TAB_AUTH[tab || state.tab] || [];
+  return state.rows.filter(r => wanted.includes(String(r.AUTH ?? '').trim()));
+}
+
+function visibleColumns() {
+  const hidden = TAB_HIDDEN_COLUMNS[state.tab] || [];
+  return state.columns.filter(c => !hidden.includes(c));
+}
+
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+  if (t.dataset.tab === state.tab) return;
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+  t.classList.add('on');
+  state.tab = t.dataset.tab;
+  state.filters = {}; state.q = ''; $('#q').value = '';
+  $('#extract-ionapi').style.display = state.tab === 'tenants' ? '' : 'none';
+  $('#delete-all').style.display = state.tab === 'review' ? '' : 'none';
+  renderHead();
+  renderBody();
+}));
+$('#extract-ionapi').style.display = state.tab === 'tenants' ? '' : 'none';
+$('#delete-all').style.display = state.tab === 'review' ? '' : 'none';
 
 /* ---------------------------------------------------------- tenants --- */
 async function loadTenants() {
@@ -341,14 +396,17 @@ async function loadSecurity() {
     state.rows = d.rows || [];
     state.filters = {};
     $('#statusline').textContent = `Connected — ${state.tenant}`;
+    for (const tab of Object.keys(TAB_AUTH))
+      $('#n-' + tab).textContent = tabRows(tab).length;
     renderHead();
     renderBody();
   } catch (e) {
     state.columns = []; state.rows = [];
+    for (const tab of Object.keys(TAB_AUTH)) $('#n-' + tab).textContent = '';
     renderHead(); renderBody();
     $('#statusline').textContent = 'Connection failed';
     $('#conn-error').hidden = false;
-    $('#conn-error').innerHTML = `<b>Could not read EXT124MI/LstUsrInfo for ${esc(state.tenant)}.</b> ${esc(e.message)}`;
+    $('#conn-error').innerHTML = `<b>Could not read EXPORTMI/Select over EXTXSM for ${esc(state.tenant)}.</b> ${esc(e.message)}`;
   }
 }
 
@@ -357,10 +415,11 @@ function fmtCol(c) { return c.replace(/_/g, ' '); }
 function renderHead() {
   const thead = $('#t-sec thead');
   thead.innerHTML = '';
-  if (!state.columns.length) return;
+  const columns = visibleColumns();
+  if (!columns.length) return;
 
   const head = el('tr');
-  state.columns.forEach(c => {
+  columns.forEach(c => {
     const th = el('th', { class: 'sortable', 'data-col': c },
       fmtCol(c), el('span', { class: 'arrow' }, '↑'));
     th.addEventListener('click', () => {
@@ -379,7 +438,7 @@ function renderHead() {
   thead.append(head);
 
   const filterRow = el('tr', { class: 'filters' });
-  state.columns.forEach(c => {
+  columns.forEach(c => {
     const input = el('input', { placeholder: 'filter…', value: state.filters[c] || '' });
     input.addEventListener('input', () => {
       state.filters[c] = input.value;
@@ -399,12 +458,13 @@ $('#clear-filters').addEventListener('click', () => {
 
 function filteredSortedRows() {
   const q = state.q.trim().toLowerCase();
-  let rows = state.rows.filter(r => {
-    for (const c of state.columns) {
+  const columns = visibleColumns();
+  let rows = tabRows().filter(r => {
+    for (const c of columns) {
       const f = (state.filters[c] || '').trim().toLowerCase();
       if (f && !String(r[c] ?? '').toLowerCase().includes(f)) return false;
     }
-    if (q && !state.columns.some(c => String(r[c] ?? '').toLowerCase().includes(q))) return false;
+    if (q && !columns.some(c => String(r[c] ?? '').toLowerCase().includes(q))) return false;
     return true;
   });
   if (state.sort) {
@@ -423,30 +483,38 @@ function filteredSortedRows() {
 function renderBody() {
   const tbody = $('#t-sec tbody');
   tbody.innerHTML = '';
+  const base = tabRows();
   const rows = filteredSortedRows();
-  $('#countline').textContent = state.rows.length
-    ? `${rows.length} of ${state.rows.length} record${state.rows.length === 1 ? '' : 's'}`
+  const columns = visibleColumns();
+  $('#countline').textContent = base.length
+    ? `${rows.length} of ${base.length} record${base.length === 1 ? '' : 's'}`
     : '';
 
-  if (!state.rows.length) {
-    tbody.append(el('tr', {}, el('td', { colspan: state.columns.length + 1, class: 'empty' },
-      state.columns.length ? 'No security records for this tenant.' : ' ')));
+  if (!base.length) {
+    tbody.append(el('tr', {}, el('td', { colspan: columns.length + 1, class: 'empty' },
+      columns.length ? 'No security records on this tab.' : ' ')));
     return;
   }
   if (!rows.length) {
-    tbody.append(el('tr', {}, el('td', { colspan: state.columns.length + 1, class: 'empty' },
+    tbody.append(el('tr', {}, el('td', { colspan: columns.length + 1, class: 'empty' },
       'Nothing matches the current filters.')));
     return;
   }
 
   rows.forEach(r => {
     const tr = el('tr');
-    state.columns.forEach(c => {
+    columns.forEach(c => {
       const isHash = c.toUpperCase() === 'HASH';
+      const isAuth = c.toUpperCase() === 'AUTH';
       const title = isHash
         ? (r.HASH_full_length ? `${r.HASH_full_length} characters — truncated for display` : '')
         : String(r[c] ?? '');
-      tr.append(el('td', { class: isHash ? 'mono' : '', title }, r[c] ?? ''));
+      let content = r[c] ?? '';
+      if (isAuth && content !== '') {
+        const pillClass = AUTH_PILL[String(content).trim()] || '';
+        content = el('span', { class: 'pill ' + pillClass }, String(content));
+      }
+      tr.append(el('td', { class: isHash ? 'mono' : '', title }, content));
     });
     const editBtn = el('button', { class: 'small', onclick: () => openEdit(r) }, 'Edit');
     const delBtn = el('button', { class: 'small danger', onclick: () => deleteRow(r) }, 'Delete');
@@ -488,12 +556,14 @@ async function openEdit(row) {
       body: JSON.stringify({ tenant: state.tenant, PCID: row.PCID, TNNM: row.TNNM, AUTH: row.AUTH }),
     });
     openPanel('edit', d.row);
+    if (d.row && d.row.HASH) decodeHashInto(d.row.HASH, true);
   } catch (e) {
     toast(e.message, true);
   }
 }
 
-$('#add-record').addEventListener('click', () => openPanel('add', null));
+$('#add-record').addEventListener('click', () =>
+  openPanel('add', { AUTH: TAB_DEFAULT_AUTH[state.tab] || '' }));
 $('#p-close').addEventListener('click', () => $('#panel').classList.remove('on'));
 
 $('#p-save').addEventListener('click', async () => {
@@ -547,6 +617,29 @@ async function deleteRow(row) {
     return false;
   }
 }
+
+$('#delete-all').addEventListener('click', async () => {
+  const rows = tabRows('review');
+  if (!rows.length) { toast('Nothing on the Review tab to delete.'); return; }
+  if (!confirm(`Delete all ${rows.length} review record${rows.length === 1 ? '' : 's'}? This cannot be undone.`))
+    return;
+  $('#delete-all').disabled = true;
+  let ok = 0, failed = 0;
+  for (const r of rows) {
+    try {
+      await api('/api/security', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: state.tenant, PCID: r.PCID, TNNM: r.TNNM, AUTH: r.AUTH }),
+      });
+      ok++;
+    } catch (e) {
+      failed++;
+    }
+  }
+  $('#delete-all').disabled = false;
+  toast(failed ? `${ok} deleted, ${failed} failed.` : `${ok} review record${ok === 1 ? '' : 's'} deleted.`, !!failed);
+  loadSecurity();
+});
 
 /* ------------------------------------------------------ find M3 user --- */
 $('#p-guess').addEventListener('click', async () => {
@@ -602,9 +695,13 @@ $('#p-guess').addEventListener('click', async () => {
 });
 
 /* ------------------------------------------------- HASH decrypt/encrypt --- */
-$('#hash-decode').addEventListener('click', async () => {
-  const hash = $('#f-HASH').value.trim();
-  if (!hash) { toast('HASH is empty — nothing to decrypt.', true); return; }
+
+// Shared by the manual "Decrypt HASH -> JSON" button and the automatic
+// decode that runs the moment an edit panel opens. `silent` drops the
+// error into the status line instead of a toast, so a record with a HASH
+// that doesn't decode (or has none) doesn't interrupt opening the panel.
+async function decodeHashInto(hash, silent) {
+  if (!hash) return;
   $('#hash-status').textContent = 'Decrypting…';
   try {
     const d = await api('/api/hash/decode', {
@@ -615,9 +712,15 @@ $('#hash-decode').addEventListener('click', async () => {
     $('#hash-json-row').hidden = false;
     $('#hash-status').textContent = '';
   } catch (e) {
-    $('#hash-status').textContent = '';
-    toast(e.message, true);
+    $('#hash-status').textContent = silent ? `Could not auto-decrypt: ${e.message}` : '';
+    if (!silent) toast(e.message, true);
   }
+}
+
+$('#hash-decode').addEventListener('click', () => {
+  const hash = $('#f-HASH').value.trim();
+  if (!hash) { toast('HASH is empty — nothing to decrypt.', true); return; }
+  decodeHashInto(hash, false);
 });
 
 $('#hash-encode').addEventListener('click', async () => {
@@ -647,7 +750,7 @@ let lastExtractPlan = null;
 // candidates to selected without disturbing what was already picked.
 let xSelected = new Map();
 
-function xKey(p) { return p.pcid + ' ' + p.tnnm; }
+function xKey(p) { return p.pcid + ' ' + p.tnnm; }
 function xSelectable(p) { return p.action === 'write' || p.action === 'overwrite'; }
 
 function xSelectedCount() {

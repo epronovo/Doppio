@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 rest_api_example.py - Minimal, standalone example of the REST calls used by
-etl_datalake.py: OAuth2 token, Data Lake ping/version/dataobjects, and one
-M3 REST API (MNS120MI.Get) call.
+packages/etl_datalake/ETL_Datalake_App.py: OAuth2 token, Data Lake
+ping/version/dataobjects, and one M3 REST API (MNS120MI.Get) call.
 
 Uses only the Python standard library. Point IONAPI_FILE at a .ionapi file
 downloaded from the ION API gateway for the environment you want to hit.

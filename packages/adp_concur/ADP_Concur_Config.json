@@ -9,7 +9,7 @@
     "lowercase": false,
     "bare_domain": ""
   },
-  "login_id_by_roster": {},
+  "login_id_by_source": {},
   "password": "Welcome01",
   "import_settings": {
     "error_threshold": "0",
@@ -19,33 +19,36 @@
     "validate_expense_group": "N",
     "validate_payment_group": "N"
   },
-  "records_by_roster": {
-    "us": [
+  "records_by_source": {
+    "adp": [
       "305",
       "350",
-      "360"
+      "360",
+      "700"
     ],
-    "non_us": [
+    "ukg": [
       "305",
-      "360"
+      "360",
+      "700"
+    ],
+    "manual": [
+      "305",
+      "350",
+      "360",
+      "700"
     ]
-  },
-  "records_enabled": {
-    "305": true,
-    "350": false,
-    "360": true
   },
   "scope": {
     "305": "all",
-    "350": "all",
+    "350": "off",
     "360": "all",
-    "320": "all"
+    "700": "invoice"
   },
   "blank_fields": {
     "305": [],
     "350": [],
     "360": [],
-    "320": []
+    "700": []
   },
   "extract": {
     "delimiter": ",",
@@ -55,8 +58,7 @@
     "order": "by_type",
     "file_name": "FMG_Concur_Employee_{stamp}.txt",
     "selection_file_name": "FMG_Concur_Employee_Selection_{stamp}.txt",
-    "outbound_dir": "",
-    "file_name_320": "FMG_Concur_UpdateID_{stamp}.txt"
+    "outbound_dir": ""
   },
   "block_on": {
     "unmapped": true,

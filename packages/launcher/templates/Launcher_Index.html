@@ -118,7 +118,7 @@
 <script>
 const $ = s => document.querySelector(s);
 const POLL_MS = 2500;
-const state = { apps: [], logs: {} };
+const state = { apps: [], logs: {}, openLogs: new Set() };
 
 async function api(url, opts) {
   const res = await fetch(url, opts);
@@ -154,6 +154,7 @@ function render() {
     return;
   }
   for (const a of state.apps) {
+    const open = state.openLogs.has(a.key);
     const card = document.createElement('div');
     card.className = 'card' + (a.running ? ' running' : '');
     card.innerHTML = `
@@ -166,9 +167,9 @@ function render() {
         <div class="card-meta">
           <span>port ${a.port}</span>
           <span data-pidline>${a.running ? 'pid ' + a.pid : ''}</span>
-          <button class="toplink" data-log>view log</button>
+          <button class="toplink" data-log>${open ? 'hide log' : 'view log'}</button>
         </div>
-        <div class="logwrap" hidden data-logwrap><pre data-logtext></pre></div>
+        <div class="logwrap" ${open ? '' : 'hidden'} data-logwrap><pre data-logtext>${state.logs[a.key] || ''}</pre></div>
       </div>
       <div class="actions">
         ${a.running ? `<a class="open" href="http://127.0.0.1:${a.port}" target="_blank" rel="noopener">Open &#8599;</a>` : ''}
@@ -182,6 +183,7 @@ function render() {
     card.querySelector('[data-restart]').onclick = () => act(a.key, 'restart');
     card.querySelector('[data-log]').onclick = () => toggleLog(a.key, card);
     wrap.appendChild(card);
+    if (open) fetchLog(a.key, card);
   }
 }
 
@@ -197,12 +199,24 @@ async function act(key, verb) {
 }
 
 async function toggleLog(key, card) {
+  if (state.openLogs.has(key)) {
+    state.openLogs.delete(key);
+    card.querySelector('[data-logwrap]').hidden = true;
+    card.querySelector('[data-log]').textContent = 'view log';
+    return;
+  }
+  state.openLogs.add(key);
+  card.querySelector('[data-logwrap]').hidden = false;
+  card.querySelector('[data-log]').textContent = 'hide log';
+  await fetchLog(key, card);
+}
+
+async function fetchLog(key, card) {
   const box = card.querySelector('[data-logwrap]');
-  if (!box.hidden) { box.hidden = true; return; }
-  box.hidden = false;
   try {
     const d = await api(`/api/apps/${key}/log`);
-    card.querySelector('[data-logtext]').textContent = d.log || '(nothing logged yet)';
+    state.logs[key] = d.log || '(nothing logged yet)';
+    card.querySelector('[data-logtext]').textContent = state.logs[key];
     box.scrollTop = box.scrollHeight;
   } catch (e) {
     card.querySelector('[data-logtext]').textContent = e.message;

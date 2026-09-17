@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sqlite3
 from datetime import date, datetime
 from pathlib import Path
@@ -27,6 +28,7 @@ from openpyxl.utils import get_column_letter
 from ADP_Concur_Db import (
     ADP_COLUMNS,
     DEFAULT_DB_PATH,
+    UKG_COLUMNS,
     connect,
     resolve_db_path,
 )
@@ -36,23 +38,30 @@ from ADP_Concur_Db import (
 # few enough that an extra or renamed column elsewhere does not break the match.
 SHEET_SIGNATURES: list[tuple[str, list[str]]] = [
     ("employees",      ["payroll company code", "file number", "position status"]),
+    # UKG's export. Three headings no other sheet has together - it is the only
+    # one with an Employee Number beside a Salary Grade and a Pay Group.
+    ("ukg",            ["employee number", "salary grade", "pay group"]),
     ("status_map",     ["position status", "concur status"]),
     ("country_map",    ["adp country"]),
     ("org_map",        ["business unit description", "home department code"]),
     ("language_map",   ["language", "adp language"]),
     ("salary_map",     ["pay grade code", "expense map"]),
     ("supervisor_map", ["exception employee id", "supervisor id"]),
+    ("role_map",       ["role", "assign role automatically"]),
+    ("invoice_map",    ["invoice exception employee", "invoice access value"]),
 ]
 
 # The record templates announce themselves in their first cell.
 RECORD_SIGNATURES = {"trx type (305)": "305",
                      "trx type (350)": "350",
-                     "trx type (360)": "360"}
+                     "trx type (360)": "360",
+                     "trx type (700)": "700"}
 
-# The non-US tabs are recognised by their sheet name as well as their headings,
-# because a 305 tab full of people and a 305 tab used as a layout template look
-# identical from the header row alone - it is the data underneath that differs.
-NON_US_HINT = "non us"
+# Record tabs that are out of scope. The workbook carries them, nothing reads
+# them, and they are named in the load report rather than reported as
+# unrecognised - "ignored on purpose" and "not understood" are different things
+# and a sheet that quietly vanishes is how a record type gets forgotten.
+OUT_OF_SCOPE = ("400", "320")
 
 # How far down a sheet to look for the header row.
 HEADER_SCAN_ROWS = 8
@@ -98,25 +107,26 @@ def identify_sheet(rows: list[tuple], title: str = "") -> tuple[str | None, int 
     """
     What a worksheet is, and which row its headings are on.
 
-    Everything here is decided from the header row, with one deliberate
-    exception: the non-US roster tabs. '305 Non US Non SE' has *exactly* the
-    same headings as the '305' template - it is the same Concur layout - so no
-    header rule can tell a tab full of people from a tab used as a blank
-    template. Both also carry data, so counting rows does not separate them
-    either. The sheet name is the only thing the workbook actually offers, so
-    that is what is used, and the load reports which sheets it read that way.
-    """
-    record_row = None
-    for i, row in enumerate(rows[:HEADER_SCAN_ROWS], 1):
-        if row and _norm(row[0]) in RECORD_SIGNATURES:
-            record_row = (RECORD_SIGNATURES[_norm(row[0])], i)
-            break
+    Everything here is decided from the header row - no sheet name is
+    consulted, which matters because the 15 September workbook renamed every
+    tab. 'ADP' was '1', and the record tabs grew names like '305 ADP Employee
+    (All)'. Nothing broke, because nothing was ever looking at the names.
 
-    if record_row:
-        record_type, row_at = record_row
-        if NON_US_HINT in _norm(title):
-            return "non_us_" + record_type, row_at
-        return "record_" + record_type, row_at
+    The one rule that is not a header match is the record tabs, which announce
+    themselves in their first cell as 'Trx Type (305)'. The four in scope are
+    loaded as layouts; 400 and 320 are recognised and named as skipped.
+    """
+    for i, row in enumerate(rows[:HEADER_SCAN_ROWS], 1):
+        if not row:
+            continue
+        first = _norm(row[0])
+        if first in RECORD_SIGNATURES:
+            return "record_" + RECORD_SIGNATURES[first], i
+        # A record tab nobody reads. Matched on the same 'Trx Type (nnn)' cell
+        # so it is recognised rather than guessed at from the sheet name.
+        m = re.fullmatch(r"trx type \((\d{3})\)", first)
+        if m and m.group(1) in OUT_OF_SCOPE:
+            return "skip_" + m.group(1), i
 
     for kind, wanted in SHEET_SIGNATURES:
         row = find_header_row(rows, wanted)
@@ -126,10 +136,29 @@ def identify_sheet(rows: list[tuple], title: str = "") -> tuple[str | None, int 
 
 
 def column_index(headings: list[str], *wanted: str) -> int | None:
-    """Position of the first heading that starts with any of `wanted`."""
+    """
+    Position of the heading that matches any of `wanted`, exact match first.
+
+    Prefix matching is what lets a heading be named loosely - 'Employee ID'
+    finds 'Employee  ID (Cannot be changed using this record ...)'. But a
+    prefix alone picks the wrong column whenever one heading is the start of
+    another, and UKG's sheet is full of those: 'Job' is the start of 'Job
+    Code', 'Job Family', 'Job Role' and 'Job Type', and 'Pay Group' is the
+    start of 'Pay Group Code'. Asking for 'Job' used to return the job code.
+
+    So each term gets an exact scan before a prefix scan - but one term at a
+    time, in the order the caller listed them. The order of `wanted` is the
+    caller saying which heading it would rather have, and that has to win over
+    exactness: the Country Map asks for 'Legal / Preferred Address' before
+    'ADP Country', and a global exact-first pass would hand back the ADP
+    Country column, which on that sheet is the value rather than the key.
+    """
     normed = [_norm(h) for h in headings]
     for w in wanted:
         w = _norm(w)
+        for i, h in enumerate(normed):
+            if h == w:
+                return i
         for i, h in enumerate(normed):
             if h.startswith(w):
                 return i
@@ -174,6 +203,25 @@ def _row_rank(row: dict) -> tuple:
     )
 
 
+def _protected_set_clause(columns: list[str]) -> str:
+    """
+    An `ON CONFLICT ... DO UPDATE SET` clause that leaves a column alone when
+    its name is in the row's own `overridden_fields` - a hand edit on the
+    Employees tab (see api_employee_save() in ADP_Concur_App.py) - and takes
+    the workbook's value otherwise.
+
+    An unqualified column name inside the SET clause of an upsert refers to
+    the row as it was *before* this statement, so `col` below is the value
+    already on file and `excluded.col` is the one this import would
+    otherwise write. `overridden_fields` is comma-bounded on both sides so a
+    field name is never mistaken for a substring of another one.
+    """
+    return ", ".join(
+        f"{c} = CASE WHEN (',' || COALESCE(overridden_fields, '') || ',') "
+        f"LIKE '%,{c},%' THEN {c} ELSE excluded.{c} END"
+        for c in columns if c != "file_number")
+
+
 def import_employees(conn: sqlite3.Connection, rows: list[tuple], header_row: int,
                      import_id: int) -> dict:
     """
@@ -184,10 +232,11 @@ def import_employees(conn: sqlite3.Connection, rows: list[tuple], header_row: in
     a workbook that carries stale lookup results should not put them in the
     database.
 
-    A row already held keeps its key, its include flags and its manual edits to
-    fields the file does not carry; a person the file does not mention is left
-    alone rather than deleted, because a partial cut of ADP is a normal thing
-    to be handed.
+    A row already held keeps its key, its include flags, its manual edits to
+    fields the file does not carry, and - via _protected_set_clause() - any
+    field a hand edit deliberately changed away from what ADP sent; a person
+    the file does not mention is left alone rather than deleted, because a
+    partial cut of ADP is a normal thing to be handed.
     """
     headings = [h for h in rows[header_row - 1]]
     positions = {}
@@ -230,7 +279,7 @@ def import_employees(conn: sqlite3.Connection, rows: list[tuple], header_row: in
         "duplicate_rows, duplicate_note, " + ", ".join(cols) + ") "
         "VALUES ('adp', ?, ?, ?, ?, " + ", ".join("?" for _ in cols) + ") "
         "ON CONFLICT (file_number) DO UPDATE SET "
-        + ", ".join(f"{c} = excluded.{c}" for c in cols if c != "file_number")
+        + _protected_set_clause(cols)
         + ", import_id = excluded.import_id, source_row = excluded.source_row"
         + ", duplicate_rows = excluded.duplicate_rows"
         + ", duplicate_note = excluded.duplicate_note"
@@ -289,14 +338,152 @@ def import_status_map(conn, rows, header_row) -> int:
 
 
 def import_country_map(conn, rows, header_row) -> int:
+    """
+    The Country Map, which now answers three questions rather than one.
+
+    ADP asks it only for the two-character code. UKG asks it for the currency
+    as well, because UKG has no business unit and so cannot take the Org Map
+    route ADP uses to reach one.
+    """
     h = rows[header_row - 1]
-    a = column_index(h, "legal / preferred address", "legal /", "adp country code", "country")
-    b = column_index(h, "adp country")
-    if a is not None and a == b:
-        a, b = 0, 1
-    out = [[_cell(r[a]), _cell(r[b]) if b is not None and b < len(r) else ""]
-           for r in rows[header_row:] if a is not None and a < len(r) and _cell(r[a])]
-    return _refresh(conn, "ADP_Concur_CountryMap", ["adp_country", "concur_country"], out)
+    idx = {"adp_country": column_index(h, "legal / preferred address", "adp country"),
+           "concur_country": column_index(h, "adp country", "concur country"),
+           "country_name": column_index(h, "country"),
+           "currency_code": column_index(h, "currency code"),
+           "currency_name": column_index(h, "currency")}
+    # 'ADP Country' is both the key on the old sheet and the value column on
+    # the new one, so the two lookups above can land on the same column. When
+    # they do, the value is the column after the key - which is what the
+    # workbook's VLOOKUP(...,2) means.
+    if (idx["adp_country"] is not None
+            and idx["adp_country"] == idx["concur_country"]):
+        idx["concur_country"] = idx["adp_country"] + 1
+    key = idx["adp_country"]
+    out = []
+    for r in rows[header_row:]:
+        if key is None or key >= len(r) or not _cell(r[key]):
+            continue
+        out.append([_cell(r[i]) if i is not None and i < len(r) else ""
+                    for i in idx.values()])
+    return _refresh(conn, "ADP_Concur_CountryMap", list(idx), out)
+
+
+def import_country_ref(conn, rows, header_row) -> int:
+    """
+    The country reference block beside the Country Map.
+
+    The old workbook kept this as a second block in columns E:H. The
+    15 September sheet folded it into the map itself - one row per country
+    carrying the code, the name, the currency code and the currency name - so
+    this now reads the same five columns as import_country_map and keys them on
+    the two-character Concur code rather than on ADP's three-character one.
+    Same table, same contents; only the sheet changed shape underneath it.
+    """
+    h = rows[header_row - 1]
+    key_at = column_index(h, "adp country")
+    if key_at is None:
+        return 0
+    idx = {"country_code": key_at,
+           "country_name": column_index(h, "country"),
+           "currency_code": column_index(h, "currency code"),
+           "currency_name": column_index(h, "currency")}
+    out, seen = [], set()
+    for r in rows[header_row:]:
+        if key_at >= len(r):
+            continue
+        code = _cell(r[key_at]).strip().upper()
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        row = [_cell(r[i]) if i is not None and i < len(r) else ""
+               for i in idx.values()]
+        row[0] = code
+        out.append(row)
+    return _refresh(conn, "ADP_Concur_CountryRef", list(idx), out)
+
+
+def import_locale_map(conn, rows, header_row) -> int:
+    """
+    The locale block on the Language Map, columns M:O.
+
+    Country code, the language's English name, and the locale Concur wants -
+    'US' -> 'en_US'. It is a second table on the same sheet, keyed on something
+    else entirely, which is why it is loaded as an extra block rather than as
+    part of the Language Map.
+
+    The sheet computes the country with =RIGHT(O2,2), the last two characters
+    of the locale, so that is what is done here rather than trusting column M -
+    M holds a formula and a workbook saved without recalculating would hand
+    over a stale value or none at all.
+    """
+    out, seen = [], set()
+    for r in rows[header_row:]:
+        # M is index 12, N is 13, O is 14.
+        if len(r) < 15:
+            continue
+        locale = _cell(r[14]).strip()
+        name = _cell(r[13]).strip()
+        if not locale or "_" not in locale:
+            continue
+        code = locale[-2:].upper()
+        if code in seen:
+            continue
+        seen.add(code)
+        out.append([code, name, locale])
+    return _refresh(conn, "ADP_Concur_LocaleMap",
+                    ["country_code", "locale_name", "locale_code"], out)
+
+
+def import_role_map(conn, rows, header_row) -> int:
+    """The Role Assignment Map - reference only; nothing derives from it yet."""
+    h = rows[header_row - 1]
+    idx = {"role": column_index(h, "role"),
+           "category": column_index(h, "category"),
+           "automatic": column_index(h, "assign role automatically")}
+    key = idx["role"]
+    out = []
+    for r in rows[header_row:]:
+        if key is None or key >= len(r) or not _cell(r[key]):
+            continue
+        out.append([_cell(r[i]) if i is not None and i < len(r) else ""
+                    for i in idx.values()])
+    return _refresh(conn, "ADP_Concur_RoleMap", list(idx), out)
+
+
+def import_invoice_map(conn, rows, header_row) -> int:
+    """
+    The Invoice Exception Map: who gets Concur Invoice by name.
+
+    The file numbers on this tab are typed by hand and some carry trailing
+    spaces ('203011   '). Excel's VLOOKUP would miss those against a trimmed
+    key, so they are trimmed on the way in and the map matches everybody it
+    names - which is a small, deliberate difference from the spreadsheet.
+    """
+    h = rows[header_row - 1]
+    idx = {"file_number": column_index(h, "invoice exception employee id",
+                                       "invoice exception employee"),
+           "employee_name": column_index(h, "invoice exception employee name"),
+           "access": column_index(h, "invoice access value")}
+    # Both the ID and the Name column start with 'Invoice Exception Employee',
+    # so when the two resolve to the same place the name is the next column.
+    if (idx["file_number"] is not None
+            and idx["file_number"] == idx["employee_name"]):
+        idx["employee_name"] = idx["file_number"] + 1
+    key = idx["file_number"]
+    out, seen = [], set()
+    for r in rows[header_row:]:
+        if key is None or key >= len(r):
+            continue
+        fn = _cell(r[key]).strip()
+        if not fn or fn in seen:
+            continue
+        seen.add(fn)
+        row = [_cell(r[i]) if i is not None and i < len(r) else ""
+               for i in idx.values()]
+        row[0] = fn
+        row[2] = row[2].strip().upper()
+        out.append(row)
+    return _refresh(conn, "ADP_Concur_InvoiceMap", list(idx), out)
 
 
 def import_org_map(conn, rows, header_row) -> int:
@@ -353,7 +540,8 @@ def import_salary_map(conn, rows, header_row) -> int:
     idx = {"pay_grade_code": column_index(h, "pay grade code"),
            "pay_grade_desc": column_index(h, "pay grade description"),
            "expense_map": column_index(h, "expense map"),
-           "travel_map": column_index(h, "travel map")}
+           "travel_map": column_index(h, "travel map"),
+           "invoice_map": column_index(h, "invoice approval")}
     key = idx["pay_grade_code"]
     out = []
     for r in rows[header_row:]:
@@ -395,60 +583,63 @@ def import_supervisor_map(conn, rows, header_row) -> int:
                     list(idx) + ["note"], out)
 
 
-# The non-US 305 tab, Concur heading -> database column. These people are not
-# derived from an ADP report at all: the tab is maintained by hand and already
-# holds Concur's own values, so most of what would be a lookup for a US
-# employee arrives here already answered.
-NON_US_305_COLUMNS: list[tuple[str, str]] = [
-    ("employee  id", "file_number"),
-    ("first name", "legal_first_name"),
-    ("middle name", "middle_initial"),
-    ("last name", "legal_last_name"),
-    ("email address", "work_email"),
-    ("ctry code", "legal_country_code"),
-    ("ledger code", "ledger_code"),
-    ("org unit 2", "org_unit_2_raw"),
-    ("custom 2 salary code", "pay_grade_code"),
-    ("password", "password"),
-    ("custom 8 preferred name", "preferred_first_name"),
-    # Already a bare Concur Employee ID here, not ADP's prefixed form - the
-    # non-US derive passes it straight through instead of slicing it.
-    ("employee id of the expense report approver", "supervisor_id_raw"),
-    ("active", "concur_status"),
-]
 
 
-def import_non_us_305(conn: sqlite3.Connection, rows: list[tuple],
-                      header_row: int, import_id: int) -> dict:
+def split_name(raw: str) -> tuple[str, str]:
     """
-    Load the non-US roster from its own 305 tab.
+    'Shi, HanBing' -> ('Shi', 'HanBing').
 
-    Merged on File Number like the ADP sheet, so re-dropping the workbook
-    refreshes them. They are marked roster 'non_us' and source 'workbook',
-    which is what sends them down a different derivation and into their own
-    extract - they are a separate load into Concur, not a filter on the US one.
+    UKG sends one name field where ADP sends three, and the workbook splits it
+    with =FIND(",",F2,1) / =LEFT(F2,BM2-1) / =MID(F2,BM2+2,45). Same split
+    here, with one difference: a name with no comma keeps the whole string as
+    the last name rather than becoming a #VALUE! error, because a person
+    without a comma in their name is a person, not a broken row.
+    """
+    raw = _cell(raw).strip()
+    if "," not in raw:
+        return raw, ""
+    last, _, first = raw.partition(",")
+    return last.strip(), first.strip()
+
+
+def import_ukg(conn: sqlite3.Connection, rows: list[tuple],
+               header_row: int, import_id: int) -> dict:
+    """
+    Load the UKG export.
+
+    Merged on File Number into the same table as ADP, because they are the
+    same people in one company - the `source` column is what says which system
+    sent a row, and it decides the derivation and the record types. There is
+    no separate roster any more and no separate file.
+
+    UKG has no duplicate-employment problem the way ADP does, so there is no
+    row ranking here; the first row for a file number wins and any repeat is
+    counted and reported. As with ADP, a field a hand edit changed away from
+    what UKG sent - see _protected_set_clause() - survives this merge.
     """
     headings = list(rows[header_row - 1])
     positions = {}
     missing = []
-    for heading, column in NON_US_305_COLUMNS:
+    for heading, column in UKG_COLUMNS:
         idx = column_index(headings, heading)
         if idx is None:
             missing.append(heading)
         positions[column] = idx
 
     if positions.get("file_number") is None:
-        raise ValueError("The non-US 305 tab has no 'Employee ID' column.")
+        raise ValueError("The UKG sheet has no 'Employee Number' column.")
 
     cols = [c for c in positions if positions[c] is not None]
+    # The two names are derived from the one UKG sends, so they are written
+    # alongside whatever the sheet gave us.
+    write_cols = cols + ["legal_last_name", "legal_first_name"]
     insert_sql = (
-        "INSERT INTO ADP_Concur_Employees (roster, source, import_id, source_row, "
-        + ", ".join(cols) + ") "
-        "VALUES ('non_us', 'workbook', ?, ?, "
-        + ", ".join("?" for _ in cols) + ") "
+        "INSERT INTO ADP_Concur_Employees (source, import_id, source_row, "
+        + ", ".join(write_cols) + ") "
+        "VALUES ('ukg', ?, ?, " + ", ".join("?" for _ in write_cols) + ") "
         "ON CONFLICT (file_number) DO UPDATE SET "
-        + ", ".join(f"{c} = excluded.{c}" for c in cols if c != "file_number")
-        + ", roster = 'non_us', source = 'workbook'"
+        + _protected_set_clause(write_cols)
+        + ", source = 'ukg'"
         + ", import_id = excluded.import_id, source_row = excluded.source_row"
         + ", modified_at = datetime('now')"
         + ", row_state = CASE WHEN ADP_Concur_Employees.row_state = 'new' "
@@ -456,140 +647,46 @@ def import_non_us_305(conn: sqlite3.Connection, rows: list[tuple],
     )
 
     cur = conn.cursor()
-    loaded = skipped = 0
+    loaded = skipped = duplicates = 0
     seen: set[str] = set()
-    duplicates = 0
-    for n, row in enumerate(rows[header_row:], header_row + 1):
-        # Every real row starts with the record type. The template also carries
-        # a field-width row and a column-number row under the header, and the
-        # width row's Employee ID cell holds 48 - which would otherwise load as
-        # an employee called 48.
-        if _cell(row[0] if row else "") != "305":
-            continue
-        idx = positions["file_number"]
-        file_number = _cell(row[idx]) if idx < len(row) else ""
+    # Who was already here from ADP. Both sheets can name the same person - a
+    # transfer between the two systems appears on both in the same cut - and
+    # since both merge on File Number, the second load silently overwrites the
+    # first. It is written onto the row as a note so it becomes an exception
+    # rather than a surprise.
+    from_adp = {r[0] for r in conn.execute(
+        "SELECT file_number FROM ADP_Concur_Employees WHERE source = 'adp'")}
+    overlap = []
+
+    for n, r in enumerate(rows[header_row:], start=header_row + 1):
+        fn_idx = positions["file_number"]
+        file_number = _cell(r[fn_idx]) if fn_idx < len(r) else ""
         if not file_number:
-            if any(_cell(c) for c in row):
-                skipped += 1
+            skipped += 1
             continue
         if file_number in seen:
             duplicates += 1
             continue
         seen.add(file_number)
-        values = [import_id, n]
-        for c in cols:
-            i = positions[c]
-            values.append(_cell(row[i]) if i < len(row) else "")
-        cur.execute(insert_sql, values)
+        values = [_cell(r[positions[c]]) if positions[c] is not None
+                  and positions[c] < len(r) else "" for c in cols]
+        last, first = split_name(
+            values[cols.index("employee_name_raw")]
+            if "employee_name_raw" in cols else "")
+        cur.execute(insert_sql, [import_id, n] + values + [last, first])
+        if file_number in from_adp:
+            overlap.append(file_number)
         loaded += 1
 
+    for fn in overlap:
+        cur.execute(
+            "UPDATE ADP_Concur_Employees SET duplicate_note = ? "
+            "WHERE file_number = ?",
+            ("Both exports carry this File Number - the ADP row was replaced "
+             "by the UKG one. Confirm which system owns this person.", fn))
+
     return {"loaded": loaded, "skipped": skipped, "duplicates": duplicates,
-            "file_numbers": seen, "missing_columns": missing}
-
-
-def import_non_us_360(conn: sqlite3.Connection, rows: list[tuple],
-                      header_row: int) -> dict:
-    """
-    Read which of the non-US people get a 360 record.
-
-    The tab carries nothing the 305 does not, except membership - its approver
-    columns are a lookup back into the 305. So it is read for the list of
-    Employee IDs and nothing else: anyone on it gets a 360, anyone on the 305
-    but not on it does not, and anyone on it who is *not* on the 305 is
-    reported, because a 360 for a person with no profile has nothing to attach
-    to.
-    """
-    headings = list(rows[header_row - 1])
-    idx = column_index(headings, "employee id")
-    if idx is None:
-        raise ValueError("The non-US 360 tab has no 'Employee ID' column.")
-
-    ids = set()
-    for row in rows[header_row:]:
-        # Same reason as the 305: the width row under the header holds 48 in
-        # the Employee ID column, which is a field width, not a person.
-        if _cell(row[0] if row else "") != "360":
-            continue
-        value = _cell(row[idx]) if idx < len(row) else ""
-        if value:
-            ids.add(value)
-    return {"file_numbers": ids}
-
-
-def import_country_ref(conn, rows, header_row) -> int:
-    """
-    The country reference block on the right of the Country Map tab.
-
-    Keyed on the two-character Concur country code, which is a different key
-    from the ADP-country lookup on the left of the same tab - so it is a
-    different table, however the workbook chooses to lay it out.
-    """
-    h = rows[header_row - 1]
-    idx = {"country_code": column_index(h, "country code"),
-           "country_name": column_index(h, "country"),
-           "currency_code": column_index(h, "currency code"),
-           "currency_name": column_index(h, "currency")}
-    # 'Country' and 'Currency' both prefix-match their '... Code' neighbours,
-    # so the codes are resolved first and the names taken from a later column.
-    for name, code in (("country_name", "country_code"),
-                       ("currency_name", "currency_code")):
-        if idx[name] is not None and idx[name] == idx[code]:
-            idx[name] = column_index(h[idx[code] + 1:], name.split("_")[0])
-            if idx[name] is not None:
-                idx[name] += idx[code] + 1
-    key = idx["country_code"]
-    if key is None:
-        return 0
-    out, seen = [], set()
-    for r in rows[header_row:]:
-        if key >= len(r):
-            continue
-        code = _cell(r[key])
-        if not code or code in seen:
-            continue
-        seen.add(code)
-        out.append([_cell(r[i]) if i is not None and i < len(r) else ""
-                    for i in idx.values()])
-    return _refresh(conn, "ADP_Concur_CountryRef", list(idx), out)
-
-
-def import_locale_map(conn, rows, header_row) -> int:
-    """
-    The country-to-locale block on the right of the Language Map tab.
-
-    The non-US sheet needs a locale for somebody whose country is all it knows,
-    which is a different question from the ADP language lookup on the left.
-    """
-    h = rows[header_row - 1]
-    # Found by shape rather than by heading: the block has no headings of its
-    # own, so the columns are located by the country code sitting two to the
-    # left of an 'xx_YY' locale.
-    idx = None
-    for r in rows[header_row:]:
-        for i, cell in enumerate(r):
-            value = _cell(cell)
-            if len(value) == 5 and value[2] == "_" and i >= 2:
-                code = _cell(r[i - 2])
-                if len(code) == 2 and code.isalpha():
-                    idx = (i - 2, i - 1, i)
-                    break
-        if idx:
-            break
-    if not idx:
-        return 0
-
-    out, seen = [], set()
-    for r in rows[header_row:]:
-        if idx[2] >= len(r):
-            continue
-        code = _cell(r[idx[0]])
-        locale = _cell(r[idx[2]])
-        if not code or not locale or code in seen:
-            continue
-        seen.add(code)
-        out.append([code, _cell(r[idx[1]]), locale])
-    return _refresh(conn, "ADP_Concur_LocaleMap",
-                    ["country_code", "locale_name", "locale_code"], out)
+            "overlap": len(overlap), "missing_columns": missing}
 
 
 def import_layout(conn: sqlite3.Connection, record_type: str,
@@ -598,9 +695,18 @@ def import_layout(conn: sqlite3.Connection, record_type: str,
     Capture a record template's columns.
 
     The heading row is the one starting 'Trx Type (nnn)'. Where the template
-    also carries a field-width row underneath - the 350 and 360 tabs do - it is
-    stored beside the heading, so the extract can be checked against the widths
-    Concur publishes without going back to the spreadsheet.
+    also carries a field-width row underneath - most tabs do - it is stored
+    beside the heading, so the extract can be checked against the widths Concur
+    publishes without going back to the spreadsheet.
+
+    How wide the record is is decided by the *numbered* row above the headings,
+    not by the last cell with text in it. Those numbers are the spec's field
+    positions, and they are the only authority for where the record stops.
+    The 700 tabs are why: both carry a note in the column after the last field
+    - "Only load users who can work with invoices" - with no number and no
+    width. Counting headings would make that note a seventeenth field, and
+    since Concur requires every field to be represented, every 700 in the file
+    would carry one delimiter too many.
     """
     headings = rows[header_row - 1]
     widths = rows[header_row] if len(rows) > header_row else []
@@ -608,11 +714,23 @@ def import_layout(conn: sqlite3.Connection, record_type: str,
     if widths and _cell(widths[0]) == record_type:
         widths = []
 
+    # The field-number row sits above the headings when the tab has one.
+    numbers = rows[header_row - 2] if header_row >= 2 else []
+    fields = 0
+    for i, cell in enumerate(numbers):
+        if _cell(cell).strip().isdigit() and int(_cell(cell)) == i + 1:
+            fields = i + 1
+        else:
+            break
+
     cur = conn.cursor()
     cur.execute("DELETE FROM ADP_Concur_Layouts WHERE record_type = ?", (record_type,))
     out = []
     for i, heading in enumerate(headings):
-        if heading is None and i > 0 and all(h is None for h in headings[i:]):
+        if fields and i >= fields:
+            break
+        if not fields and heading is None and i > 0 and all(
+                h is None for h in headings[i:]):
             break
         out.append((record_type, i + 1, get_column_letter(i + 1),
                     " ".join(str(heading).split()) if heading is not None else "",
@@ -636,6 +754,8 @@ EXTRA_BLOCKS = {
 
 HANDLERS = {
     "status_map": ("ADP_Concur_StatusMap", import_status_map),
+    "role_map": ("ADP_Concur_RoleMap", import_role_map),
+    "invoice_map": ("ADP_Concur_InvoiceMap", import_invoice_map),
     "country_map": ("ADP_Concur_CountryMap", import_country_map),
     "org_map": ("ADP_Concur_OrgMap", import_org_map),
     "language_map": ("ADP_Concur_LanguageMap", import_language_map),
@@ -672,8 +792,7 @@ def ADP_Concur_import_workbook(file_path: str | Path,
     sheets, unknown, ignored = [], [], []
     adp_sheets: list[tuple] = []
     employees = None
-    non_us = None
-    non_us_360 = None
+    ukg = None
     try:
         for ws in wb.worksheets:
             rows = [tuple(r) for r in ws.iter_rows(values_only=True)]
@@ -699,19 +818,19 @@ def ADP_Concur_import_workbook(file_path: str | Path,
                                "duplicates": employees["duplicates"],
                                "skipped": employees["skipped"],
                                "missing_columns": employees["missing_columns"]})
-            elif kind == "non_us_305":
-                non_us = import_non_us_305(conn, rows, header_row, import_id)
-                sheets.append({"sheet": ws.title, "kind": "non-US roster",
-                               "rows": non_us["loaded"],
-                               "skipped": non_us["skipped"],
-                               "duplicates": non_us["duplicates"],
-                               "missing_columns": non_us["missing_columns"],
-                               "by_name": True})
-            elif kind == "non_us_360":
-                non_us_360 = import_non_us_360(conn, rows, header_row)
-                sheets.append({"sheet": ws.title, "kind": "non-US 360 membership",
-                               "rows": len(non_us_360["file_numbers"]),
-                               "by_name": True})
+            elif kind == "ukg":
+                ukg = import_ukg(conn, rows, header_row, import_id)
+                sheets.append({"sheet": ws.title, "kind": "UKG export",
+                               "rows": ukg["loaded"],
+                               "skipped": ukg["skipped"],
+                               "duplicates": ukg["duplicates"],
+                               "overlap": ukg["overlap"],
+                               "missing_columns": ukg["missing_columns"]})
+            elif kind.startswith("skip_"):
+                ignored.append({
+                    "sheet": ws.title,
+                    "why": f"record type {kind.split('_', 1)[1]} is not in "
+                           "scope for this load"})
             elif kind.startswith("record_"):
                 record_type = kind.split("_", 1)[1]
                 n = import_layout(conn, record_type, rows, header_row)
@@ -769,18 +888,6 @@ def ADP_Concur_import_workbook(file_path: str | Path,
                               if drilldown(other_rows)
                               else " - the fullest cut is the source")})
 
-        # Who gets a 360 in the non-US load is decided by the 360 tab, so it
-        # is applied once both tabs have been read.
-        orphans = []
-        if non_us is not None and non_us_360 is not None:
-            wanted = non_us_360["file_numbers"]
-            marks = ",".join("?" * len(wanted)) if wanted else "''"
-            conn.execute(
-                f"UPDATE ADP_Concur_Employees SET include_360 = "
-                f"CASE WHEN file_number IN ({marks}) THEN 1 ELSE 0 END "
-                f"WHERE roster = 'non_us'", list(wanted))
-            orphans = sorted(wanted - non_us["file_numbers"])
-
         cur.execute(
             "UPDATE ADP_Concur_Imports SET sheet_counts = ?, row_count = ? "
             "WHERE import_id = ?",
@@ -794,9 +901,8 @@ def ADP_Concur_import_workbook(file_path: str | Path,
 
     result = {"file": path.name, "import_id": import_id, "sheets": sheets,
               "unknown_sheets": unknown, "ignored_sheets": ignored,
-              "orphan_360s": orphans,
               "employees": employees["loaded"] if employees else 0,
-              "non_us": non_us["loaded"] if non_us else 0}
+              "ukg": ukg["loaded"] if ukg else 0}
 
     if derive:
         from ADP_Concur_Map import ADP_Concur_derive, load_config
@@ -834,9 +940,6 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  {u:<18} not recognised - ignored")
         for i in res["ignored_sheets"]:
             print(f"  {i['sheet']:<18} ignored - {i['why']}")
-        if res["orphan_360s"]:
-            print(f"  {len(res['orphan_360s'])} employee(s) on the non-US 360 tab "
-                  f"with no 305 profile: {', '.join(res['orphan_360s'])}")
         if "derive" in res:
             d = res["derive"]
             print(f"  derived {d['employees']} employee(s): "

@@ -2,10 +2,9 @@
 Deploy_Packages_Build - discovers the deployable apps under packages/ and
 builds the zip for one of them.
 
-An app is "deployable" if its folder has a *_App.py (the Flask entry point
-every packages/ app is built around - see e.g. ERP_Concur_App.py). Folders
-without one, like etl_datalake, are plain scripts and are left out of the
-picker.
+An app is "deployable" if its folder has a *_App.py (the entry point every
+packages/ app is built around - see e.g. ERP_Concur_App.py). Folders without
+one are plain scripts and are left out of the picker.
 
 The zip holds the app's own folder as-is - minus the venv, caches, and the
 input/output/gnupg_home data folders, which the app recreates itself on

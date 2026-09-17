@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-etl_datalake.py - Mini ETL routine for Infor Data Lake -> SQLite
+ETL_Datalake_App - Mini ETL routine for Infor Data Lake -> SQLite
 
 Runs every 10 minutes. Stores the last run date/time in the LastRun table
 and picks up from that date on restart. If the table is not found, the
@@ -16,9 +16,9 @@ Steps:
   5. Get the details (download) for each dl_id.
   6. Process the file: table name = dl_document_name, columns = the column
      names in the download. Create the table if it does not exist and insert.
-  7. Serve a local status webpage (http://WEB_HOST:WEB_PORT/) with Start/Stop
-     controls and a live-editable polling interval, so the routine can be
-     driven and watched from a browser.
+  7. Serve a local status webpage (--host/--port, default 127.0.0.1:8787)
+     with Start/Stop controls and a live-editable polling interval, so the
+     routine can be driven and watched from a browser.
 
 Uses only the Python standard library.
 
@@ -33,6 +33,7 @@ things it depends on are deliberately NOT package-local:
                 to this routine.
 """
 
+import argparse
 import glob
 import io
 import json
@@ -72,7 +73,6 @@ ROUTINE_NAME = "etl_datalake"
 INTERVAL_SECONDS = 60  # 10 minutes
 PAGE_RECORDS = 500
 WEB_HOST = "127.0.0.1"
-WEB_PORT = 8787
 LOG_MAX_LINES = 300
 M3_CONO = "001"  # company used for the MNS120MI.Get metadata lookup (table keys)
 
@@ -916,10 +916,10 @@ class _StatusHandler(BaseHTTPRequestHandler):
             etl_set_status(state=prev_state)
 
 
-def etl_start_web_server():
-    server = ThreadingHTTPServer((WEB_HOST, WEB_PORT), _StatusHandler)
+def etl_start_web_server(host, port):
+    server = ThreadingHTTPServer((host, port), _StatusHandler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    etl_log(f"Status page: http://{WEB_HOST}:{WEB_PORT}/")
+    etl_log(f"Status page: http://{host}:{port}/")
     return server
 
 
@@ -1080,11 +1080,16 @@ def etl_run_loop(conn):
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--host", default=WEB_HOST)
+    parser.add_argument("--port", type=int, default=8787)
+    args = parser.parse_args()
+
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     envs = etl_list_environments()
     etl_set_status(available_environments=envs, default_environment=DEFAULT_ENV)
-    etl_start_web_server()
-    etl_log(f"Status page: http://{WEB_HOST}:{WEB_PORT}/ -- use Start/Stop there to control the routine.")
+    etl_start_web_server(args.host, args.port)
+    etl_log(f"Status page: http://{args.host}:{args.port}/ -- use Start/Stop there to control the routine.")
 
     conn = sqlite3.connect(DB_PATH)
     try:

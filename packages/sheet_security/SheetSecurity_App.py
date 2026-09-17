@@ -1,11 +1,20 @@
 """
 SheetSecurity_App - Flask front end for the Doppio API Sheet security table.
 
-One page over EXT124MI, the custom M3 program the API Sheet's own access
-control lives in: a sortable/filterable list (LstUsrInfo), and add / edit /
-delete against a live tenant (AddUsrInfo / UpdUsrInfo / DelUsrInfo). Nothing
-is cached locally - every action talks straight to M3, and the table always
-shows what LstUsrInfo just returned.
+One page over EXTXSM, the table EXT124MI (the custom M3 program the API
+Sheet's own access control lives in) reads and writes. The list is read
+straight off the table via EXPORTMI/Select - list_extxsm() - rather than
+EXT124MI/LstUsrInfo, because the table carries audit columns (when a record
+was registered, last changed, and by what change) LstUsrInfo does not
+return. Add / edit / delete still go through EXT124MI itself (AddUsrInfo /
+UpdUsrInfo / DelUsrInfo). Nothing is cached locally - every action talks
+straight to M3.
+
+The front end splits that one list into three tabs by AUTH: Tenants (20 -
+a tenant registration), Users (1 access granted, 0 that same access
+blocked) and Review (99 - someone who has attempted to use the sheet
+without a grant yet). Review has a "Delete all" action, since that tab is
+the one meant to be cleared out wholesale once its requests are handled.
 
 A record's key is (PCID, TNNM, AUTH); HASH / M3ID / UMSG are the value
 fields on top of it. HASH is often very long, so the list only ever sends a
@@ -32,8 +41,8 @@ from SheetSecurity_M3Api import (
     AUTH_LABELS,
     DEFAULT_IONAPI_DIR,
     DEFAULT_TENANT,
-    EXT124_FIELD_ORDER,
     EXT124_KEY_FIELDS,
+    EXTXSM_FIELD_ORDER,
     M3ApiError,
     M3Client,
     decode_hash_blob,
@@ -87,15 +96,36 @@ def _client(tenant: str) -> M3Client:
 
 
 def _order_columns(rows: list[dict]) -> list[str]:
-    """Known EXT124MI fields first, in a sensible order, then anything else
-    LstUsrInfo happened to return, alphabetically - so the table never hides
-    a field this app does not already know the name of."""
+    """Known EXTXSM fields first, in a sensible order, then anything else
+    EXPORTMI/Select happened to return, alphabetically - so the table never
+    hides a field this app does not already know the name of."""
     seen = set()
     for r in rows:
         seen.update(r.keys())
-    known = [c for c in EXT124_FIELD_ORDER if c in seen]
-    extra = sorted(c for c in seen if c not in EXT124_FIELD_ORDER)
+    known = [c for c in EXTXSM_FIELD_ORDER if c in seen]
+    extra = sorted(c for c in seen if c not in EXTXSM_FIELD_ORDER)
     return known + extra
+
+
+def _decode_review_hash(hash_val: str) -> dict:
+    """
+    An AUTH=99 record's HASH isn't an .ionapi like a tenant registration's -
+    it's workbook telemetry ({"userName":..., "userDomain":...,
+    "computerName":..., ...}), so the Review tab shows those three fields
+    instead of the raw blob. Anything that fails to decode (or doesn't look
+    like this shape) is left blank rather than breaking the whole list.
+    """
+    if not hash_val:
+        return {}
+    try:
+        data = decode_hash_blob(hash_val)
+    except M3ApiError:
+        return {}
+    if not isinstance(data, dict):
+        return {}
+    return {"USERNAME": data.get("userName") or "",
+            "DOMAIN": data.get("userDomain") or "",
+            "COMPUTERNAME": data.get("computerName") or ""}
 
 
 def _row_key(data: dict) -> tuple[str, str, str]:
@@ -128,18 +158,20 @@ def api_tenants():
 def api_security_list():
     tenant = request.args.get("tenant", "")
     client = _client(tenant)
-    rows = client.list_usr_info()
+    rows = client.list_extxsm()
 
     out = []
     for r in rows:
         row = {k: ("" if v is None else v) for k, v in r.items()}
+        if str(row.get("AUTH") or "").strip() == "99":
+            row.update(_decode_review_hash(row.get("HASH")))
         if "HASH" in row and len(row["HASH"]) > HASH_PREVIEW_LEN:
             row["HASH_full_length"] = len(row["HASH"])
             row["HASH"] = row["HASH"][:HASH_PREVIEW_LEN] + "…"
         out.append(row)
 
     return jsonify(status="success", tenant=tenant, total=len(out),
-                   columns=_order_columns(rows), rows=out)
+                   columns=_order_columns(out), rows=out)
 
 
 @app.route("/api/security/get", methods=["POST"])

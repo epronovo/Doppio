@@ -24,8 +24,10 @@ from ADP_Concur_Db import (
     ADP_COLUMNS,
     DEFAULT_DB_PATH,
     DERIVED_COLUMNS,
-    NON_US_COLUMNS,
-    ROSTERS,
+    UKG_ONLY_COLUMNS,
+    MANUAL_COLUMNS,
+    RECORD_TYPES,
+    SOURCES,
     EMPLOYEE_EDITABLE_FIELDS,
     HISTORY_PARTS,
     clear_employees,
@@ -35,6 +37,8 @@ from ADP_Concur_Db import (
     history_preview,
     connect,
     counts as db_counts,
+    merge_overridden_fields,
+    overridden_set,
     picked_clause,
     resolve_db_path,
     selection_add,
@@ -45,7 +49,6 @@ from ADP_Concur_Db import (
 )
 from ADP_Concur_Export import (
     ADP_Concur_export,
-    ADP_Concur_export_320,
     ADP_Concur_export_all,
     DEFAULT_OUTPUT_DIR,
     held_back,
@@ -58,7 +61,6 @@ from ADP_Concur_Hierarchy import (
     ADP_Concur_forest,
     ADP_Concur_hierarchy_problems,
     ADP_Concur_hierarchy_stats,
-    ADP_Concur_organisation_keys,
     ADP_Concur_subtree,
     ADP_Concur_subtree_keys,
     ADP_Concur_validate_supervisor_map,
@@ -93,8 +95,8 @@ app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
 app.config["MAX_CONTENT_LENGTH"] = 256 * 1024 * 1024
 app.config["ADP_CONCUR_DB"] = None
 
-# The six lookup tables, as the Maps tab shows them: label, table, key column,
-# and the columns that are editable in the grid.
+# The eight lookup tables, as the Maps tab shows them: label, table, key
+# column, and the columns that are editable in the grid.
 MAP_TABLES = {
     "org": ("Org Map", "ADP_Concur_OrgMap", "map_key",
             ["business_unit_desc", "home_department_desc", "home_department_code",
@@ -102,22 +104,28 @@ MAP_TABLES = {
     "status": ("Status Map", "ADP_Concur_StatusMap", "map_key",
                ["position_status", "concur_status"]),
     "country": ("Country Map", "ADP_Concur_CountryMap", "map_key",
-                ["adp_country", "concur_country"]),
+                ["adp_country", "concur_country", "country_name",
+                 "currency_code", "currency_name"]),
     "language": ("Language Map", "ADP_Concur_LanguageMap", "map_key",
                  ["language_desc", "language_code", "adp_language"]),
     "salary": ("Salary Map", "ADP_Concur_SalaryMap", "map_key",
-               ["pay_grade_code", "pay_grade_desc", "expense_map", "travel_map"]),
+               ["pay_grade_code", "pay_grade_desc", "expense_map", "travel_map",
+                "invoice_map"]),
     "supervisor": ("Supervisor Map", "ADP_Concur_SupervisorMap", "map_key",
                    ["file_number", "employee_name", "supervisor_name",
                     "supervisor_id", "note"]),
+    "invoice": ("Invoice Exception Map", "ADP_Concur_InvoiceMap", "map_key",
+                ["file_number", "employee_name", "access"]),
+    "role": ("Role Assignment Map", "ADP_Concur_RoleMap", "map_key",
+             ["role", "category", "automatic"]),
 }
 
 # Columns the Employees list may sort on. Anything else falls back to the
 # default order rather than reaching the query.
 EMPLOYEE_SORTS = ({c for _, c in ADP_COLUMNS} | {c for _, c in DERIVED_COLUMNS}
-                  | {c for _, c in NON_US_COLUMNS}
-                  | {"employee_key", "source", "row_state", "duplicate_rows",
-                     "roster"})
+                  | {c for _, c in UKG_ONLY_COLUMNS}
+                  | {c for _, c in MANUAL_COLUMNS}
+                  | {"employee_key", "source", "row_state", "duplicate_rows"})
 
 
 # ---------------------------------------------------------------- plumbing
@@ -189,6 +197,7 @@ def api_status():
                    # Whether this machine can read Concur's .xls at all, so the
                    # page can say so before somebody drops one rather than after.
                    xls=xls_supported(),
+                   sources=SOURCES, record_types=RECORD_TYPES,
                    imports=imports, extracts=extracts)
 
 
@@ -266,10 +275,10 @@ def _employee_filter() -> tuple[str, list]:
         where.append("e.source = ?")
         args.append(source)
 
-    roster = request.args.get("roster") or ""
-    if roster in ROSTERS:
-        where.append("e.roster = ?")
-        args.append(roster)
+    source = request.args.get("source") or ""
+    if source in SOURCES:
+        where.append("e.source = ?")
+        args.append(source)
 
     problems = request.args.get("problems") or ""
     if problems == "errors":
@@ -281,9 +290,6 @@ def _employee_filter() -> tuple[str, list]:
     elif problems == "clean":
         where.append("NOT EXISTS (SELECT 1 FROM ADP_Concur_Exceptions x "
                      "WHERE x.employee_key = e.employee_key)")
-    elif problems == "no_errors":
-        where.append("NOT EXISTS (SELECT 1 FROM ADP_Concur_Exceptions x "
-                     "WHERE x.employee_key = e.employee_key AND x.severity = 'error')")
     elif problems == "duplicates":
         where.append("e.duplicate_rows > 1")
 
@@ -354,28 +360,33 @@ def api_employee(employee_key: int):
         "SELECT severity, field, message FROM ADP_Concur_Exceptions "
         "WHERE employee_key = ? ORDER BY severity, field", (employee_key,))]
     cfg = load_config()
+    # RECORD_TYPES, not a hand-kept list here - the "Records this produces"
+    # panel on the front end loops every RECORD_TYPES entry and would throw
+    # trying to .join() a record type this dict left out.
     records = {rt: build_record(dict(row), rt, layout_width(conn, rt), cfg)
-               for rt in ("305", "350", "360", "320")}
+               for rt in RECORD_TYPES}
     # The chain the approver fields are built from, so it is visible on the
     # record it affects rather than only on the Hierarchy tab.
     chain = ADP_Concur_chain_up(conn, row["file_number"])
     # The editor is about this one person, so it never filters - it shows the
     # chain and the reports as they really are.
     reports, _hidden = ADP_Concur_direct_reports(conn, row["file_number"])
-    # A non-US person has no ADP columns to speak of - their tab carries
-    # Concur's own values instead - so the editor is shown the fields that
-    # actually mean something for the roster they are on.
-    own = (NON_US_COLUMNS + [(l, c) for l, c in ADP_COLUMNS
-                             if c in ("file_number", "legal_first_name",
-                                      "middle_initial", "legal_last_name",
-                                      "work_email", "legal_country_code",
-                                      "pay_grade_code", "supervisor_id_raw")]
-           if row["roster"] == "non_us" else ADP_COLUMNS)
+    # The two systems send different columns, so the editor shows the ones
+    # that mean something for whichever sent this person. A UKG employee has
+    # no Business Unit Description and no Pay Frequency; showing them thirty
+    # empty ADP boxes would suggest the import had lost something.
+    shared = ("file_number", "legal_first_name", "legal_last_name",
+              "work_email", "legal_country_code", "pay_grade_code",
+              "supervisor_id_raw", "reports_to_legal_name", "job_title",
+              "position_status", "hire_date", "employee_type",
+              "payroll_company_code")
+    own = (UKG_ONLY_COLUMNS + [(l, c) for l, c in ADP_COLUMNS if c in shared]
+           if row["source"] == "ukg" else ADP_COLUMNS + MANUAL_COLUMNS)
     return jsonify(status="success", row=dict(row), exceptions=exceptions,
                    records=records, chain=chain, reports=reports,
                    n_subtree=len(ADP_Concur_subtree(conn, row["file_number"])),
                    adp_columns=own, derived_columns=DERIVED_COLUMNS,
-                   rosters=ROSTERS)
+                   sources=SOURCES)
 
 
 # -------------------------------------------------------------- selection
@@ -404,9 +415,6 @@ def api_selection_add():
     organisation via `file_numbers` with `subtree`, or `filter` to take
     everything matching the current Employees filter. `reason` is stored
     against each person so the selection can be explained later.
-
-    A whole organisation is the subtree *and* the chain up to the top, not
-    the subtree alone - see ADP_Concur_organisation_keys.
     """
     conn = db()
     body = request.get_json(force=True, silent=True) or {}
@@ -416,7 +424,7 @@ def api_selection_add():
     if body.get("file_numbers"):
         file_numbers = [str(f) for f in body["file_numbers"]]
         if body.get("subtree"):
-            keys += ADP_Concur_organisation_keys(conn, file_numbers)
+            keys += ADP_Concur_subtree_keys(conn, file_numbers)
         else:
             marks = ",".join("?" * len(file_numbers))
             keys += [r[0] for r in conn.execute(
@@ -437,7 +445,7 @@ def api_selection_remove():
     body = request.get_json(force=True, silent=True) or {}
     keys = [int(k) for k in (body.get("keys") or [])]
     if body.get("file_numbers") and body.get("subtree"):
-        keys += ADP_Concur_organisation_keys(conn, [str(f) for f in body["file_numbers"]])
+        keys += ADP_Concur_subtree_keys(conn, [str(f) for f in body["file_numbers"]])
     removed = selection_remove(conn, keys)
     return jsonify(status="success", removed=removed,
                    keys=selection_keys(conn), **selection_summary(conn))
@@ -458,9 +466,11 @@ def api_hierarchy_tree():
     """
     The whole forest, nested. 167 people is small enough to send at once.
 
-    Two filters, and they combine: `picked=only` prunes to the selection, and
-    `status=active|inactive` prunes to who is still employed. Either way the
-    managers holding a surviving branch up are kept, marked `wanted: false`.
+    Three filters, and they combine: `picked=only` prunes to the selection,
+    `status=active|inactive` prunes to who is still employed, and
+    `source=adp|ukg|manual` prunes to which roster somebody came in on.
+    Either way the managers holding a surviving branch up are kept, marked
+    `wanted: false`.
 
     The stats are deliberately of the *whole* tree, not the filtered one -
     "13 roots, 4 levels deep" is a fact about the hierarchy, and it should not
@@ -471,14 +481,17 @@ def api_hierarchy_tree():
     status = request.args.get("status") or ""
     if status not in ("", "active", "inactive"):
         status = ""
-    roots = ADP_Concur_forest(conn, picked_only=picked, status=status)
+    source = request.args.get("source") or ""
+    if source not in SOURCES:
+        source = ""
+    roots = ADP_Concur_forest(conn, picked_only=picked, status=status, source=source)
 
     def count(node):
         return 1 + sum(count(c) for c in node["children"])
 
     shown = sum(count(r) for r in roots)
     return jsonify(status="success", roots=roots, picked_only=picked,
-                   status_filter=status, shown=shown,
+                   status_filter=status, source_filter=source, shown=shown,
                    wanted=sum(_count_wanted(r) for r in roots),
                    stats=ADP_Concur_hierarchy_stats(conn))
 
@@ -505,7 +518,10 @@ def api_hierarchy_employee(file_number: str):
         return jsonify(status="error", message=chain["detail"]), 404
     picked = (request.args.get("picked") or "") == "only"
     status = request.args.get("status") or ""
-    reports, hidden = ADP_Concur_direct_reports(conn, file_number, picked, status)
+    source = request.args.get("source") or ""
+    if source not in SOURCES:
+        source = ""
+    reports, hidden = ADP_Concur_direct_reports(conn, file_number, picked, status, source)
     subtree = ADP_Concur_subtree(conn, file_number, include_self=False)
     return jsonify(status="success", file_number=file_number, chain=chain,
                    reports=reports, reports_hidden=hidden,
@@ -536,23 +552,74 @@ def api_hierarchy_subtree_keys():
 
 @app.route("/api/employees/<int:employee_key>", methods=["POST"])
 def api_employee_save(employee_key: int):
+    """
+    Save an edit, and remember which ADP/UKG fields it actually changed.
+
+    Those field names go into `overridden_fields`, which the next import
+    checks before it overwrites anything - see the upsert in
+    ADP_Concur_Import.py. This has to be a value diff rather than "every
+    field the request named": the Save button resends the whole ADP-fields
+    form regardless of what was actually touched, so treating the request
+    body itself as "what changed" would freeze the entire record against
+    every future import the first time anybody clicked Save.
+    """
     conn = db()
     body = request.get_json(force=True, silent=True) or {}
     fields = {k: v for k, v in body.items() if k in EMPLOYEE_EDITABLE_FIELDS}
     flags = {k: (1 if body[k] else 0) for k in
-             ("include_305", "include_350", "include_360", "include_320") if k in body}
+             ("include_305", "include_350", "include_360") if k in body}
     if not fields and not flags:
         return jsonify(status="error", message="Nothing to save."), 400
 
     sets = ", ".join(f"{k} = ?" for k in list(fields) + list(flags))
+    params = list(fields.values()) + list(flags.values())
+
+    if fields:
+        current = conn.execute(
+            "SELECT overridden_fields, " + ", ".join(fields) +
+            " FROM ADP_Concur_Employees WHERE employee_key = ?",
+            (employee_key,)).fetchone()
+        if current is None:
+            return jsonify(status="error", message="No such employee."), 404
+        changed = {k for k, v in fields.items()
+                   if str(v or "") != str(current[k] or "")}
+        sets += ", overridden_fields = ?"
+        params.append(merge_overridden_fields(current["overridden_fields"], changed))
+
     conn.execute(
         f"UPDATE ADP_Concur_Employees SET {sets}, "
         "row_state = CASE WHEN row_state = 'new' THEN 'new' ELSE 'modified' END, "
         "modified_at = datetime('now') WHERE employee_key = ?",
-        list(fields.values()) + list(flags.values()) + [employee_key])
+        params + [employee_key])
     conn.commit()
     # A field edit can change what every lookup returns, so re-derive.
     ADP_Concur_derive(conn, load_config())
+    return api_employee(employee_key)
+
+
+@app.route("/api/employees/<int:employee_key>/unprotect", methods=["POST"])
+def api_employee_unprotect(employee_key: int):
+    """
+    Clear a person's overridden fields, so the next ADP/UKG import refreshes
+    all of them again instead of leaving the hand-edited values in place.
+
+    `fields`, when given, drops only those names; omitting it clears
+    everything overridden on this record.
+    """
+    conn = db()
+    body = request.get_json(force=True, silent=True) or {}
+    row = conn.execute(
+        "SELECT overridden_fields FROM ADP_Concur_Employees WHERE employee_key = ?",
+        (employee_key,)).fetchone()
+    if row is None:
+        return jsonify(status="error", message="No such employee."), 404
+
+    drop = body.get("fields")
+    remaining = (overridden_set(row["overridden_fields"]) - set(drop)) if drop else set()
+    conn.execute(
+        "UPDATE ADP_Concur_Employees SET overridden_fields = ? WHERE employee_key = ?",
+        (",".join(sorted(remaining)), employee_key))
+    conn.commit()
     return api_employee(employee_key)
 
 
@@ -850,7 +917,7 @@ def api_employee_picker():
 @app.route("/api/config")
 def api_config():
     return jsonify(status="success", config=load_config(), path=str(CONFIG_PATH),
-                   rosters=ROSTERS)
+                   sources=SOURCES, record_types=RECORD_TYPES)
 
 
 @app.route("/api/config", methods=["POST"])
@@ -911,12 +978,9 @@ def api_export():
         keys = [int(k) for k in body["keys"]]
         label = str(body.get("label") or "")
 
-    roster = str(body.get("roster") or request.args.get("roster") or "")
-    if roster not in ROSTERS:
-        roster = ""
     try:
         res = ADP_Concur_export(conn, cfg, keys=keys, selection_label=label,
-                                roster=roster, dry_run=dry)
+                                dry_run=dry)
     except ValueError as exc:
         # A bad 100 record is the most likely reason a write refuses, and the
         # message names the field and what SAP accepts.
@@ -928,11 +992,11 @@ def api_export():
 @app.route("/api/export/all", methods=["POST"])
 def api_export_all():
     """
-    Both files at once - the two loads Concur actually wants.
+    Kept for the front end's "write both files" button, which now writes one.
 
-    They cannot be one file: the rosters carry different record types, the
-    workbook gives them different Login ID rules, and Concur takes one 100
-    record per file.
+    The US / non-US split is gone: both systems of record go into a single
+    file, sorted so an approver is always written above the people reporting
+    to them. The route stays because the button and its callers do.
     """
     conn = db()
     body = request.get_json(force=True, silent=True) or {}
@@ -941,37 +1005,7 @@ def api_export_all():
                                       dry_run=not body.get("write"))
     except ValueError as exc:
         return jsonify(status="error", message=str(exc)), 400
-    return jsonify(status="success", files=files, rosters=ROSTERS)
-
-
-@app.route("/api/export/320", methods=["GET", "POST"])
-def api_export_320():
-    """
-    Build or write the standalone 320 file - Update ID Information.
-
-    Kept off the main /api/export on purpose: SAP requires the 320 run
-    separately from the 305/310, a day ahead, and never merged into the same
-    file.
-    """
-    conn = db()
-    cfg = load_config()
-    body = request.get_json(force=True, silent=True) or {}
-    dry = (request.args.get("write") != "1") and not body.get("write")
-
-    keys, label = None, ""
-    if body.get("selection") or request.args.get("selection") == "1":
-        keys = selection_keys(conn)
-        label = str(body.get("label") or "") or selection_summary(conn)["label"]
-    elif body.get("keys") is not None:
-        keys = [int(k) for k in body["keys"]]
-        label = str(body.get("label") or "")
-
-    try:
-        res = ADP_Concur_export_320(conn, cfg, keys=keys, selection_label=label,
-                                    dry_run=dry)
-    except ValueError as exc:
-        return jsonify(status="error", message=str(exc)), 400
-    return jsonify(status="success", **res)
+    return jsonify(status="success", files=files, sources=SOURCES)
 
 
 @app.route("/api/download/<path:name>")

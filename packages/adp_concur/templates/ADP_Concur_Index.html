@@ -129,9 +129,10 @@
   .pill.inactive{background:var(--warn-wash);color:var(--warn);border-color:var(--warn-line)}
   .pill.bad{background:var(--bad-wash);color:var(--bad);border-color:var(--bad-line)}
   .pill.new{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
+  .pill.adp{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
   .pill.manual{background:#f3eefb;color:#5b3fa0;border-color:#ded2f2}
   .pill.picked{background:var(--accent-wash);color:var(--accent);border-color:#f6ccd0;font-weight:700}
-  .pill.roster{background:var(--panel2);color:var(--body)}
+  .pill.src{background:var(--panel2);color:var(--body)}
   .mono{font-family:var(--mono);font-size:12px}
 
   .note{border:1px solid var(--line);background:var(--panel3);border-radius:var(--r);
@@ -292,9 +293,9 @@
 
 <main>
   <div id="drop">
-    Drop the <b>ADP / Concur workbook</b> (.xlsx) here &mdash; the ADP sheet, the six map tabs and the
-    305 / 350 / 360 layouts all load from it. Or drop a <b>Concur load result</b> (.xls) to see what
-    came back. <span id="dropmsg"></span>
+    Drop the <b>Concur load format workbook</b> (.xlsx) here &mdash; the ADP and UKG sheets, the eight
+    map tabs and the 305 / 350 / 360 / 700 layouts all load from it. Or drop a
+    <b>Concur load result</b> (.xls) to see what came back. <span id="dropmsg"></span>
     <input type="file" id="file" multiple accept=".xlsx,.xlsm,.xls" style="display:none">
   </div>
   <div id="xls-hint" class="note danger" hidden style="margin:0 0 10px"></div>
@@ -304,7 +305,7 @@
     <div class="tab" data-pane="r305">305<span class="n" id="n-305"></span></div>
     <div class="tab" data-pane="r350">350<span class="n" id="n-350"></span></div>
     <div class="tab" data-pane="r360">360<span class="n" id="n-360"></span></div>
-    <div class="tab" data-pane="r320">320<span class="n" id="n-320"></span></div>
+    <div class="tab" data-pane="r700">700<span class="n" id="n-700"></span></div>
     <div class="tab" data-pane="hierarchy">Hierarchy<span class="n" id="n-hier"></span></div>
     <div class="tab" data-pane="maps">Maps</div>
     <div class="tab" data-pane="exceptions">Exceptions<span class="n" id="n-exc"></span></div>
@@ -322,16 +323,12 @@
         <option value="inactive">Inactive (N)</option>
         <option value="unmapped">Status not mapped</option>
       </select>
-      <select id="f-roster">
-        <option value="">Both rosters</option>
-        <option value="us">US (from ADP)</option>
-        <option value="non_us">Non-US / non-SE</option>
-      </select>
       <select id="f-source">
-        <option value="">Every source</option>
-        <option value="adp">From ADP</option>
-        <option value="workbook">Non-US tab</option>
+        <option value="">Both systems</option>
+        <option value="adp">ADP</option>
+        <option value="ukg">UKG</option>
         <option value="manual">Added by hand</option>
+        <option value="workbook">Non-US tab (retired)</option>
       </select>
       <select id="f-problems">
         <option value="">Any</option>
@@ -339,7 +336,6 @@
         <option value="any">Any exception</option>
         <option value="duplicates">Duplicate ADP rows</option>
         <option value="clean">Clean</option>
-        <option value="no_errors">Clean and warnings — no blocking errors</option>
       </select>
       <select id="f-bu"><option value="">Every business unit</option></select>
       <select class="pickedview">
@@ -385,7 +381,7 @@
   <div class="pane" id="pane-r305"></div>
   <div class="pane" id="pane-r350"></div>
   <div class="pane" id="pane-r360"></div>
-  <div class="pane" id="pane-r320"></div>
+  <div class="pane" id="pane-r700"></div>
 
   <!-- ------------------------------------------------------- hierarchy -->
   <div class="pane" id="pane-hierarchy">
@@ -397,6 +393,12 @@
         <option value="">Active and inactive</option>
         <option value="active">Active only (Y)</option>
         <option value="inactive">Inactive only (N)</option>
+      </select>
+      <select id="h-source">
+        <option value="">ADP, UKG and manual</option>
+        <option value="adp">ADP only</option>
+        <option value="ukg">UKG only</option>
+        <option value="manual">Added by hand only</option>
       </select>
       <select class="pickedview">
         <option value="">The whole tree</option>
@@ -509,18 +511,9 @@
         <div class="card">
           <h3>File</h3>
           <div class="grid">
-            <label>305 covers</label>
-            <select id="c-s305"><option value="all">Everyone</option>
-              <option value="active">Active only</option></select>
-            <label>350 records</label>
-            <select id="c-en350"><option value="1">Written</option>
-              <option value="0">Not written</option></select>
             <label>350 covers</label>
             <select id="c-s350"><option value="all">Everyone</option>
-              <option value="active">Active only</option></select>
-            <label>360 covers</label>
-            <select id="c-s360"><option value="all">Everyone</option>
-              <option value="active">Active only</option></select>
+              <option value="off">Off &mdash; leave the 350 out of the extract</option></select>
             <label>Delimiter</label>
             <select id="c-delim"><option value=",">Comma</option>
               <option value="|">Pipe</option><option value="&#9;">Tab</option></select>
@@ -577,30 +570,14 @@
             <button class="good" id="write-extract">Write extract</button>
             <span class="sub" id="scope-hint"></span>
           </div>
-          <div class="note" style="margin-top:12px"><b>Two rosters, two files.</b>
-            The US people come from ADP; the non-US / non-SE people are
-            maintained on their own tab, get no 350 records, and carry their own
-            Login ID rule. Concur takes one 100 record per file, so they cannot
-            be combined.</div>
-          <div class="toolbar" style="margin:0">
-            <button class="primary" id="preview-both">Preview both files</button>
-            <button class="good" id="write-both">Write both files</button>
-          </div>
+          <div class="note" style="margin-top:12px"><b>One file, both systems.</b>
+            ADP and UKG go into a single extract with one 100 record. The 305s
+            are written active first and then down the supervisor tree, so an
+            approver is always created before anyone reporting to them &mdash;
+            including the 25 chains that cross between the two systems. ADP
+            people get 305 / 350 / 360 / 700; UKG has no 350 tab, so they get
+            305 / 360 / 700.</div>
         </div>
-      </div>
-      <div class="card" style="margin-top:16px">
-        <h3>320 — Update ID Information</h3>
-        <div class="note">Carries Login ID (and, when needed, Employee ID) changes. SAP's own
-          guidance is to send these through the 320 rather than the 305, and to run it on its
-          own — a day ahead, never merged into the same file — so it gets its own file here.
-          Everyone is included by default, same as 305 / 350 / 360; untick 320 on a person's
-          record to leave them out of just this file.</div>
-        <div class="toolbar" style="margin:8px 0 0">
-          <button id="preview-320">Preview</button>
-          <button class="good" id="write-320">Write 320 extract</button>
-        </div>
-        <div id="extract-320-result" class="sub" style="margin-top:10px"></div>
-        <div class="recprev" id="extract-320-preview" style="display:none"></div>
       </div>
       <div class="card" style="margin-top:16px">
         <h3>Result</h3>
@@ -737,10 +714,14 @@ async function api(url, opts) {
 
 /* ------------------------------------------------------------- state --- */
 
+/* Every record type the extract can carry. One list, so adding the 700
+   needed one line rather than six scattered literals. */
+const RECORD_TYPES = ['305', '350', '360', '700'];
+
 const state = {
   tab: 'employees',
   emp: { page: 1, size: 100, sort: '', dir: 'asc' },
-  rec: { 305: { page: 1 }, 350: { page: 1 }, 360: { page: 1 }, 320: { page: 1 } },
+  rec: { 305: { page: 1 }, 350: { page: 1 }, 360: { page: 1 }, 700: { page: 1 } },
   map: 'org',
   resMode: 'cause',      // the Results tab: grouped by cause, or by person
   editing: null,
@@ -877,7 +858,7 @@ function empQuery() {
   const p = new URLSearchParams({
     q: $('#q').value, status: $('#f-status').value, source: $('#f-source').value,
     problems: $('#f-problems').value, bu: $('#f-bu').value,
-    roster: $('#f-roster').value, picked: state.picked,
+    picked: state.picked,
     page: state.emp.page, size: state.emp.size,
   });
   if (state.emp.sort) { p.set('sort', state.emp.sort); p.set('dir', state.emp.dir); }
@@ -890,8 +871,9 @@ async function loadEmployees() {
   tb.textContent = '';
   for (const r of d.rows) {
     const flags = [];
-    if (r.roster === 'non_us') flags.push(['roster', 'non-US']);
-    if (r.source === 'manual') flags.push(['manual', 'by hand']);
+    if (r.source === 'adp') flags.push(['adp', 'ADP']);
+    else if (r.source === 'manual') flags.push(['manual', 'by hand']);
+    else if (r.source) flags.push(['src', r.source.toUpperCase()]);
     if (r.n_errors) flags.push(['bad', r.n_errors + ' error' + (r.n_errors === 1 ? '' : 's')]);
     else if (r.n_warnings) flags.push(['inactive', r.n_warnings + ' warning' + (r.n_warnings === 1 ? '' : 's')]);
     if (r.duplicate_rows > 1) flags.push(['inactive', r.duplicate_rows + ' ADP rows']);
@@ -985,7 +967,7 @@ let debounce;
   clearTimeout(debounce);
   debounce = setTimeout(() => { state.emp.page = 1; loadEmployees(); }, 220);
 }));
-['#f-status', '#f-source', '#f-problems', '#f-bu', '#f-roster'].forEach(s =>
+['#f-status', '#f-source', '#f-problems', '#f-bu'].forEach(s =>
   $(s).addEventListener('change', () => { state.emp.page = 1; loadEmployees(); }));
 $('#size').addEventListener('change', e => {
   state.emp.size = +e.target.value; state.emp.page = 1; loadEmployees();
@@ -1000,7 +982,12 @@ function field(label, name, value, opts = {}) {
     id: 'f-' + name, value: value ?? '',
     class: opts.readonly ? 'ro' : '', readonly: opts.readonly ? '' : null,
   });
-  return [el('label', { for: 'f-' + name }, label), input];
+  const labelEl = el('label', { for: 'f-' + name }, label,
+    opts.overridden ? el('span', {
+      class: 'pill manual', style: 'margin-left:6px;padding:0 6px;font-size:9px',
+      title: 'A hand edit changed this - the next ADP/UKG import will leave it alone.',
+    }, 'protected') : null);
+  return [labelEl, input];
 }
 
 async function openEmployee(key) {
@@ -1063,18 +1050,34 @@ async function openEmployee(key) {
 
   body.append(el('h3', { style: 'margin-top:16px' }, 'Include in'));
   const flags = el('div', { class: 'toolbar' });
-  for (const t of ['305', '350', '360', '320']) {
+  for (const t of RECORD_TYPES) {
     const cb = el('input', { type: 'checkbox', id: 'inc-' + t, style: 'width:auto' });
     cb.checked = !!r['include_' + t];
     flags.append(el('label', { style: 'display:flex;gap:6px;align-items:center' }, cb, t));
   }
   body.append(flags);
-  body.append(el('div', { class: 'sub', style: 'margin-top:4px' },
-    '320 carries this person\'s Login ID into its own file, separate from 305 / 350 / 360.'));
 
   body.append(el('h3', { style: 'margin-top:16px' }, 'ADP fields'));
+  const overridden = new Set((r.overridden_fields || '').split(',').filter(Boolean));
+  if (overridden.size) {
+    const names = d.adp_columns.filter(([, name]) => overridden.has(name)).map(([l]) => l);
+    body.append(el('div', { class: 'note', style: 'margin-bottom:10px' },
+      `${names.length} field${names.length === 1 ? '' : 's'} protected from the next ADP/UKG ` +
+      `import, because a hand edit changed ${names.length === 1 ? 'it' : 'them'} away from what ` +
+      `the sheet last sent: ${names.join(', ')}. `,
+      el('button', {
+        onclick: async () => {
+          await api(`/api/employees/${key}/unprotect`, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}',
+          });
+          toast('Protection cleared — the next import will refresh every field again.');
+          openEmployee(key);
+        },
+      }, 'Clear protection')));
+  }
   const g1 = el('div', { class: 'grid' });
-  for (const [label, name] of d.adp_columns) g1.append(...field(label, name, r[name]));
+  for (const [label, name] of d.adp_columns)
+    g1.append(...field(label, name, r[name], { overridden: overridden.has(name) }));
   body.append(g1);
 
   body.append(el('h3', { style: 'margin-top:18px' }, 'Derived — rebuilt from the maps'));
@@ -1084,7 +1087,7 @@ async function openEmployee(key) {
   body.append(g2);
 
   body.append(el('h3', { style: 'margin-top:18px' }, 'Records this produces'));
-  for (const t of ['305', '350', '360', '320'])
+  for (const t of RECORD_TYPES)
     body.append(el('div', { class: 'sub' }, t),
       el('div', { class: 'recprev' }, d.records[t].join(',')));
 
@@ -1124,7 +1127,7 @@ $('#p-save').addEventListener('click', async () => {
     const input = $('#f-' + name);
     if (input) body[name] = input.value;
   }
-  for (const t of ['305', '350', '360', '320']) {
+  for (const t of RECORD_TYPES) {
     const cb = $('#inc-' + t);
     if (cb) body['include_' + t] = cb.checked;
   }
@@ -1229,6 +1232,8 @@ function hierQuery() {
   if (state.picked === 'only') p.set('picked', 'only');
   const status = $('#h-status') ? $('#h-status').value : '';
   if (status) p.set('status', status);
+  const source = $('#h-source') ? $('#h-source').value : '';
+  if (source) p.set('source', source);
   return p.toString();
 }
 
@@ -1238,7 +1243,7 @@ async function loadHierarchy() {
     api('/api/hierarchy/problems'),
   ]);
   state.hier.roots = tree.roots;
-  state.hier.filtered = tree.picked_only || !!tree.status_filter;
+  state.hier.filtered = tree.picked_only || !!tree.status_filter || !!tree.source_filter;
   const s = tree.stats;
   $('#n-hier').textContent = s.max_depth ? s.max_depth + ' deep' : '';
   // The stats describe the whole hierarchy, so they stay put when a filter is
@@ -1309,7 +1314,8 @@ function nodeEl(node, depth) {
     marks.push(el('span', { class: 'pill bad', title: 'Inside a supervisor loop' }, 'loop'));
   if (node.concur_status !== 'Y')
     marks.push(el('span', { class: 'pill inactive' }, node.concur_status || '?'));
-  if (node.source === 'manual') marks.push(el('span', { class: 'pill manual' }, 'by hand'));
+  if (node.source === 'adp') marks.push(el('span', { class: 'pill adp' }, 'ADP'));
+  else if (node.source === 'manual') marks.push(el('span', { class: 'pill manual' }, 'by hand'));
   if (kids.length) marks.push(el('span', { class: 'pill' },
     node.n_subtree > kids.length + 1 ? `${kids.length} direct · ${node.n_subtree - 1} total`
       : `${kids.length} direct`));
@@ -1377,7 +1383,7 @@ async function showChain(fileNumber) {
     el('button', {
       class: 'primary',
       onclick: () => selectOrg(fileNumber, me.name, false),
-    }, `Select this organisation (${d.n_subtree + 1 + d.chain.depth})`),
+    }, `Select this organisation (${d.n_subtree + 1})`),
     el('button', { onclick: () => selectOrg(fileNumber, me.name, true) },
       'Select just this person'),
     el('button', {
@@ -1415,15 +1421,6 @@ async function selectOrg(fileNumber, name, justOne, drop) {
   toast(drop
     ? `${d.removed} removed — ${name}${justOne ? '' : ' and everyone below'}.`
     : `${d.added} newly picked — ${name}${justOne ? '' : ' and everyone below'}.`);
-  // A pick can land anywhere in the alphabetised Employees list, so without
-  // this the people just picked are invisible there unless they happen to
-  // share a page with whoever you were looking at. Switching every 'picked
-  // view' to 'only' puts the whole pick in view together, here and there.
-  if (!drop && d.added && state.picked !== 'only') {
-    state.picked = 'only';
-    renderSel();
-    loadEmployees();
-  }
   if (state.picked === 'only') loadHierarchy();
 }
 
@@ -1433,6 +1430,10 @@ $('#h-q').addEventListener('input', () => {
 $('#h-status').addEventListener('change', () => {
   // Reopening from scratch: the pruned tree is a different shape, and the
   // remembered open set describes the one that was there before.
+  state.hier.open.clear();
+  loadHierarchy();
+});
+$('#h-source').addEventListener('change', () => {
   state.hier.open.clear();
   loadHierarchy();
 });
@@ -1812,8 +1813,6 @@ async function loadConfig() {
   const d = await api('/api/config');
   state.config = d.config;
   const l = d.config.login_id || {}, x = d.config.extract || {}, s = d.config.scope || {};
-  const en = d.config.records_enabled || {};
-  $('#c-en350').value = en['350'] === false ? '0' : '1';
   $('#c-sources').value = (l.sources || []).join(', ');
   $('#c-suffix').value = l.suffix || '';
   $('#c-prefix').value = l.prefix || '';
@@ -1821,9 +1820,7 @@ async function loadConfig() {
   $('#c-bare').value = l.bare_domain || '';
   $('#c-lower').value = l.lowercase ? '1' : '0';
   $('#c-password').value = d.config.password || '';
-  $('#c-s305').value = s['305'] || 'all';
-  $('#c-s350').value = s['350'] || 'active';
-  $('#c-s360').value = s['360'] || 'active';
+  $('#c-s350').value = s['350'] || 'all';
   $('#c-delim').value = x.delimiter || ',';
   $('#c-quote').value = x.quote || 'minimal';
   $('#c-order').value = x.order || 'by_type';
@@ -1882,8 +1879,8 @@ function previewLogin() {
 ['#c-sources', '#c-suffix', '#c-prefix', '#c-domain', '#c-bare', '#c-lower']
   .forEach(s => $(s).addEventListener('input', previewLogin));
 
-function configBody() {
-  return {
+$('#save-config').addEventListener('click', async () => {
+  const body = {
     login_id: {
       sources: $('#c-sources').value.split(',').map(s => s.trim()).filter(Boolean),
       suffix: $('#c-suffix').value, prefix: $('#c-prefix').value,
@@ -1892,33 +1889,20 @@ function configBody() {
     },
     password: $('#c-password').value,
     import_settings: importSettings(),
-    scope: { 305: $('#c-s305').value, 350: $('#c-s350').value, 360: $('#c-s360').value },
-    records_enabled: { 350: $('#c-en350').value === '1' },
+    scope: { 305: 'all', 350: $('#c-s350').value, 360: 'all' },
     extract: {
       delimiter: $('#c-delim').value, quote: $('#c-quote').value,
       order: $('#c-order').value, file_name: $('#c-name').value,
       outbound_dir: $('#c-out').value,
     },
   };
-}
-
-// The extract read from disk, not from whatever is sitting in these fields -
-// so Preview and Write extract save first. Otherwise a dropdown changed a
-// moment ago (say, '350 records' set to 'Not written') is silently ignored
-// and the file comes out built from whatever was last saved.
-async function saveConfig() {
-  const d = await api('/api/config', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(configBody()),
-  });
-  loadStatus();
-  return d;
-}
-
-$('#save-config').addEventListener('click', async () => {
   try {
-    const d = await saveConfig();
+    const d = await api('/api/config', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
     toast(`Saved. ${d.derive.errors} error(s), ${d.derive.warnings} warning(s).`);
+    loadStatus();
   } catch (e) { toast(e.message, true); }
 });
 
@@ -1928,7 +1912,6 @@ async function runExtract(write, useSelection) {
   const scoped = useSelection ?? ($('#c-scope').value === 'selection');
   if (scoped && !selCount()) return toast('Nothing is picked.', true);
   try {
-    await saveConfig();
     const d = await api('/api/export', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       // The selection lives on the server, so the file asks for it by name
@@ -1961,65 +1944,12 @@ async function runExtract(write, useSelection) {
         '<th>Name</th><th>Why</th></tr></thead><tbody>' +
         hb.map(r => `<tr><td class="mono">${esc(r.file_number)}</td><td>${esc(r.name)}</td>` +
           `<td style="white-space:normal">${esc(r.reasons ||
-            ['305', '350', '360'].filter(t => !r['include_' + t]).map(t => 'excluded from ' + t).join(', '))}</td></tr>`).join('') +
+            RECORD_TYPES.filter(t => !r['include_' + t]).map(t => 'excluded from ' + t).join(', '))}</td></tr>`).join('') +
         '</tbody></table></div>'
       : '';
     toast(write ? 'Extract written.' : 'Preview built.');
   } catch (e) { toast(e.message, true); }
 }
-async function runBoth(write) {
-  try {
-    await saveConfig();
-    const d = await api('/api/export/all', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ write: !!write }),
-    });
-    $('#extract-result').innerHTML =
-      `<div class="kv" style="margin-bottom:10px"><span><b>${d.files.length}</b> file` +
-      `${d.files.length === 1 ? '' : 's'}${write ? ' written' : ' — nothing written'}` +
-      '</span></div>' +
-      d.files.map(f =>
-        `<div style="margin-bottom:10px"><b>${esc(f.roster_label)}</b> — ` +
-        `${f.records} records (1 × 100, ${f.n_305} × 305, ` +
-        `${f.n_350} × 350, ${f.n_360} × 360), ` +
-        `${f.bytes.toLocaleString()} bytes<br>` +
-        `<span class="mono">${esc(f.file_name)}</span>` +
-        (write ? ` — <a href="/api/download/${encodeURIComponent(f.file_name)}" ` +
-          'style="color:var(--accent)">download</a>' : '') + '</div>').join('');
-    const pv = $('#extract-preview');
-    pv.style.display = 'block';
-    pv.textContent = d.files.map(f =>
-      `--- ${f.roster_label}\n` + f.preview.join('\n')).join('\n\n');
-    $('#heldback').innerHTML = '';
-    toast(write ? 'Both files written.' : 'Both files previewed.');
-  } catch (e) { toast(e.message, true); }
-}
-$('#preview-both').addEventListener('click', () => runBoth(false));
-$('#write-both').addEventListener('click', () => runBoth(true));
-
-async function run320(write) {
-  try {
-    await saveConfig();
-    const d = await api('/api/export/320', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ write: !!write }),
-    });
-    $('#extract-320-result').innerHTML =
-      `<div class="kv"><span><b>${d.records}</b> records</span>` +
-      `<span><b>${d.n_320}</b> × 320</span>` +
-      `<span><b>${d.bytes.toLocaleString()}</b> bytes</span></div>` +
-      (write ? `<div style="margin-top:8px">Written to <span class="mono">${esc(d.path)}</span> — ` +
-        `<a href="/api/download/${encodeURIComponent(d.file_name)}" style="color:var(--accent)">download a copy</a></div>`
-        : `<div class="sub" style="margin-top:8px">Nothing written. Would be ` +
-          `<span class="mono">${esc(d.file_name)}</span>.</div>`);
-    const pv = $('#extract-320-preview');
-    pv.style.display = 'block';
-    pv.textContent = d.preview.join('\n');
-    toast(write ? '320 extract written.' : '320 preview built.');
-  } catch (e) { toast(e.message, true); }
-}
-$('#preview-320').addEventListener('click', () => run320(false));
-$('#write-320').addEventListener('click', () => run320(true));
 
 $('#preview-extract').addEventListener('click', () => runExtract(false));
 $('#write-extract').addEventListener('click', () => runExtract(true));

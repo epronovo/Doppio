@@ -1,8 +1,15 @@
-# ADP_Concur_* — ADP → SAP Concur employee load
+# ADP_Concur_* — ADP and UKG → SAP Concur employee load
 
-Takes the ADP report Bonetta built, holds it in `doppio.db`, applies the six
-lookup tabs Kelly worked out in Excel, and writes the 305 / 350 / 360 flat file
-for SAP Concur to collect.
+Takes the two HR exports Kelly's workbook carries — ADP and UKG — holds them in
+`doppio.db`, applies the eight lookup tabs, and writes one 305 / 350 / 360 /
+700 flat file for SAP Concur to collect.
+
+**Two systems of record, one file.** The 15 September workbook retired the
+US / non-US split: the company is no longer divided by geography but by which
+HR system holds a person, and that decides their derivations and which record
+types they produce — ADP writes 305 / 350 / 360 / 700, UKG has no 350 tab and
+writes 305 / 360 / 700. Both go into a single extract with one 100 record,
+sorted so that an approver is always written above anyone reporting to them.
 
 All routines are prefixed `ADP_Concur_` so they group together in the folder,
 the same way the `M3_Security_*` set does.
@@ -10,12 +17,13 @@ the same way the `M3_Security_*` set does.
 | File | Role |
 |------|------|
 | `ADP_Concur_Db.py` | Schema + connection helpers (`~/sqlite/doppio.db`) |
-| `ADP_Concur_Import.py` | Loads the workbook — ADP sheet, the non-US roster, the maps, the layouts |
+| `ADP_Concur_Import.py` | Loads the workbook — the ADP and UKG sheets, the maps, the layouts |
 | `ADP_Concur_Map.py` | The derivations, the Login ID rule, the record builders |
 | `ADP_Concur_Hierarchy.py` | The supervisor chain — walks it, and finds where it breaks |
 | `ADP_Concur_Fix.py` | Regroups the exceptions by what would fix them, and applies it |
 | `ADP_Concur_Export.py` | Writes the flat file into the outbound folder |
-| `ADP_Concur_App.py` | Flask front end — seven tabs, editing, extract |
+| `ADP_Concur_Result.py` | Reads Concur's load result back and puts names to it |
+| `ADP_Concur_App.py` | Flask front end — nine tabs, editing, extract |
 | `templates/ADP_Concur_Index.html` | The single-page UI |
 | `ADP_Concur_Config.json` | The Login ID rule, the scopes, the file shape |
 
@@ -41,9 +49,9 @@ python ADP_Concur_Db.py                                   # create the tables
 python ADP_Concur_Import.py "Concur Draft ... for Load.xlsx"
 python ADP_Concur_Map.py                                  # re-derive, list the exceptions
 python ADP_Concur_Export.py --dry-run                     # count without writing
-python ADP_Concur_Export.py --all-rosters                 # the two files Concur wants
-python ADP_Concur_Export.py --roster non_us               # one roster only
+python ADP_Concur_Export.py                               # the one file Concur wants
 python ADP_Concur_Export.py --held-back                   # who is being left out, and why
+python ADP_Concur_Result.py --load "Run-20.xls"           # read Concur's answer back
 
 python ADP_Concur_Hierarchy.py --chain 211837             # one person's chain to the top
 python ADP_Concur_Hierarchy.py --subtree 211766           # everyone under a manager
@@ -69,14 +77,18 @@ already exists. A version that adds a column therefore has to add it by hand,
 which is what `MIGRATIONS` in `ADP_Concur_Db.py` is: a list of the columns
 added since the first release, applied on open and reported in the log.
 
-    Added 6 column(s) to the existing schema: ADP_Concur_Employees.roster, ...
+    Added 22 column(s) to the existing schema: ADP_Concur_Employees.invoice_limit, ...
 
 The indexes are deliberately kept out of `SCHEMA` and run *after* that step. An
 index names a column, so on an older database the table is old, the index is
 new, and running them together fails on a column that has not been added yet —
 which is exactly what `no such column: roster` was. Nothing is dropped or
 rebuilt: existing rows keep their data and take the column's default, so a
-hand-keyed person from before the split lands on the `us` roster.
+person loaded before UKG existed stays on source `adp`.
+
+The `roster` column is still in the schema and nothing reads it. Dropping a
+column is the one migration SQLite will not reliably do on an old file, and a
+dead column costs nothing; `SOURCES` is the axis now.
 
 **When adding a column to `SCHEMA`, add it to `MIGRATIONS` in the same edit.**
 Listing one that is already there is harmless — SQLite refuses it and the
@@ -84,23 +96,45 @@ migration moves on — so erring towards listing it is right.
 
 ## What the workbook carries
 
-Nothing depends on the tab names — a re-cut of the report will not keep them.
-Each sheet is recognised by what its header row says, and the header row is
-found by looking for it rather than assumed to be row 1. That matters for the
-ADP sheet, which has three rows of Kelly's notes above the real headings.
+Nothing depends on the tab names, and the 15 September workbook proved it:
+every sheet was renamed — `1` became `ADP`, the record tabs grew names like
+`305 ADP Employee (All)` — and nothing broke, because nothing was ever reading
+the names. Each sheet is recognised by what its header row says, and the header
+row is found by looking for it rather than assumed to be row 1. That matters
+for the ADP sheet, which has three rows of Kelly's notes above the real
+headings, and for UKG, whose headings are on row 1.
 
 | Sheet | Recognised by | Goes to |
 |-------|---------------|---------|
-| the ADP export | `Payroll Company Code` + `File Number` + `Position Status` | `ADP_Concur_Employees`, roster `us` |
-| `305 Non US Non SE` | the sheet name — see below | `ADP_Concur_Employees`, roster `non_us` |
-| `360 Non US Non SE` | the sheet name | which of them get a 360 |
+| the ADP export | `Payroll Company Code` + `File Number` + `Position Status` | `ADP_Concur_Employees`, source `adp` |
+| the UKG export | `Employee Number` + `Salary Grade` + `Pay Group` | `ADP_Concur_Employees`, source `ukg` |
 | Status Map | `Position Status` + `Concur Status` | `ADP_Concur_StatusMap` |
 | Country Map | `ADP Country` | `ADP_Concur_CountryMap`, and its country block to `ADP_Concur_CountryRef` |
 | Org Map | `Business Unit Description` + `Home Department Code` | `ADP_Concur_OrgMap` |
-| Language Map | `Language` + `ADP Language` | `ADP_Concur_LanguageMap`, and its country block to `ADP_Concur_LocaleMap` |
+| Language Map | `Language` + `ADP Language` | `ADP_Concur_LanguageMap`, and its locale block to `ADP_Concur_LocaleMap` |
 | Salary Map | `Pay Grade Code` + `Expense Map` | `ADP_Concur_SalaryMap` |
-| Supervisor Map (now `US Supervisor Map`) | `Exception Employee Id` + `Supervisor ID` | `ADP_Concur_SupervisorMap` |
-| 305 / 350 / 360 | first cell reads `Trx Type (nnn)` | `ADP_Concur_Layouts` |
+| Supervisor Map | `Exception Employee Id` + `Supervisor ID` | `ADP_Concur_SupervisorMap` |
+| Role Assignment Map | `Role` + `Assign Role Automatically` | `ADP_Concur_RoleMap` |
+| Invoice Exception Map | `Invoice Exception Employee` + `Invoice Access Value` | `ADP_Concur_InvoiceMap` |
+| 305 / 350 / 360 / 700 | first cell reads `Trx Type (nnn)` | `ADP_Concur_Layouts` |
+| 400 and 320 | first cell reads `Trx Type (400)` / `(320)` | nothing — named as skipped |
+
+**Both exports land in the same table.** They describe the same people in
+different words, so the raw columns are mapped onto one shared set of names on
+the way in — UKG's Employee Number is a File Number, its Salary Grade is a Pay
+Grade Code, its Employment Status is a Position Status — and `source` records
+which system sent the row. Only the derivations and the record types differ
+after that, which is what lets one file carry both.
+
+UKG sends one name field where ADP sends three (`Shi, HanBing`), so it is split
+on the comma the way the workbook's `FIND`/`LEFT`/`MID` does, with one
+difference: a name with no comma keeps the whole string as the last name rather
+than becoming `#VALUE!`.
+
+**400 and 320 are recognised and skipped.** The workbook carries them, nothing
+in scope reads them, and they are named in the load report rather than reported
+as unrecognised — "ignored on purpose" and "not understood" are different
+things, and a sheet that quietly vanishes is how a record type gets forgotten.
 
 **The lookup tabs are a full refresh** — dropping a workbook replaces them with
 what it carries, because the maps are the workbook's job. **The employees merge
@@ -109,13 +143,20 @@ disturbing the ones keyed in by hand. Anyone held here and absent from the file
 is left alone rather than deleted; a partial cut of ADP is a normal thing to be
 handed. **Start again** on the Extract tab is the from-scratch reload.
 
-Only the ADP columns are loaded. The derived ones are recomputed from the maps,
+Only the raw columns are loaded. The derived ones are recomputed from the maps,
 so a workbook carrying stale lookup results never puts them in the database.
 
-The three record templates are captured as layouts rather than data, which is
+The four record templates are captured as layouts rather than data, which is
 what makes a new Concur template a matter of dropping a new file: the extract
 takes its width, its column order and its field-width row from whatever the
 workbook shows.
+
+**How wide a record is comes from the numbered row, not the last cell with text
+in it.** Both 700 tabs carry a note in the column after the last field — *Only
+load users who can work with invoices* — with no field number and no width.
+Counting headings would make that note a seventeenth field, and since Concur
+requires every field to be represented, every 700 in the file would have gone
+out one delimiter too wide.
 
 ## The derivations
 
@@ -129,8 +170,9 @@ formula it replaces quoted above it. In workbook order:
 | AE | Org Unit 2 | Org Map on Home Department Code |
 | AF | Concur Profile | Salary Map on Pay Grade Code → Expense Map |
 | AG | Travel Profile | Salary Map on Pay Grade Code → Travel Map |
-| AH | Legal Country | Country Map |
-| AI | Locale Code | Language Map on Language Description, else the BU's default language, then the country appended — `en_` + `US` |
+| AH | **Invoice Approval Limit** | Salary Map on Pay Grade Code → Invoice Approval |
+| AI | Legal Country | Country Map |
+| AJ | Locale Code | Language Map on Language Description, else the BU's default language, then the country appended — `en_` + `US` |
 | AJ | Reimbursement Currency | Org Map on Business Unit Description |
 | AK | Preferred Name | blank unless ADP has a preferred first name |
 | AL | Status | Status Map on Position Status |
@@ -225,9 +267,12 @@ extract; **warnings** load anyway and are worth a look.
 | A `... Not Mapped` value | error, or warning if the person is terminated |
 | No work email address | warning |
 | More than one ADP row | warning, naming the rows and the one taken |
+| No supervisor and not terminated | warning |
 | Supervisor not in this load, self-supervision, or a loop | error — Concur cannot resolve the approver |
 | Supervisor is in the load but held out of the 305 | warning |
-| Approver is on the other roster, so lands in the other file | warning — load the approver's file first |
+| Approver comes from the other HR system | warning — worth knowing, not fixing; one file, and the approver is written first |
+| Approver is inactive | warning — an active employee cannot be approved by somebody who has left |
+| Passwords run as an unbroken fill series | warning |
 | Inactive with no Termination Date | warning |
 | Non-US country code | warning |
 
@@ -266,10 +311,14 @@ instant somebody saved.
 
 ### Filtering the tree
 
-Two filters on the toolbar, and they combine: **status** (active, inactive, or
-both) and **picked**. *Active only* is the one to reach for when reviewing
-hierarchies — the leavers are noise, and Kelly's note about only loading the
-active employees is the same instinct.
+Three filters on the toolbar, and they combine: **status** (active, inactive,
+or both), **source** (ADP, UKG, added by hand, or all three) and **picked**.
+*Active only* is the one to reach for when reviewing hierarchies — the
+leavers are noise, and Kelly's note about only loading the active employees
+is the same instinct. *Source* is for the days ADP and UKG need to be looked
+at separately — the two systems produce different record types (UKG has no
+350 tab) and their own supervisor data, so a chain that looks broken may just
+be crossing a boundary the filter can isolate.
 
 Filtering prunes the tree but never breaks it. A manager who fails the filter
 is kept when somebody below them passes it, because a tree with the middle cut
@@ -504,9 +553,14 @@ import will overwrite. They write to what the derive *reads from*:
   so the correction sticks.
 * **unmapped values go into the six maps**, which is where they belonged.
 * **the Login ID rule goes into the config.**
-* **a blank ADP column is written onto the employee** — and this one is
-  explicitly a stopgap. The card says so: the next import overwrites it with
-  whatever ADP says by then, so it needs fixing at source as well.
+* **a blank ADP column is written onto the employee** — which used to be
+  purely a stopgap, overwritten the moment ADP sent a fresh cut. It isn't any
+  more: editing a field on the Employees tab records which field actually
+  changed in `overridden_fields`, and the next import leaves exactly those
+  columns alone instead of putting ADP's value back — see "Edits that survive
+  the next import" below. It is still worth fixing at source when that's
+  possible, since a protected field stops following ADP entirely until the
+  protection is cleared.
 
 **One deliberate change came with this.** The Supervisor Map now *wins* over
 ADP's own Supervisor ID rather than only filling in when ADP is blank. A table
@@ -518,6 +572,30 @@ give `006769`.
 The supervisor picker only offers people who are actually in the load, and the
 server refuses an ID that is not, so the fix for a broken chain cannot itself
 create a broken chain.
+
+### Edits that survive the next import
+
+Opening a row on the Employees tab shows every ADP (or UKG) field as an
+ordinary editable box, for any employee regardless of source — Save writes
+straight to the same columns the import fills. Left alone, that would be
+pointless: the next ADP cut would silently put its own value back over the
+edit, since the merge in `ADP_Concur_Import.py` used to overwrite every
+column the sheet carries.
+
+So Save also works out which fields the edit actually *changed* — comparing
+the new value against what was already on the row, not just what the form
+happened to submit, since the form resends every ADP field whether it was
+touched or not — and adds only those names to the employee's
+`overridden_fields` column. The next import checks that list before writing
+each column: a protected field keeps the edited value, everything else still
+refreshes from ADP as usual. The edit panel says which fields are currently
+protected and offers **Clear protection** to drop them, so a field can be
+handed back to ADP's control once whatever prompted the edit is fixed at the
+source.
+
+This is scoped to *fields*, not the whole record — editing Job Title does not
+also freeze Position Status, so a termination ADP reports the next day still
+lands even on a row with a hand-edited title.
 
 ## People ADP does not have
 
@@ -602,57 +680,109 @@ soft delete that keeps the row and simply stops writing it, and **Delete
 outright** appears only on hand-keyed records — for an ADP row it would be
 pointless, since the next drop returns them.
 
-## Two rosters, two files
+## One file, both systems
 
-The workbook maintains two populations, and they are two different loads into
-Concur rather than one load with a filter on it.
+The workbook holds two HR exports and they are the same company, so they are
+one load into Concur rather than two.
 
-| Roster | Comes from | Records | Login ID |
-|--------|-----------|---------|----------|
-| **US** | the ADP export on sheet `1`, through the six maps | 305, 350, 360 | the work email as-is |
-| **Non-US / non-SE** | the `305 Non US Non SE` tab, maintained by hand | 305, 360 — there is no 350 tab for them | the work email plus `.new.uat` |
+| Source | Comes from | Records | Derivations |
+|--------|-----------|---------|-------------|
+| **ADP** | the `ADP` sheet, through the maps | 305, 350, 360, 700 | thirteen lookups |
+| **UKG** | the `UKG` sheet | 305, 360, 700 — there is no 350 tab for them | four lookups; the rest arrive answered |
 
-They cannot be one file: the record types differ, the Login ID rules differ,
-and Concur takes one 100 record per file. **Write both files** does both;
-`--all-rosters` is the same thing from the command line. Each file carries the
-roster in its name — `..._US.txt`, `..._NON_US.txt` — because they land in the
-same pickup folder seconds apart.
+Both carry the same Login ID rule (`<work email>.new.uat`), so the mechanism
+for per-source overrides is still there and empty. One 100 record sits on the
+front of the one file.
 
-The non-US roster is not derived from ADP at all. That tab already holds
-Concur's own values — the country is a two-character code, the org unit is the
-ledger code, the status is already `Y` — so it gets its own derivation with
-only three lookups left in it, each quoting the formula on the tab it replaces:
+UKG is not a variant of the ADP rules — it is a different system describing the
+same people differently, so it gets its own derivation. Half of what ADP looks
+up, UKG already answers: the supervisor is a bare employee number, the org
+units are codes on the record, the status is a code. What is left is four
+lookups.
 
-| Value | Rule on the non-US tab |
-|-------|------------------------|
-| Locale | the country in the Language Map's country block, else `en_` + country |
-| Reimbursement currency | the country in the Country Map's country block |
-| Org Unit 1, Custom 21 | the Ledger Code, straight through |
-| Custom 3 Expense Profile | the Salary Map's **Expense** column — where the US tab uses its **Travel** column |
+| Value | Rule on the UKG sheet |
+|-------|----------------------|
+| Org Unit 1 | the Site Location Code, straight through |
+| Org Unit 2 | the Org Level 3 Code, straight through |
+| Concur / Travel Profile | the Salary Map on a **trimmed** Salary Grade |
+| Legal country, currency | the Country Map on the three-letter Country Code — UKG has no business unit, so the Org Map route ADP uses is not open to it |
+| Locale | the derived two-character country in the Language Map's locale block, else `en_` + country |
+| Invoice access | the Invoice Exception Map **only** — no UKG employee gets invoice access by pay grade |
 
-That last one is the difference worth knowing: the same Concur column is fed
-from two different Salary Map columns on the two tabs. Both are reproduced as
-written rather than reconciled, so each file matches the tab it came from, but
-one of them is presumably wrong.
+Three of UKG's fourteen derived columns are deliberately empty because its own
+derived block leaves them empty: Local Code, Preferred Name and Term Date have
+no formula at all. The 305 tab computes its own locale from the country rather
+than reading the blank one, which is why locale is filled here and the other
+two are not.
 
-### Reading the new workbook
+### The sort is what made one file possible
 
-Everything is still recognised by its header row, with one deliberate
-exception. `305 Non US Non SE` has *exactly* the same headings as the `305`
-template — it is the same Concur layout — and both carry data, so neither the
-headings nor the row count can tell a tab full of people from a tab used as a
-template. The sheet name is the only thing the workbook offers, so that is what
-is used, and the load says which sheets it read that way.
+Concur resolves an approver against what it already holds, so a record naming
+somebody who has not been created yet loads without them. That is why the two
+roster files had to be loaded in a particular order, and why twelve people who
+reported across the line drew warnings every run.
 
-Two more things the new workbook needed:
+The 305 records are now written **active first, then down the supervisor tree**
+— every approver above everyone reporting to them. On the current cut that is
+456 approver/report pairs in the file, **26 of them crossing between ADP and
+UKG**, and not one approver written after their report.
 
-* **`Multiple Payrolls`** is a pivot drill-down of the same 166 people, so it is
+Status is the outer key, as asked, so the whole tree is walked and then split
+in place by a stable partition — which keeps the hierarchy inside each half.
+The one pairing it cannot honour is an active person reporting to an inactive
+one: the approver lands in the second half, below them. There is exactly one of
+those, and it is not hidden — it now raises its own warning on the Exceptions
+tab, because an approver who has left is a problem in the data rather than in
+the sort. Burying the leaver mid-tree to make the file look ordered would only
+have made it harder to see.
+
+Anyone the walk cannot reach — people inside a supervisor cycle — is appended
+in name order rather than dropped. Losing a record to keep a sort tidy would be
+the worse bug by far.
+
+### Invoice access, and the 700
+
+The 700 record is new, and it is a payment request approval authority: one per
+person who may approve invoices, carrying the limit they may approve up to.
+
+Two derived values drive it, and they read in this order:
+
+1. **Invoice Approval Limit** — the Salary Map's new `Invoice Approval` column,
+   looked up on the pay grade.
+2. **Invoice Access** — the Invoice Exception Map first, by name. For ADP,
+   anything not named falls back to *has a limit above zero*. For UKG there is
+   no fallback at all: nobody gets invoice access by grade, only by name.
+
+That asymmetry is the sheets', not a simplification — it is why a UKG employee
+on the same grade as an ADP one can come out differently. Invoice Access also
+drives the 305's Invoice User and Invoice Approver flags and four flags on the
+360, so somebody without it is loaded without Concur Invoice rather than given
+it and left unable to use it.
+
+**The 700 is not written for anybody without access.** Both tabs build the
+whole row as `=IF(AccessIsY, ..., "")`, and an empty row is not a record, so
+they are filtered out rather than written blank. On the current cut that is 37
+of 495 people — 33 from ADP, 4 from UKG.
+
+### What the new workbook needed
+
+* **`Multiple Payrolls`** is a pivot drill-down of the same people, so it is
   ADP-shaped and would load as a second source. The fullest cut wins, and on a
   tie the `Details for ...` marker Excel writes into A1 of a generated
   drill-down settles it. The load reports which sheet it took and why.
-* **The Country Map and Language Map now carry a second block each**, keyed on
-  the country code rather than on the ADP value — a different table on the same
-  tab, loaded as `ADP_Concur_CountryRef` and `ADP_Concur_LocaleMap`.
+* **The Country Map absorbed its own second block.** It used to be two tables
+  on one tab; the new sheet carries the code, the name, the currency code and
+  the currency name in one row, which is where UKG gets its currency.
+* **Column matching now tries an exact heading before a prefix.** Prefix
+  matching is what lets `Employee ID` find `Employee  ID (Cannot be changed
+  using this record ...)`, but UKG's sheet is full of headings that start with
+  each other — `Job` begins `Job Code`, `Job Family`, `Job Role` and `Job
+  Type`; `Pay Group` begins `Pay Group Code`. Asking for `Job` returned the job
+  code. Each term now gets an exact scan before a prefix scan, one term at a
+  time in the order the caller listed them, because the caller's order is it
+  saying which heading it would rather have — the Country Map asks for `Legal /
+  Preferred Address` before `ADP Country`, and a global exact-first pass handed
+  back the value column instead of the key.
 
 ## The 100 record
 
@@ -667,7 +797,7 @@ is written by the extract:
 | # | Field | Default here | Why |
 |---|-------|--------------|-----|
 | 2 | Error Threshold | `0` | SAP says enter zero |
-| 3 | Password Generation | `TEXT` | use the password on the 305 — which is what both rosters carry |
+| 3 | Password Generation | `TEXT` | use the password on the 305. FMG's proven file uses `SSO`, so the passwords are ignored |
 | 4 | Existing Record Handling | `UPDATE` | writes only the non-blank fields and never overwrites an existing password, which is the safe default for a repeated load. `REPLACE` overwrites the record wholesale |
 | 5 | Language Code | `en` | the language of any localised text in the file |
 | 6 | Validate Expense Group | `Y` | SAP's default |
@@ -686,9 +816,14 @@ present whether or not it has a value — which is what *All fields must be
 represented* on the 350 and 360 tabs means.
 
 Who is in it comes from three places: the per-employee include flags, the
-configured scope, and the exception list. Kelly's note about the 350 and 360
-holding everyone is the `scope` setting — `active` on both is the default here,
-`all` puts the terminated people back.
+configured scope, and the exception list. Scope is always `all` - active and
+terminated people alike - except the 700, which is scoped to `invoice` (only
+people with invoice access) because it exists for that reason alone. The one
+other choice is `off`, which leaves a record type out of the extract
+altogether — the Extract tab's "350 covers" dropdown has it for the days
+every 350 Concur has seen gets rejected on its Travel Class Name and the
+simplest fix is to stop sending it, without touching the per-employee flags or
+the map.
 
 `Preview` builds the whole file and counts it without writing anything, and
 lists everyone being held back with the reason. `Write extract` drops it in the
@@ -736,6 +871,8 @@ rather than quietly corrected — if it is a slip, changing the one line in
 | `ADP_Concur_Imports` | Every workbook loaded, with the per-sheet counts |
 | `ADP_Concur_Exceptions` | Rebuilt on every derive — what is wrong and how badly |
 | `ADP_Concur_Extracts` | Every flat file written, with its counts |
+| `ADP_Concur_RoleMap` | The Role Assignment Map — reference only; nothing derives from it yet |
+| `ADP_Concur_InvoiceMap` | The Invoice Exception Map — who gets Concur Invoice by name |
 | `ADP_Concur_Loads` | Every Concur result read back, and which extract it answers |
 | `ADP_Concur_Results` | One row per message Concur returned, with the person it belongs to |
 
@@ -746,7 +883,7 @@ Each load runs inside one transaction.
 | Tab | Shows |
 |-----|-------|
 | **Employees** | Everyone, searchable, filterable by status, source, business unit, problem and whether they are picked; click a row to edit |
-| **305 / 350 / 360** | The records exactly as the extract will write them, under the template's own headings |
+| **305 / 350 / 360 / 700** | The records exactly as the extract will write them, under the template's own headings |
 | **Hierarchy** | The org tree, filterable by status and selection; one person's complete chain up and down, and where the chain breaks |
 | **Maps** | The six lookup tables, editable in place — every edit re-derives; the Supervisor Map is validated row by row |
 | **Exceptions** | **Fixes** — everything wrong, grouped by what would fix it, with the fix on the card — or every error and warning as a raw list |
@@ -784,18 +921,16 @@ Dropping the 3 September cut in place of the 31 August one:
 * **`207199` is gone too.** Mehmet Erdogan is on the non-US tab as well, which
   is why the two US employees pointing at him could never be found: he was
   never missing, he was in a population the old workbook did not carry.
-* **The Login ID question is answered, at least for UAT.** The non-US tab
-  builds them as `=H5&".new.uat"`. That is reproduced for that roster; the US
-  roster still has no suffix. `.new.uat` reads like a UAT-only value, so it is
-  worth confirming before a production load.
-* **12 people report across the roster line** — 9 non-US people to US
-  approvers, 3 the other way. Splitting the extract splits those apart, so
-  each of them now carries a warning saying which file holds their approver
-  and that it has to load first.
+* **The Login ID question is answered, at least for UAT.** Both 305 tabs build
+  them as `=<work email>&".new.uat"`. `.new.uat` reads like a UAT-only value,
+  so it is worth confirming before a production load.
+* **12 people reported across the roster line.** That was a load-order problem
+  while the extract was two files; it is not one any more. The current cut has
+  26 such pairs and the sort handles all of them.
 * **The passwords on the non-US tab are a fill series.** 82 people, 82
   different passwords, `Welcome01` to `Welcome82` with no gaps — that is Excel
   autofill, not a password policy, and the 100 record's `TEXT` setting is what
-  would send them to Concur. Expected and not flagged.
+  would send them to Concur. Every one of them carries a warning.
 * **4 people on the "Non US Non SE" tab are US or SE** — 3 `US` and 1 `SE` —
   which contradicts the tab's own name. Worth a look before the split is
   trusted.
@@ -850,8 +985,8 @@ populated now and were not in July — plus data that has simply changed since
 (supervisors, statuses, and ADP's pay grade codes going from `H0008` to `H08`).
 
 One more: **the July file carried no 350 records at all**, and the workbook has
-since grown a 350 tab. `records_by_roster` in the config decides that, so
-dropping `"350"` from the `us` list goes back to exactly what loaded before.
+since grown a 350 tab. `records_by_source` in the config decides that, so
+dropping `"350"` from the `adp` list goes back to exactly what loaded before.
 
 ## What Concur said back
 
@@ -953,13 +1088,57 @@ messages carried line 369 — the last line of the file — while naming two peo
 who sit hundreds of lines earlier. Where a message says who it is about, that is
 who it is about; the line number only supplies the record type.
 
+## What the 15 September workbook changed, and what it revealed
+
+The rename was the easy part — nothing read the tab names. The real changes:
+
+* **Two systems of record instead of two geographies.** `roster` is gone;
+  `source` decides everything. 134 people from ADP, 361 from UKG.
+* **The 700 record**, and the two derived values behind it.
+* **Custom 5 is now Org Unit 1**, not the department code. The workbook changed
+  it after Concur rejected the department codes as invalid list items — so the
+  fix we were waiting on arrived in the sheet.
+* **Custom 3 reads the Expense column on both tabs.** The transposition that
+  had the ADP tab reading the Travel Map is gone, which is what Concur's Run-20
+  result had already told us.
+
+Three things the sheet is doing that are worth raising with Kelly:
+
+* **The UKG 305's `Active (Y/N)` column sends `A`, not `Y`.** It is
+  `=UKG!BJ2`, and `BJ` is `=Y2` — the Employment Status *Code*. Concur wants
+  `Y` or `N`. All 361 UKG records would carry an invalid Active flag. This app
+  puts UKG's Employment Status through the Status Map like any other source and
+  sends `Y`, so the extract is right and the sheet is not.
+* **`Leave of absence` is not in the Status Map.** ADP says `Leave`, UKG says
+  `Leave of absence`, and the map has only the ADP wording — so two UKG people
+  come out `Position Status Not Mapped` and are held out of the file. One map
+  row fixes it.
+* **Three Invoice Exception Map entries cannot be matched by the sheet's own
+  VLOOKUP.** Two file numbers carry trailing spaces (`'203011   '`,
+  `'213174   '`) and one is stored as a number rather than text (`212705`), so
+  Excel misses all three and quietly falls through to "no access". They are
+  trimmed on the way in here, which is why Babatunde Adewalure, Robert Schortz
+  and Bonnetta Warren get the invoice access the map says they should have and
+  the workbook does not give them.
+
+### Checked against the workbook's own answers
+
+Every derived value was compared against the cells the workbook itself
+computed — 134 ADP rows across thirteen columns, 361 UKG rows across nine.
+Everything matches except four things, all deliberate:
+
+| Difference | Count | Why |
+|---|---|---|
+| `org_unit_2`, `supervisor_id` — workbook `0`, here blank | 56 | `=AI2` on an empty cell is `0` in Excel. An artifact, not a value. |
+| `invoice_access` for 203011 and 212705 | 2 | The trim fix above. |
+| `invoice_limit` for 203011 | 1 | Follows from their access being `Y`. |
+
 ## Still open
 
 * **The Login ID shape.** Set once SAP confirms it. Everything else is ready.
-* **`207199` and `TBDTUN`.** Two supervisor IDs nobody in this load matches —
-  see [Where it breaks today](#where-it-breaks-today). One is probably a non-US
-  record; the other is a placeholder in the Supervisor Map. Both are one click
-  each on the Fixes tab once somebody confirms the right answer.
+* **`207199` and `TBDTUN`.** Two supervisor IDs nobody in this load matched —
+  worth re-checking now that UKG is loaded, since UKG is where several of the
+  previously missing approvers turned out to live.
 * **Brandon Hibbitts' Supervisor ID reads `000207199N`** — ten characters, and
   not the three-letter-prefix shape every other row uses. `MID(H,4,6)` happens
   to pull `207199` out of it correctly, but by luck rather than by rule. Worth
@@ -967,15 +1146,19 @@ who it is about; the line number only supplies the record type.
 * **13 roots.** Ten people have no supervisor and no reports at all. Real tops,
   or ADP simply having no manager on the record?
 * **The 34 people with no work email.** A `sources` fallback brings them in.
-* **Non-US employees.** The Country Map holds only `USA → US` and the Language
-  Map only resolves through the BU default, so the rest of the world will come
-  out `Legal Country Not Mapped`. Both are map rows, not code.
+* **The Country Map now holds eleven countries**, so most of the world
+  resolves. Anything outside it still comes out `Country Not Mapped`, and that
+  is a map row rather than code.
+* **400 and 320.** The workbook carries three tabs this load ignores — two
+  near-identical `400 ADP Exp Processor Non AP` and a `320 One Time`. They are
+  recognised and named as skipped rather than silently dropped. If either is
+  wanted, the second question is which of the two 400 tabs is authoritative.
 
 Opened by Run-18, and none of them answerable from here:
 
 * **The 350 records.** Every one was rejected on its Travel Class Name. Either
   Concur gains rule classes called `General`, `Senior Leadership` and `VIP`, or
-  `"350"` comes out of `records_by_roster` — which is what July did.
+  `"350"` comes out of `records_by_source` — which is what July did.
 * **Custom 5, and Custom 3 after the fix.** Custom 5 does not resolve to a list
   item and July left it blank; Custom 3 now sends `Default` rather than the
   rejected `General`, but whether *that* is a list item is unconfirmed. Both are

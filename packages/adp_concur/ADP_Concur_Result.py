@@ -174,10 +174,10 @@ CATEGORIES: list[tuple[str, str, re.Pattern, str]] = [
      re.compile(r"connected list.*invalid list code|invalid list code.*OrgUnit",
                 re.I),
      "Concur has Org Unit 2 on the connected list '*Division - Department' and "
-     "the value sent is not in it, so the record was refused. The US roster "
-     "derives a numeric code from the Org Map and passes; the non-US tabs have "
-     "a department name typed in ('Production', 'SALES', 'G&A') and will not. "
-     "Those tabs need the real codes - blank is accepted, a name is not."),
+     "the value sent is not in it, so the record was refused. ADP derives a "
+     "numeric code from the Org Map and passes; a department name typed in by "
+     "hand ('Production', 'SALES', 'G&A') will not. Blank is accepted, a name "
+     "is not."),
 
     ("Value is not in a Concur list", "warning",
      re.compile(r"could not be resolved to an existing custom list item", re.I),
@@ -193,9 +193,10 @@ CATEGORIES: list[tuple[str, str, re.Pattern, str]] = [
 
     ("Approver is not in Concur", "warning",
      re.compile(r"approver could not be assigned", re.I),
-     "The approver is not loaded yet. Usually the other roster: an approver "
-     "on the non-US file cannot be resolved by the US file that loads first. "
-     "Load the other roster and run again."),
+     "The approver is not in Concur. Since the two roster files became one - "
+     "sorted so an approver is always written above the people reporting to "
+     "them - this should mean the approver is genuinely absent from the load "
+     "rather than merely later in it. Worth checking the Hierarchy tab."),
 
     ("Manager loop inside Concur", "warning",
      re.compile(r"circular reference", re.I),
@@ -206,7 +207,7 @@ CATEGORIES: list[tuple[str, str, re.Pattern, str]] = [
     ("Manager is not a valid employee", "warning",
      re.compile(r"bi manager .* is not a valid employee", re.I),
      "The manager is not in Concur. Same cause as the approver warnings - "
-     "usually somebody on the other roster."),
+     "check whether they are in the load at all."),
 ]
 
 FALLBACK = ("Other", "", "Not one of the causes this app knows about yet. "

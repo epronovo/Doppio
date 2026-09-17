@@ -23,7 +23,8 @@ import sqlite3
 from datetime import datetime
 from pathlib import Path
 
-from ADP_Concur_Db import DEFAULT_DB_PATH, ROSTERS, connect, resolve_db_path
+from ADP_Concur_Db import (DEFAULT_DB_PATH, RECORD_TYPES, SOURCES,
+                           connect, resolve_db_path)
 from ADP_Concur_Map import (
     build_import_settings,
     build_record,
@@ -45,62 +46,126 @@ def outbound_dir(cfg: dict) -> Path:
 
 
 def extract_file_name(cfg: dict, when: datetime | None = None,
-                      selection: bool = False, roster: str = "",
-                      kind: str = "") -> str:
+                      selection: bool = False) -> str:
     """
     {stamp} in the configured name becomes yyyymmdd_HHMMSS.
 
     A selection gets its own pattern, because the outbound folder is a Concur
     pickup and a partial file that looks exactly like a full one is the kind of
-    thing that gets loaded by accident at four in the afternoon. `kind="320"`
-    does the same for the Update ID file, which must never be mistaken for the
-    305/350/360 file sitting in the same folder.
+    thing that gets loaded by accident at four in the afternoon.
+
+    There is no per-roster suffix any more. The US / non-US split is gone and
+    both systems of record go into one file, so there is only ever one.
     """
     when = when or datetime.now()
     extract = cfg.get("extract") or {}
-    if kind == "320":
-        pattern = extract.get("file_name_320") or "FMG_Concur_UpdateID_{stamp}.txt"
-    else:
-        pattern = (extract.get("selection_file_name")
-                   or "FMG_Concur_Employee_Selection_{stamp}.txt") if selection else (
-            extract.get("file_name") or "FMG_Concur_Employee_{stamp}.txt")
-    name = pattern.format(stamp=when.strftime("%Y%m%d_%H%M%S"),
+    pattern = (extract.get("selection_file_name")
+               or "FMG_Concur_Employee_Selection_{stamp}.txt") if selection else (
+        extract.get("file_name") or "FMG_Concur_Employee_{stamp}.txt")
+    return pattern.format(stamp=when.strftime("%Y%m%d_%H%M%S"),
                           date=when.strftime("%Y%m%d"),
                           time=when.strftime("%H%M%S"))
-    if roster:
-        # The two rosters are two separate loads into Concur and land in the
-        # same pickup folder seconds apart, so the file has to say which is
-        # which - a stamp alone would not.
-        stem, dot, ext = name.rpartition(".")
-        name = f"{stem or name}_{roster.upper()}{dot}{ext}" if dot else \
-            f"{name}_{roster.upper()}"
-    return name
 
 
-def record_types_for(cfg: dict, roster: str = "") -> list[str]:
+def record_types_for(cfg: dict) -> list[str]:
     """
-    Which record types one roster's file carries, in writing order.
+    Every record type this file can carry, in writing order.
 
-    Config first, then the roster's built-in list. In config because it is a
-    real question rather than a constant: the July file that loaded carried 305
-    and 360 only, and the workbook has since grown a 350 tab.
-
-    records_enabled is layered on top of that and applies whether or not a
-    roster is given, so it is the one place that can turn a type off for
-    every file - including the plain combined export, which has no roster to
-    look up in records_by_roster at all.
+    The union across the sources, because one file carries them all now - which
+    source writes which is decided per person, in selected_employees(). In
+    config because it is a real question rather than a constant: the July file
+    that loaded carried 305 and 360 only, and every 350 Concur has seen since
+    has been rejected on its Travel Class Name.
     """
-    wanted = (["305", "350", "360"] if roster not in ROSTERS else
-              (cfg.get("records_by_roster") or {}).get(roster)
-              or ROSTERS[roster]["records"])
-    enabled = cfg.get("records_enabled") or {}
-    return [t for t in ("305", "350", "360")
-            if t in wanted and enabled.get(t, True)]
+    by_source = cfg.get("records_by_source") or {}
+    wanted = {t for types in by_source.values() for t in types} or set(RECORD_TYPES)
+    return [t for t in RECORD_TYPES if t in wanted]
+
+
+def sort_by_hierarchy(people: list[dict]) -> list[dict]:
+    """
+    Active first, then down the supervisor tree - approvers before reports.
+
+    Concur resolves an approver against what it already holds, so a record
+    naming somebody who has not been created yet loads without them. Writing
+    the tree top-down removes the problem for everybody inside the file at
+    once, which is what let the two roster files become one: an approver in
+    UKG is simply written above the ADP person pointing at them.
+
+    Active before inactive is the outer key, as asked. It does mean an active
+    person can be written above their own inactive manager - but that pairing
+    is already broken (Concur will not resolve an approver who is inactive) and
+    the sort should not hide it by burying the leaver in the middle of the
+    tree.
+
+    Everyone whose supervisor is not in this list is a root: the top of the
+    chain, somebody reporting outside the load, and anybody left over from a
+    cycle. Cycles cannot be ordered - that is what a cycle means - so whatever
+    the walk has not reached is appended in name order rather than dropped.
+    Losing a record to keep a sort tidy would be the worse bug by far.
+    """
+    by_fn: dict[str, dict] = {}
+    for e in people:
+        fn = str(e.get("file_number") or "")
+        if fn:
+            by_fn.setdefault(fn, e)
+
+    def name_key(e: dict) -> tuple:
+        return (str(e.get("legal_last_name") or ""),
+                str(e.get("legal_first_name") or ""),
+                str(e.get("file_number") or ""))
+
+    reports: dict[str, list[dict]] = {}
+    roots: list[dict] = []
+    for e in people:
+        sup = str(e.get("supervisor_id") or "")
+        if sup and sup in by_fn and sup != str(e.get("file_number") or ""):
+            reports.setdefault(sup, []).append(e)
+        else:
+            roots.append(e)
+
+    out: list[dict] = []
+    seen: set[int] = set()
+
+    def walk(group: list[dict]) -> None:
+        # Iterative rather than recursive: a deep chain in a company this size
+        # is fine either way, but a cycle that slipped through would be a stack
+        # overflow instead of a handled case.
+        stack = sorted(group, key=name_key, reverse=True)
+        while stack:
+            e = stack.pop()
+            if id(e) in seen:
+                continue
+            seen.add(id(e))
+            out.append(e)
+            kids = reports.get(str(e.get("file_number") or ""), [])
+            stack.extend(sorted((k for k in kids if id(k) not in seen),
+                                key=name_key, reverse=True))
+
+    walk(roots)
+
+    # Whatever the walk never reached - people inside a supervisor cycle.
+    left = [e for e in people if id(e) not in seen]
+    out.extend(sorted(left, key=name_key))
+
+    # Status is the outer key, so the whole tree is walked first and then split
+    # in place. The partition is stable, which is what keeps the hierarchy
+    # inside each half: an active approver still precedes their active reports,
+    # and an inactive one still precedes their inactive reports.
+    #
+    # The one pairing it cannot honour is an active person reporting to an
+    # inactive one - the approver lands in the second half, below them. That is
+    # the instruction doing what it says, and it is not hiding anything: an
+    # approver who has left is a problem the Exceptions tab already raises, and
+    # burying the leaver mid-tree to make the file look ordered would only make
+    # it harder to see.
+    active = [e for e in out if str(e.get("concur_status") or "") == "Y"]
+    inactive = [e for e in out if str(e.get("concur_status") or "") != "Y"]
+    return active + inactive
 
 
 def collect(conn: sqlite3.Connection, cfg: dict,
-            keys: list[int] | None = None,
-            roster: str = "") -> tuple[list[list[str]], dict]:
+            keys: list[int] | None = None) -> tuple[list[list[str]], dict]:
     """
     Every record the extract will carry, in the configured order.
 
@@ -111,22 +176,35 @@ def collect(conn: sqlite3.Connection, cfg: dict,
     per file and which is not per-employee - so it is prepended here rather
     than living in a field map with the rest.
 
-    `roster` narrows it to one population and, with it, to that population's
-    record types: the non-US roster has no 350 tab in the workbook and gets no
-    350 records.
+    One file carries both sources. Which record types a person produces is
+    decided by the system they came from - UKG has no 350 tab - and that is
+    applied inside selected_employees() rather than here.
     """
     cfg_extract = cfg.get("extract") or {}
-    types = record_types_for(cfg, roster)
+    types = record_types_for(cfg)
     widths = {rt: layout_width(conn, rt) for rt in types}
-    people = {rt: selected_employees(conn, rt, cfg, keys, roster) for rt in types}
-    # Reported for all three types whatever the roster carries, so a caller
-    # never has to know which types a roster has to read the numbers.
-    counts = {rt: len(people.get(rt, ())) for rt in ("305", "350", "360")}
+    people = {rt: selected_employees(conn, rt, cfg, keys) for rt in types}
+
+    # The 305s carry the hierarchy, so they are the ones that are sorted. The
+    # other three follow the 305 order for the people they cover, so the whole
+    # file reads the same way down.
+    ordered_305 = sort_by_hierarchy(people.get("305", []))
+    rank = {str(e.get("file_number")): i for i, e in enumerate(ordered_305)}
+    people["305"] = ordered_305
+    for rt in types:
+        if rt == "305":
+            continue
+        people[rt] = sorted(
+            people[rt],
+            key=lambda e: (rank.get(str(e.get("file_number")), len(rank)),
+                           str(e.get("file_number") or "")))
+
+    counts = {rt: len(people.get(rt, ())) for rt in RECORD_TYPES}
 
     lines: list[list[str]] = [build_import_settings(cfg)]
     if cfg_extract.get("order") == "by_employee":
-        # Keyed on file number so the three records for one person stay
-        # together; the 305 order is the one that drives the file.
+        # Keyed on file number so a person's records stay together; the 305
+        # order is the one that drives the file.
         wanted = {rt: {e["file_number"]: e for e in people[rt]} for rt in people}
         seen = []
         for rt in types:
@@ -167,7 +245,6 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
                       file_name: str | None = None,
                       keys: list[int] | None = None,
                       selection_label: str = "",
-                      roster: str = "",
                       dry_run: bool = False) -> dict:
     """
     Write the extract.
@@ -181,16 +258,13 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
     disk, which is what the front end previews with.
     """
     cfg = cfg or load_config()
-    lines, counts = collect(conn, cfg, keys, roster)
+    lines, counts = collect(conn, cfg, keys)
     text = render(lines, cfg)
 
     directory = Path(out_dir).expanduser() if out_dir else outbound_dir(cfg)
-    name = file_name or extract_file_name(cfg, selection=keys is not None,
-                                          roster=roster)
+    name = file_name or extract_file_name(cfg, selection=keys is not None)
     target = directory / name
     scope = ",".join(f"{k}={v}" for k, v in (cfg.get("scope") or {}).items())
-    if roster:
-        scope = f"roster {roster}; " + scope
     if keys is not None:
         scope = (f"selection of {len(keys)}"
                  + (f" ({selection_label})" if selection_label else "")
@@ -198,11 +272,11 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
 
     result = {"file_name": name, "path": str(target), "records": len(lines),
               "n_305": counts["305"], "n_350": counts["350"],
-              "n_360": counts["360"], "bytes": len(text.encode(
+              "n_360": counts["360"], "n_700": counts["700"],
+              "bytes": len(text.encode(
                   (cfg.get("extract") or {}).get("encoding", "utf-8"))),
-              "dry_run": dry_run, "scope": scope, "roster": roster,
-              "roster_label": ROSTERS.get(roster, {}).get("label", "Everyone"),
-              "record_types": record_types_for(cfg, roster),
+              "dry_run": dry_run, "scope": scope,
+              "record_types": record_types_for(cfg),
               "selection": keys is not None,
               "selected": len(keys) if keys is not None else None,
               "selection_label": selection_label,
@@ -229,87 +303,13 @@ def ADP_Concur_export_all(conn: sqlite3.Connection, cfg: dict | None = None,
                           out_dir: str | Path | None = None,
                           dry_run: bool = False) -> list[dict]:
     """
-    One file per roster - the two loads Concur actually wants.
+    Write the extract. One file, which is the whole point of this version.
 
-    They cannot be one file: the two populations have different record types
-    and, in the workbook, different Login ID rules, and Concur takes one 100
-    record per file. So each roster gets its own file with its own 100 record
-    on the front, and a roster with nobody in it is skipped rather than written
-    as an empty file.
+    Kept as a list of one so every caller that walked the old two-file result
+    still works, and so the front end's "write both files" button needed no
+    special case on the day the split went away.
     """
-    cfg = cfg or load_config()
-    out = []
-    for roster in ROSTERS:
-        n = conn.execute(
-            "SELECT COUNT(*) FROM ADP_Concur_Employees "
-            "WHERE roster = ? AND row_state <> 'deleted'", (roster,)).fetchone()[0]
-        if not n:
-            continue
-        out.append(ADP_Concur_export(conn, cfg, out_dir=out_dir, roster=roster,
-                                     dry_run=dry_run))
-    return out
-
-
-def ADP_Concur_export_320(conn: sqlite3.Connection, cfg: dict | None = None,
-                          out_dir: str | Path | None = None,
-                          file_name: str | None = None,
-                          keys: list[int] | None = None,
-                          selection_label: str = "",
-                          dry_run: bool = False) -> dict:
-    """
-    Write the standalone 320 file - Update ID Information.
-
-    Deliberately not a record type ADP_Concur_export() ever writes: SAP
-    requires the 320 be uploaded separately from the 305/310, a day ahead, and
-    never merged into the same file - see the note on Table 6 of the Employee
-    Import Specification. It also has no roster - Login ID applies either side
-    of the US / non-US line.
-
-    include_320 is on by default like the 305/350/360, because SAP's own
-    guidance is to carry Login ID changes through the 320 rather than the 305
-    - see the field map's comment in ADP_Concur_Map.FIELD_MAP. It stays
-    per-employee so any one person can still be held out of this file without
-    touching anything else, the same as the other three record types.
-    """
-    cfg = cfg or load_config()
-    width = layout_width(conn, "320")
-    people = selected_employees(conn, "320", cfg, keys)
-    lines = [build_import_settings(cfg)] + [
-        build_record(e, "320", width, cfg) for e in people]
-    text = render(lines, cfg)
-
-    directory = Path(out_dir).expanduser() if out_dir else outbound_dir(cfg)
-    name = file_name or extract_file_name(cfg, selection=keys is not None, kind="320")
-    target = directory / name
-    scope = f"320={(cfg.get('scope') or {}).get('320', 'all')}"
-    if keys is not None:
-        scope = (f"selection of {len(keys)}"
-                 + (f" ({selection_label})" if selection_label else "")
-                 + "; " + scope)
-
-    result = {"file_name": name, "path": str(target), "records": len(lines),
-              "n_320": len(people), "bytes": len(text.encode(
-                  (cfg.get("extract") or {}).get("encoding", "utf-8"))),
-              "dry_run": dry_run, "scope": scope,
-              "selection": keys is not None,
-              "selected": len(keys) if keys is not None else None,
-              "selection_label": selection_label,
-              "preview": text.splitlines()[:5]}
-    if dry_run:
-        return result
-
-    directory.mkdir(parents=True, exist_ok=True)
-    encoding = (cfg.get("extract") or {}).get("encoding", "utf-8")
-    with open(target, "w", encoding=encoding, newline="") as fh:
-        fh.write(text)
-
-    conn.execute(
-        "INSERT INTO ADP_Concur_Extracts "
-        "(file_name, file_path, n_320, scope, delimiter) VALUES (?, ?, ?, ?, ?)",
-        (name, str(target), len(people), scope,
-         (cfg.get("extract") or {}).get("delimiter", ",")))
-    conn.commit()
-    return result
+    return [ADP_Concur_export(conn, cfg, out_dir=out_dir, dry_run=dry_run)]
 
 
 def held_back(conn: sqlite3.Connection,
@@ -347,52 +347,6 @@ def held_back(conn: sqlite3.Connection,
         """, args)]
 
 
-def ADP_Concur_export_exceptions(rows: list[dict]) -> io.BytesIO:
-    """
-    The Exceptions list as an .xlsx workbook, for review outside the browser.
-
-    Same rows the Exceptions tab shows - whatever severity/field/picked filter
-    was in effect when the download was asked for. One sheet, header frozen,
-    errors filled red and warnings amber so the sheet reads the same way the
-    tab's pills do.
-    """
-    from openpyxl import Workbook
-    from openpyxl.styles import Alignment, Font, PatternFill
-
-    columns = [("severity", "Severity"), ("file_number", "File #"),
-              ("employee_name", "Name"), ("field", "Check"),
-              ("message", "What is wrong"), ("position_status", "Status"),
-              ("concur_status", "Concur active"),
-              ("business_unit_desc", "Business unit"), ("source", "Source")]
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Exceptions"
-    ws.append([label for _, label in columns])
-    for cell in ws[1]:
-        cell.font = Font(bold=True)
-    ws.freeze_panes = "A2"
-
-    error_fill = PatternFill("solid", fgColor="FBE2E2")
-    warning_fill = PatternFill("solid", fgColor="FDF3D9")
-    wrap = Alignment(wrap_text=True, vertical="top")
-    for row in rows:
-        ws.append([row.get(key, "") for key, _ in columns])
-        fill = error_fill if row.get("severity") == "error" else warning_fill
-        for cell in ws[ws.max_row]:
-            cell.fill = fill
-        ws.cell(ws.max_row, 5).alignment = wrap
-
-    widths = [10, 10, 24, 20, 60, 12, 14, 24, 10]
-    for i, width in enumerate(widths, start=1):
-        ws.column_dimensions[ws.cell(1, i).column_letter].width = width
-
-    buf = io.BytesIO()
-    wb.save(buf)
-    buf.seek(0)
-    return buf
-
-
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Write the Concur employee extract.")
     ap.add_argument("--db", default=None, help=f"SQLite path (default {DEFAULT_DB_PATH})")
@@ -408,10 +362,9 @@ def main(argv: list[str] | None = None) -> int:
                          "them. Repeatable - the perfect pilot load")
     ap.add_argument("--only", metavar="FILE_NUMBER", action="append", default=[],
                     help="Scope the file to these people exactly. Repeatable")
-    ap.add_argument("--roster", choices=list(ROSTERS),
-                    help="Write one roster's file only")
-    ap.add_argument("--all-rosters", action="store_true",
-                    help="Write one file per roster - the two loads Concur wants")
+    ap.add_argument("--all-rosters", "--all", action="store_true",
+                    dest="all_rosters",
+                    help="Kept for the old command line; there is one file now")
     args = ap.parse_args(argv)
 
     conn = connect(args.db)
@@ -444,23 +397,12 @@ def main(argv: list[str] | None = None) -> int:
         conn.close()
         return 0
 
-    if args.all_rosters:
-        for res in ADP_Concur_export_all(conn, out_dir=args.out_dir,
-                                         dry_run=args.dry_run):
-            verb = "Would write" if args.dry_run else "Wrote"
-            print(f"{verb} {res['roster_label']}: {res['records']} record(s) "
-                  f"(1 x 100, {res['n_305']} x 305, {res['n_350']} x 350, "
-                  f"{res['n_360']} x 360)")
-            print(f"  {res['path']}  ({res['bytes']:,} bytes)")
-        conn.close()
-        return 0
-
     res = ADP_Concur_export(conn, out_dir=args.out_dir, file_name=args.name,
                             keys=keys, selection_label=label,
-                            roster=args.roster or "", dry_run=args.dry_run)
+                            dry_run=args.dry_run)
     verb = "Would write" if args.dry_run else "Wrote"
     print(f"{verb} {res['records']} record(s): 1 x 100, {res['n_305']} x 305, "
-          f"{res['n_350']} x 350, {res['n_360']} x 360")
+          f"{res['n_350']} x 350, {res['n_360']} x 360, {res['n_700']} x 700")
     print(f"  {res['path']}  ({res['bytes']:,} bytes)")
     conn.close()
     return 0

@@ -1,0 +1,16 @@
+{
+    "ti": "SCYUGZULAB29BFNQ_TST",
+    "cn": "IPCORP_TST",
+    "dt": "12",
+    "ci": "SCYUGZULAB29BFNQ_TST~fUl3yMaUO0IwKRXgg4QRTDK6nxmBvfs6CkBcdLJSs8c",
+    "cs": "dGx2hqN09q1aacKyOmNoIKpN5QkAEcStwd3NOYhIwbbiteF9_-6lCp4bqx8tfEH3P1Cv8sPYxeU0AubRbmT0-A",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/SCYUGZULAB29BFNQ_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "SCYUGZULAB29BFNQ_TST#zKO6gvRP23lA1bcpArzELmtXbKwMKPjzg-P622uoXV_PY_jV93vEHI-l44qE5pXOzwtpuECLPX-0clu1I38inw",
+    "sask": "IGKNQwA86M0h7M2YcLtCXXdAUe01bGDgPUudLxSKrkwWr_o4AIdTIHMv4ZWDP3s-Ze35QI2Ko_MZTLOpKmkpMg"
+}

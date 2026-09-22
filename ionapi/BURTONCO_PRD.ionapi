@@ -1,0 +1,16 @@
+{
+    "ti": "BURTONCO_PRD",
+    "cn": "Backend Service",
+    "dt": "12",
+    "ci": "BURTONCO_PRD~sSBjMuBuDU7tpeMAwJ3lmcaRQCh6uH1tSnJyZ3ugLM8",
+    "cs": "nb18xl4YKwd_xZB4zH5ILPPngD3yYhE8Bt5CTvZrtbVtUvuj_MbPF_GcvA_otArP9RLK5ddTPsMqzkBPCLFF-Q",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/BURTONCO_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "BURTONCO_PRD#4BLtzprghKi9PdC84OD7XxtY8ZNaQVN4fxLbuH_3CHrRDV-gsylxqPoI-pgsqis4tqLBwriYOzqSSM83_HL2gQ",
+    "sask": "lG13fsXThCvZiFJc91DkPN2XkY9yNUdOvy36GdMO0nQoYHCgp3mPJDMM_hGnTWA4gU7E5n9sNe4MdJclhJGz2A"
+}

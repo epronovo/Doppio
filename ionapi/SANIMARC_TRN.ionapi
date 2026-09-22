@@ -1,0 +1,16 @@
+{
+    "ti": "SANIMARC_TRN",
+    "cn": "IONWorkFlow-SANIMARC_TRN",
+    "dt": "12",
+    "ci": "SANIMARC_TRN~5wjwcn5iF3c6PYWwAp47Ao910k9jqs28OyZxBzY54eU",
+    "cs": "_nCYdgJQJtyyhufsUYSAMACclfF4b2xAUqZPX0usdfeRkTLZF3_mnv3nP6wNyIlmJMjrajqycENnUicDiEbiyw",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/SANIMARC_TRN/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "SANIMARC_TRN#zu_ZKjoKW0NNHQEld-2mlceU3Ruofl76tdcGna6B4_zxFZCNLlWgD87z02EMH98r59zxDyp7K-LU9MgxCIExtA",
+    "sask": "Uon-AIlgwp89z-v55fOCqAtwVVAXPFP8NrAGk_-6BCc9QDMB_-9A_Z_jZ4TfiizpVsK6VMOL-mV7lIRo35ph7Q"
+}

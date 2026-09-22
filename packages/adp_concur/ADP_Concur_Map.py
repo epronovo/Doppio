@@ -48,6 +48,14 @@ UNMAPPED = {
     # The retired non-US tab's own wording, kept so an older database's stored
     # values still read as failures rather than as data.
     "country_currency": "Country Currency Not Mapped",
+    # The UKG Company Map's own VLOOKUPs carry no IFERROR on the tab - a miss
+    # there is a raw #N/A - so this wording is ours rather than reproduced.
+    "ukg_site_location": "Site Location Not Mapped",
+    # Ledger Code and Custom 5, added with the 18th-of-the-month workbook,
+    # do carry their own IFERROR wording on the tab - quoted here rather
+    # than invented, unlike ukg_site_location above.
+    "ukg_ledger_code": "Ledger Code Not Matched",
+    "ukg_custom_5": "Custom 5 Not Matched",
 }
 
 DEFAULT_CONFIG = {
@@ -322,6 +330,18 @@ def load_maps(conn: sqlite3.Connection) -> dict:
         _s(r["file_number"]): _s(r["access"]).upper()
         for r in conn.execute("SELECT * FROM ADP_Concur_InvoiceMap")
     }
+
+    # UKG's own map: Site Location Code -> (Concur Org Unit, Expense Group
+    # Code, Ledger Code, Custom 5 Code). L, P, Z and AP on the UKG 305 tab
+    # all key off the same code, so one dict holds all four results rather
+    # than four near-identical ones.
+    maps["company"] = {
+        _s(r["site_location_code"]): (_s(r["concur_company_code"]),
+                                      _s(r["expense_group_code"]),
+                                      _s(r["ledger_code"]),
+                                      _s(r["custom_5_code"]))
+        for r in conn.execute("SELECT * FROM ADP_Concur_CompanyMap")
+    }
     return maps
 
 
@@ -375,9 +395,19 @@ def ADP_Concur_concur_profile(emp: dict, maps: dict) -> str:
 
 
 def ADP_Concur_travel_profile(emp: dict, maps: dict) -> str:
-    """AG: =IFERROR(VLOOKUP(AA5,'Salary Map'!A:D,4,FALSE),"Salary Code Not Mapped")"""
+    """
+    AG: =IFERROR(VLOOKUP(AA5,'Salary Map'!A:D,4,FALSE),"Salary Code Not Mapped")
+
+    350 R's header, new with the 18th-of-the-month workbook, spells out a
+    naming convention the Salary Map's own Travel Map column does not yet
+    follow: 'General xx (xx is 2 digit Country code)' - "General" alone is
+    the code, and the country belongs on the end ('CA should convert to
+    US'). Every ADP traveler here is US, so that is the one suffix applied;
+    a non-US ADP traveler would need this taught the same per-country
+    lookup the header describes rather than a flat " US".
+    """
     hit = maps["salary"].get(_s(emp.get("pay_grade_code")))
-    return hit[1] if hit else UNMAPPED["travel_profile"]
+    return f"{hit[1]} US" if hit else UNMAPPED["travel_profile"]
 
 
 def ADP_Concur_legal_country(emp: dict, maps: dict) -> str:
@@ -533,14 +563,16 @@ def ADP_Concur_invoice_access(emp: dict, maps: dict, limit_hit) -> str:
 
 def derive_ukg(emp: dict, maps: dict, cfg: dict) -> dict:
     """
-    The same fourteen values for somebody out of UKG.
+    The same fourteen values as ADP, plus one UKG carries on its own: the
+    Expense Group Code the 305 tab's Custom 21 now wants instead of a copy
+    of Org Unit 1.
 
     A separate function rather than branches inside the ADP one, because UKG
     is a different system describing the same people differently - not a
     variant of the ADP rules. Half of what ADP looks up, UKG already answers:
     the supervisor is already a bare employee number, the org units are codes
     on the record, and the status is already Y or N. What is left is four
-    lookups, and each quotes the UKG sheet's own formula.
+    lookups plus the Company Map, and each quotes the UKG sheet's own formula.
 
     Three of the fourteen are deliberately empty because UKG's derived block
     leaves them empty: BG Local Code, BI Preferred Name and BK Term Date have
@@ -554,12 +586,13 @@ def derive_ukg(emp: dict, maps: dict, cfg: dict) -> dict:
     legal_country = maps["country"].get(_s(emp.get("legal_country_code"))) \
         or UNMAPPED["ukg_country"]
 
-    # 305 UKG column I: =IFERROR(VLOOKUP(J2,'Language Map'!M:O,3,FALSE),"en_"&J2)
+    # 305 UKG column I: =IFERROR(VLOOKUP(J2,'Language Map'!M:O,3,FALSE),"en_US")
     # J is the Ctry Code, so the locale is looked up from the *derived* country
-    # rather than from the raw one - 'US', not 'USA'.
-    locale = (maps["locale"].get(legal_country.upper())
-              or (f"en_{legal_country}" if legal_country
-                  and "Not Mapped" not in legal_country else ""))
+    # rather than from the raw one - 'US', not 'USA'. The miss case used to
+    # build 'en_' plus the country code (so Singapore, which the Language Map
+    # does not carry, read 'en_SG'); the tab now hard-codes 'en_US' for any
+    # miss, whatever the country actually is.
+    locale = maps["locale"].get(legal_country.upper()) or "en_US"
 
     # BH: =IFERROR(VLOOKUP(AM2,'Country Map'!A:E,4,FALSE),"Country Not Mapped")
     currency = maps["country_currency"].get(country) or UNMAPPED["ukg_country"]
@@ -574,15 +607,54 @@ def derive_ukg(emp: dict, maps: dict, cfg: dict) -> dict:
     limit_hit = grade[2] if grade else UNMAPPED["invoice_limit"]
     access = ADP_Concur_invoice_access(emp, maps, limit_hit)
 
+    # 305 UKG column P: =IFERROR(VLOOKUP(BA2,'UKG Company Map'!B:E,2,FALSE),"Org Unit 1 Not Mapped")
+    # 305 UKG column AP: =IFERROR(VLOOKUP(BA2,'UKG Company Map'!B:G,4,FALSE),"Custom 21 Exp Group Not Matched")
+    # BA is the Site Location Code. All four (L, P, Z, AP) used to be a flat
+    # copy of it (L was =UKG!BA2 outright, and P/Z/AP all just pointed at L) -
+    # the workbook that added the Company Map sends the Site Location Code
+    # through it instead, and the four no longer agree: P (Org Unit 1) takes
+    # the Concur Org Unit, AP (Custom 21) takes the Expense Group Code. L
+    # and Z used to just copy P, but the 18th-of-the-month workbook gives
+    # them their own Company Map columns too - see below.
+    site = _s(emp.get("site_location_code"))
+    company = maps["company"].get(site)
+    company_code = company[0] if company else UNMAPPED["ukg_site_location"]
+    expense_group = company[1] if company else UNMAPPED["ukg_site_location"]
+
+    # 305 UKG column L: =IFERROR(VLOOKUP(BA2,'UKG Company Map'!B:G,5,FALSE),"Ledger Code Not Matched")
+    # 305 UKG column Z: =IFERROR(VLOOKUP(BA2,'UKG Company Map'!B:G,6,FALSE),"Custom 5 Not Matched")
+    # The workbook's own formulas quote column index 7 and 8 here, which is
+    # past the end of the six-column B:G table (index 6 is its last column)
+    # and would only ever return the #REF! IFERROR catches - every row in
+    # the workbook itself currently reads "...Not Matched" for both. 5 (F,
+    # Ledger Code) and 6 (G, Custom 5 Code) are what the column headers and
+    # the IFERROR wording both say was meant, so that is what is implemented
+    # here rather than the workbook's literal, broken index.
+    ledger_code = company[2] if company else UNMAPPED["ukg_ledger_code"]
+    custom_5 = company[3] if company else UNMAPPED["ukg_custom_5"]
+
+    # BB: =IF(OR(BA2="0077",BA2="177"),"0000",IF(ISBLANK(AI2),"000",AI2))
+    # BA is the Site Location Code, AI the Org Level 3 Code. Two of NGP
+    # Sweden's site codes ('0077' and '177', the same site under an old and a
+    # new numbering) now force "0000" regardless of what AI holds; everyone
+    # else keeps the blank-becomes-"000" rule the tab picked up just before
+    # this. Digits either way, never a blank.
+    if site in ("0077", "177"):
+        org_unit_2 = "0000"
+    else:
+        org_unit_2 = _s(emp.get("org_level_3_code")) or "000"
+
     return {
         # AZ: =R2. Already a bare employee number - no payroll prefix to strip.
         # The Supervisor Map still wins, for the same reason it does on ADP.
         "supervisor_id": (maps["supervisor"].get(_s(emp.get("file_number")))
                           if _s(emp.get("file_number")) in maps["supervisor"]
                           else _s(emp.get("supervisor_id_raw"))),
-        # BA: =U2, the Site Location Code.  BB: =AI2, Org Level 3 Code.
-        "org_unit_1": _s(emp.get("site_location_code")),
-        "org_unit_2": _s(emp.get("org_level_3_code")),
+        "org_unit_1": company_code,
+        "concur_expense_group": expense_group,
+        "concur_ledger_code": ledger_code,
+        "concur_custom_5": custom_5,
+        "org_unit_2": org_unit_2,
         "concur_profile": grade[0] if grade else UNMAPPED["concur_profile"],
         "travel_profile": grade[1] if grade else UNMAPPED["travel_profile"],
         "invoice_limit": ADP_Concur_invoice_limit(emp, maps, access),
@@ -605,9 +677,16 @@ def derive_adp(emp: dict, maps: dict, cfg: dict) -> dict:
     grade = maps["salary"].get(_s(emp.get("pay_grade_code")))
     limit_hit = grade[2] if grade else UNMAPPED["invoice_limit"]
     access = ADP_Concur_invoice_access(emp, maps, limit_hit)
+    org_unit_1 = ADP_Concur_org_unit_1(emp, maps)
     return {
         "supervisor_id": ADP_Concur_supervisor_id(emp, maps),
-        "org_unit_1": ADP_Concur_org_unit_1(emp, maps),
+        "org_unit_1": org_unit_1,
+        # 305 AP / L / Z: =ADP!AD5, the same cell Org Unit 1 reads - ADP's
+        # Custom 21, Ledger Code and Custom 5 are all still flat copies of
+        # Org Unit 1. Only UKG's have their own source now; see derive_ukg().
+        "concur_expense_group": org_unit_1,
+        "concur_ledger_code": org_unit_1,
+        "concur_custom_5": org_unit_1,
         "org_unit_2": ADP_Concur_org_unit_2(emp, maps),
         "concur_profile": ADP_Concur_concur_profile(emp, maps),
         "travel_profile": ADP_Concur_travel_profile(emp, maps),
@@ -978,7 +1057,7 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         "H":  ("field", "work_email"),               # Email Address
         "I":  ("field", "locale_code"),
         "J":  ("field", "legal_country"),            # Ctry Code
-        "L":  ("field", "org_unit_1"),               # Ledger Code
+        "L":  ("field", "org_unit_1"),               # Ledger Code - ADP; UKG has its own now
         "M":  ("field", "reimbursement_currency"),
         "O":  ("field", "concur_status"),            # Active (Y/N)
         "P":  ("field", "org_unit_1"),
@@ -989,9 +1068,10 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         # Travel column is gone from the 15 September workbook, which is what
         # Concur's Run-20 result had already told us.
         "X":  ("field", "concur_profile"),
-        # Custom 5 Department: =P5 on both tabs. It is Org Unit 1 now, not the
-        # department code - the workbook changed it after Concur rejected the
-        # department codes as invalid list items.
+        # Custom 5 Department: =P5 on ADP - Org Unit 1, not the department
+        # code, since the workbook changed it after Concur rejected the
+        # department codes as invalid list items. UKG has its own Custom 5
+        # source now; see FIELD_MAP_BY_SOURCE.
         "Z":  ("field", "org_unit_1"),
         "AB": ("field", "term_date"),                # Custom 7 Term Date
         "AC": ("field", "preferred_name"),           # Custom 8 Preferred Name
@@ -1004,6 +1084,12 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         # without Concur Invoice rather than given it and left unable to use it.
         "BU": ("field", "invoice_access"),           # Invoice User
         "BV": ("field", "invoice_access"),           # Invoice Approver
+        # Travel Wizard User. ADP's tab writes a flat Y for every row; UKG's
+        # tab leaves it blank for all 360 of its rows rather than writing N,
+        # so the miss was silent - a position FIELD_MAP does not cover comes
+        # out empty rather than N. Written the same Y for both, per the
+        # 18th-of-the-month load: every employee is checked for it.
+        "CH": ("const", "Y"),                        # Travel Wizard User
         "CE": ("const", "Y"),                        # Future Use 2
     },
     "350": {
@@ -1031,7 +1117,7 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
     # applies that filter; see the 'invoice' scope.
     "700": {
         "A": ("const", "700"),
-        "B": ("const", "REQ"),                       # Approval Type
+        "B": ("const", "PMT"),                        # Approval Type
         "C": ("field", "file_number"),
         "O": ("field", "invoice_limit"),             # Approval Limit
         "P": ("field", "reimbursement_currency"),    # Approval Limit Currency
@@ -1040,11 +1126,18 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
 
 # Where a source's own tab points a column somewhere else.
 #
-# Four differences between the ADP and UKG tabs, all of them real:
+# Six differences between the ADP and UKG tabs, all of them real:
 #
 #  * 305 C Middle Name - UKG has no middle name column at all.
 #  * 305 AB / AC - UKG's derived block leaves Term Date and Preferred Name
 #    empty, so its tab has no formula in either.
+#  * 305 AP Custom 21 Concur Expense Group Hierarchy - ADP's is still a flat
+#    copy of Org Unit 1; UKG's now comes from the Company Map's Expense
+#    Group Code instead, since the workbook that added the map (see
+#    ADP_Concur_CompanyMap).
+#  * 305 L Ledger Code and Z Custom 5 Department - ADP's are still flat
+#    copies of Org Unit 1; UKG's now come from the Company Map's own Ledger
+#    Code / Custom 5 Code columns, since the 18th-of-the-month workbook.
 #  * 360 AC Display Image In-line - ADP hard-codes Y, UKG feeds it from
 #    Invoice Access; and AD Auto Open Image is Y on ADP and N on UKG.
 #  * 700 P Approval Limit Currency - ADP writes the employee's reimbursement
@@ -1059,6 +1152,9 @@ FIELD_MAP_BY_SOURCE: dict[str, dict[str, dict[str, tuple[str, str]]]] = {
             "C":  ("const", ""),                     # no middle name in UKG
             "AB": ("const", ""),                     # no Term Date
             "AC": ("const", ""),                     # no Preferred Name
+            "AP": ("field", "concur_expense_group"),  # Expense Group Code, not Org Unit 1
+            "L":  ("field", "concur_ledger_code"),    # Company Map's Ledger Code
+            "Z":  ("field", "concur_custom_5"),       # Company Map's Custom 5 Code
         },
         "360": {
             "AC": ("field", "invoice_access"),       # Display Image In-line

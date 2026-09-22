@@ -40,8 +40,8 @@
   },
   "scope": {
     "305": "all",
-    "350": "off",
-    "360": "all",
+    "350": "all",
+    "360": "invoice",
     "700": "invoice"
   },
   "blank_fields": {

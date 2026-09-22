@@ -1,0 +1,16 @@
+{
+    "ti": "UGMBEDKA45W3FXB5_PRD",
+    "cn": "PRD_Doppio_DataUpload",
+    "dt": "12",
+    "ci": "UGMBEDKA45W3FXB5_PRD~FOhKm2KsaufHT1_BrwLyWwT2ZwIvgA-_-q8WojJm8QA",
+    "cs": "yRuuE7SmJNvtZEn0wzzvGaaJpRscjMUNbr8gHEjjghAGmdVNCx9LLKoqipgswYT8vdqAzQPF_i2kmI9u_9GSXg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/UGMBEDKA45W3FXB5_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "UGMBEDKA45W3FXB5_PRD#Pw4PFYtWX4xpw6XGXsBq7obuCvK0j5Bz4OyBQzpUJgyzAipqEfzKoEw6mjm5GvUNP0dSL2-Xrli4-rVOb6rNwg",
+    "sask": "lNmufIe_z9yXBc1RfgSGbkwRj7GcG9s2JVBOBcedFDcxBD0TuSFWIWFEUoOaiIcyrcHQrx7qY9XU3Bdg599tXQ"
+}

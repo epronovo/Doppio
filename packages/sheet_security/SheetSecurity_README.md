@@ -12,14 +12,14 @@ The list splits into three tabs by `AUTH`:
 
 | Tab | AUTH | What it holds |
 |-----|------|----------------|
-| **Tenants** | `20` | A customer tenant's registration — its `HASH` is an encoded `.ionapi` file (see Extract Type 20, below) |
+| **Tenants** | `20` | A tenant's registration — its `HASH` is an encoded `.ionapi` file (see Extract Type 20, below); `M3ID` / `UMSG` are resolved by the **Get Default Users** button (see Resolving a tenant registration, below) |
 | **Users** | `1` / `0` | A user's access to a tenant — `1` granted, `0` that same grant blocked |
 | **Review** | `99` | Someone who has attempted to use the sheet without a grant yet — has a **Delete all** action, since this tab is meant to be cleared out once its requests are handled |
 
 | File | Role |
 |------|------|
 | `SheetSecurity_App.py` | Flask routes |
-| `SheetSecurity_M3Api.py` | `M3Client` (EXT124MI + EXPORTMI + MNS150MI over m3api-rest), the "find M3 user" guesser, HASH decode/encode, and the AUTH=20 → `.ionapi` extractor |
+| `SheetSecurity_M3Api.py` | `M3Client` (EXT124MI + EXPORTMI + MNS150MI + MRS001MI over m3api-rest), the "find M3 user" guesser, the tenant-registration resolver, HASH decode/encode, and the AUTH=20 → `.ionapi` extractor |
 | `templates/SheetSecurity_Index.html` | The page — table, add/edit panel |
 
 ## Quick start
@@ -29,10 +29,13 @@ pip install -r requirements.txt
 python SheetSecurity_App.py      # http://127.0.0.1:5062/
 ```
 
-The tenant dropdown lists every `.ionapi` file in the repo-root `ionapi/`
-folder (the same shared folder every other Infor tool in this repo uses),
-defaulting to `DOPPIO_DEM`. Switching tenants re-reads the list from that
-tenant's own EXT124MI.
+The tenant dropdown lists only **Managing Systems** — tenants that carry
+their own EXT124MI/EXTXSM security table, tagged as such on `DOPPIO_DEM`'s
+own Tenants tab (see Resolving a tenant registration, below) — not every
+tenant that happens to have an `.ionapi` file on disk in the repo-root
+`ionapi/` folder (e.g. a customer tenant extracted for **Find M3 user** or
+**Extract Type 20**). `DOPPIO_DEM` is the bootstrap and always the default.
+Switching tenants re-reads the list from that tenant's own EXT124MI.
 
 ## The record shape
 
@@ -63,7 +66,7 @@ panel, just not worth a column in a table this narrow:
 
 | Tab | Hidden from the list |
 |-----|----------------------|
-| Tenants | `M3ID`, `RGDT`, `RGTM`, `LMDT`, `HASH` |
+| Tenants | `RGDT`, `RGTM`, `LMDT`, `HASH`, `CHNO`, `CHID`, `HASH_full_length` |
 | Users | `RGDT`, `RGTM`, `LMDT`, `HASH` |
 | Review | `UMSG`, `RGDT`, `RGTM`, `LMDT`, `HASH` |
 
@@ -150,6 +153,32 @@ immediately for the lookup. The status line says "extracted just now" when
 that happened. This only ever adds a new file; it never overwrites one that
 was already there.
 
+### IFS export - a second source, no M3 tenant required
+
+The toolbar's **Import IFS export…** button uploads a CSV of Ming.le/IFS
+user data (Infor's federated identity export — columns include
+`PersonId`, `FirstName`, `LastName`, `EmailId`, `User Name`, `User Alias`,
+then 250+ `SecurityRoleNNN` columns this tool ignores). It is kept in
+memory only, one file for the whole app (not scoped per tenant) — it is
+re-parsed on every upload and cleared on **clear**, next to the status
+line, or when the app restarts.
+
+Once one is loaded, **Find M3 user** scores its rows the same way it
+scores MNS150MI users, and merges both sets of candidates by score. The
+match key is `User Name`'s login, folded down to the part before `@` (e.g.
+`UMTHJ` out of `UMTHJ@RA.BG1857.net`) — compared against PCID exactly like
+MNS150MI's USID/email are. A hit fills `M3ID` from that row's `User Alias`
+(e.g. `USMTUDO`) and `UMSG` from its `EmailId` (e.g.
+`mtudor@onebarnes.com`). Every candidate is tagged "M3" or "IFS export" so
+it's clear which source it came from.
+
+Because it needs no `.ionapi` for the record's own `TNNM`, this also covers
+the case **Find M3 user** otherwise can't: a tenant with no `.ionapi` file
+and no AUTH=20 record to extract one from. That failure is folded into
+`m3_error` rather than shown as an error, as long as the IFS export has
+something to offer instead — it is only surfaced (and the lookup fails
+outright) when there is no IFS export loaded to fall back on.
+
 ## Decrypt / Encrypt HASH
 
 HASH isn't actually encrypted — it's base64(compact JSON), the same scheme
@@ -170,6 +199,39 @@ Two details worth knowing since they change the actual bytes:
   decoded HASH's fields; with it off, decoding and re-encoding an
   unmodified value reproduces the original HASH byte-for-byte.
 
+## Resolving a tenant registration
+
+The Tenants tab's **Get Default Users** button resolves every AUTH=20 row
+whose `M3ID` is still blank — a row is only ever touched once this way;
+re-running it later sees a non-blank `M3ID` and skips straight past it, so
+it only ever spends time on what's still unresolved (a fresh registration,
+or one that failed to connect last time). Resolving connects to the row's
+own `TNNM` (same loose match / auto-extract-from-`HASH` as **Find M3
+user**) and asks it two things:
+
+- **Who is its default user?** `MRS001MI/GetUserInfo` with no record ("who
+  am I") against that tenant's own `.ionapi` service account — the same
+  call `vba/Doppio.bas`'s `Environments_GetUsers` makes. A real `ZZUSID` is
+  written to `M3ID`; a display-name-only result (`USFN`, no `ZZUSID`) counts
+  the same as no default user, and `M3ID` is left blank.
+- **Does it run EXT124MI too?** `EXT124MI/GetUsrInfo` against that same
+  connection, keyed exactly like the row being resolved (`PCID`, `TNNM`,
+  `20`) — AUTH=20 rows are keyed `PCID`==`TNNM`==the tenant name in every
+  case seen so far, so a tenant that self-registered the same way answers
+  with a real record. A hit means this tenant is a **Managing System** in
+  its own right, not just a customer tenant this one happens to know about,
+  and `UMSG` is set to the literal string `Managing System`.
+
+If the connection can't be made at all (no `.ionapi`, nothing to extract one
+from, a bad token, network down, …), `UMSG` is set to `Connection Error`
+instead, and the row is tried again next time the button is clicked.
+Whatever is found is written straight back to M3 with a plain `UpdUsrInfo`,
+precisely so a later **Assign to tenant** (below) and the tenant dropdown
+(above) can just read the row instead of making their own live lookup. The
+toast when it finishes summarizes how many rows were checked, resolved,
+found to be Managing Systems, hit a connection error, or are still
+unresolved.
+
 ## Extract Type 20 → .ionapi files
 
 An AUTH=20 record is EXTXSM's own note that a customer tenant is
@@ -188,10 +250,49 @@ one more confirmation naming the files it would replace. If two records
 decode to the same `ti`, the first one to write wins and the second is
 reported as skipped ("already exists") rather than silently clobbering it.
 
+## Assign a Review request to a tenant
+
+A Review (AUTH=99) row's `PCID` is the requester's Windows login and its
+`TNNM` is their machine name — see `vba/Doppio.bas`'s `AddUsrInfo` call that
+writes these rows, which also always sets `M3ID` to the literal string
+`"unknown"`. Neither `PCID` nor `TNNM` on that row is a customer tenant, so
+turning a request into real access means creating a brand new record keyed
+on the *target* tenant, not editing the request in place.
+
+The Review tab's **Assign to tenant…** button opens a panel listing the
+requests currently visible on the tab (so filtering the tab first — e.g. by
+`DOMAIN` — narrows this list too) alongside every tenant this security
+tenant already has an AUTH=20 registration for. Pick an initial **AUTH**
+(`0` blocked or `1` granted — `0` is the default, since the record still
+needs its M3 user confirmed), one or more requests, one or more target
+tenants, and **Assign selected** calls `AddUsrInfo` once per request ×
+tenant pair to create a `PCID` + target `TNNM` + chosen `AUTH` record. `HASH`
+is left blank; a pair that already has an AUTH=0 or AUTH=1 record is skipped
+rather than duplicated.
+
+`M3ID` / `UMSG` are *not* copied from the request (whose `M3ID` is always
+the literal string `"unknown"` — see above) — instead each target tenant's
+own default user is used, read straight off that tenant's own AUTH=20
+`M3ID` (see Resolving a tenant registration, above) rather than a fresh
+live lookup. `UMSG` on the new record is left blank; the panel shows each
+tenant's resolved `M3ID` under its checkbox as soon as it opens, so what
+every created record will carry is visible before you click Assign. A
+tenant whose `M3ID` hasn't resolved yet (or couldn't) falls back to a blank
+`M3ID` on the new record — that's still useful, since it's exactly what a
+later sweep can search for to find records that still need **Find M3 user**
+run on them.
+
+With **Delete the review request once it's assigned** checked (on by
+default), each request is deleted after at least one record is created for
+it — the same one-call-per-row delete "Delete all" already uses, just
+scoped to the rows that were actually assigned.
+
 ## What else this app does not do
 
-Beyond that one dry-run/confirm workflow, there is no local cache and no
-other bulk operations — every add, edit and delete is one live M3 call,
-applied as soon as you click Save or Delete (with a plain confirm prompt on
-delete). That matches EXT124MI itself: there is nothing to export or
-re-import, because the sheet reads this table directly.
+Beyond those workflows, there is no local cache — every add, edit and
+delete is one live M3 call, applied as soon as you click Save, Delete,
+Assign selected or Get Default Users (the latter with no confirm prompt,
+since it only ever fills in a blank `M3ID`/`UMSG` rather than changing an
+existing value - see Resolving a tenant registration, above). That matches
+EXT124MI itself: there is nothing to export or re-import, because the
+sheet reads this table directly.

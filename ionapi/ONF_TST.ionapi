@@ -1,0 +1,16 @@
+{
+    "ti": "YQYH5DQYFYCRHCJC_TST",
+    "cn": "IONWorkFlow-YQYH5DQYFYCRHCJC_TST",
+    "dt": "12",
+    "ci": "YQYH5DQYFYCRHCJC_TST~Ez9smJdM7wIh_mnpeVUpv7jYBOceKMDgQ-I_rnnUx50",
+    "cs": "6w-Bw2m0KaI2G5I-KPrz7KwVCRd3jR9feoIqfdIcyyWF4iLpHMhla5nqJ_6dxi74t8ekvXnodQI-CRA7KsNysw",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/YQYH5DQYFYCRHCJC_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "YQYH5DQYFYCRHCJC_TST#q5cD9W9D8keg49IKnKKQAeybXIrdkO4DUrluEf_eMadTnSoC_hXynYNKDLmtvnGrC1EozN4I6xFH1sElXX6ygw",
+    "sask": "WmbX6BrKAlTYnBHn-c4yAeV5jptvV0lZearFrqXnrfFaNAjOVzglDw3XZqBOvACCIyiExlKFYdvjrzpcbMYZiQ"
+}

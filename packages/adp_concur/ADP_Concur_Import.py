@@ -49,6 +49,8 @@ SHEET_SIGNATURES: list[tuple[str, list[str]]] = [
     ("supervisor_map", ["exception employee id", "supervisor id"]),
     ("role_map",       ["role", "assign role automatically"]),
     ("invoice_map",    ["invoice exception employee", "invoice access value"]),
+    ("company_map",    ["site location code", "concur company code",
+                        "expense group code"]),
 ]
 
 # The record templates announce themselves in their first cell.
@@ -507,6 +509,50 @@ def import_org_map(conn, rows, header_row) -> int:
     return _refresh(conn, "ADP_Concur_OrgMap", list(idx), out)
 
 
+def import_company_map(conn, rows, header_row) -> int:
+    """
+    The UKG Company Map: Site Location Code -> Concur Org Unit, Expense
+    Group Code, Ledger Code and Custom 5 Code.
+
+    New with the workbook that stopped writing UKG's Site Location Code
+    straight into Ledger Code, Org Unit 1, Custom 5 and Custom 21 - the 305
+    UKG tab's L, P, Z and AP columns all VLOOKUP through this sheet instead.
+    Ledger Code and Custom 5 Code are new with the 18th-of-the-month
+    workbook: L and Z used to be flat copies of Org Unit 1 (P) and now have
+    their own columns here. Keyed on Site Location Code, first row wins,
+    matching VLOOKUP.
+
+    "concur_company_code" asks for "concur org unit" first - the sheet's
+    actual header for that column - falling back to the older "concur
+    company code" wording. Asking for the older wording alone would match
+    "Concur Company Code Description" by prefix instead (column_index()'s
+    exact-then-prefix rule) and silently carry the description through as
+    if it were the code.
+    """
+    h = rows[header_row - 1]
+    idx = {
+        "site_location": column_index(h, "site location"),
+        "site_location_code": column_index(h, "site location code"),
+        "concur_company_code": column_index(h, "concur org unit", "concur company code"),
+        "concur_company_desc": column_index(h, "concur company code description"),
+        "expense_group_code": column_index(h, "expense group code"),
+        "ledger_code": column_index(h, "ledger code"),
+        "custom_5_code": column_index(h, "custom 5 code"),
+    }
+    key = idx["site_location_code"]
+    out, seen = [], set()
+    for r in rows[header_row:]:
+        if key is None or key >= len(r):
+            continue
+        code = _cell(r[key])
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        out.append([_cell(r[i]) if i is not None and i < len(r) else ""
+                    for i in idx.values()])
+    return _refresh(conn, "ADP_Concur_CompanyMap", list(idx), out)
+
+
 def import_language_map(conn, rows, header_row) -> int:
     """
     Only the first three columns are read.
@@ -761,6 +807,7 @@ HANDLERS = {
     "language_map": ("ADP_Concur_LanguageMap", import_language_map),
     "salary_map": ("ADP_Concur_SalaryMap", import_salary_map),
     "supervisor_map": ("ADP_Concur_SupervisorMap", import_supervisor_map),
+    "company_map": ("ADP_Concur_CompanyMap", import_company_map),
 }
 
 EXTRA_BLOCKS["country_map"] = [("country_ref", "ADP_Concur_CountryRef",

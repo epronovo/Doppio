@@ -1,0 +1,16 @@
+{
+    "ti": "BURTONCO_TST",
+    "cn": "BURTON_TST",
+    "dt": "12",
+    "ci": "BURTONCO_TST~Qiutpv9WVmAsrIZYRPRo2FTqmR4Lx-pS322ud7GWj78",
+    "cs": "767MReD364AlC1nnD7yI_p4azu2h-frfsjUjTBKXsrMeBAPaa2qG5OEx7dd9il9723jDahvqnzrYmMkPrALlrQ",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/BURTONCO_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "BURTONCO_TST#td-qqD9oRsnWx4ZUZf4zTWkR39z10DMnI4CQeM_kUNd-WBiMesYdvmz__cTDU8pOxdbxDARhp1MOrZwrC7SGyA",
+    "sask": "QhGCSRMIyMnuxdt37gpR2FIVnwlr1D5Ny2ynz7Pfdaa_S3xM6LKoVzhECFZrZeU_h36WYVavOKFxpffxRrb5yA"
+}

@@ -1,0 +1,16 @@
+{
+    "ti": "SANIMAX_TST",
+    "cn": "IONWorkFlow-SANIMAX_TST",
+    "dt": "12",
+    "ci": "SANIMAX_TST~TZF65vqkhEc7Nv5jb7QfVQgY4QBCr3SKXAxPCQ0HzFI",
+    "cs": "rkopwYJTg_a-3bX9C1Kya-8azjiu6aJ0tzL8CkXdy8ZPPljYAMeD_3dTNGTo5TN0BkD4iOt14kvDIi4E-eORiw",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/SANIMAX_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "SANIMAX_TST#1t8sUz0WqYewfi51dQ7dCPCKgAKfsV1GzTZMYBwJRB2A8b053sTQOSi62nq9WJCIq3UnFtKiqFMKDcUQ5G11XQ",
+    "sask": "7JY5LK4Hj1si6X4Kfwl788S-yZhROxSAyplr-wWyr59T-ahL9bLuAlDayVtkJYTRXTSdauGVuXUIgfgN6JBu6w"
+}

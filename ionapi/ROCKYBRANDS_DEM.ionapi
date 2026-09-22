@@ -1,0 +1,16 @@
+{
+    "ti": "ROCKYBRANDS_DEM",
+    "cn": "IONWorkFlow-ROCKYBRANDS_DEM",
+    "dt": "12",
+    "ci": "ROCKYBRANDS_DEM~PYTenX7sLbTRMRDOBvatAW8vjZplMzGYg4YZyHIGEfU",
+    "cs": "Ou-a755cn71QU8gIR5JOIDcg1VgyhjBouYHGnJZFeu0msZDGU4xf-RWjzCVMEUKPiAPawihJATE_SbsnSi7R0A",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/ROCKYBRANDS_DEM/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "ROCKYBRANDS_DEM#-xh0-huVBdj6FLUQYlKkz9rCumCwi2sToRzbROmRoBvEeKxtlMy7KcKH91-SAn0XmB9pxtIDBgolEypsyYRy3w",
+    "sask": "8UdwTwdEflrgvkelHGkw-4nts4y3HMzBAjxwLQeGHgdgipCVmBvo6AvZYecrMEYsz0KSS7-O7ruWYwWpStGPzA"
+}

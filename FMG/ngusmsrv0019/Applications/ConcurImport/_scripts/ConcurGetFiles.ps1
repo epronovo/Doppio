@@ -1,4 +1,4 @@
-param (
+﻿param (
     [Parameter(Mandatory=$true)]
     [ValidateSet("stage","production")]
     [string]$Environment
@@ -34,7 +34,9 @@ function Decrypt-Files {
         return
     }
 
-    $passPhrase = $null
+    $passPhrase = $config.App_PgpPassPhraseLocation
+
+    <# Require refactoring to get passpharase from secure location
     $passPhraseLocation = $config.App_PgpPassPhraseLocation
     if ($passPhraseLocation) {
         if (-not (Test-Path $passPhraseLocation)) {
@@ -43,6 +45,7 @@ function Decrypt-Files {
         }
         $passPhrase = (Get-Content $passPhraseLocation -Raw).Trim()
     }
+    #>
 
     $archiveRoot = $config.App_EncryptedArchivePath
     if (-not $archiveRoot) {
@@ -55,30 +58,61 @@ function Decrypt-Files {
         Write-Host "Created Directory $archivePath"
     }
 
+	$encrypted = $encrypted | Sort-Object LastWriteTime
+	
+	
     foreach ($file in $encrypted) {
 
-        Write-Host "Decrypting $($file.FullName)"
+        Write-Host "Decrypt - Processing File $($file.FullName)"
+		
+		$destinationFolder = $null
+		$outputName = $null
+		
+		if ($file.Name -like 'extract_payment_gl_as_consolidated_dtl_*') {
+			$destinationFolder = $config.App_ConcurInvoiceImport
+			# InvoiceImport.dtsx reads a fixed path, so normalize to a stable name.
+			# The timestamped original is retained as the .pgp in the dated encrypted archive.
+			$outputName = 'invoice_detail.txt'
+		}
+		elseif ($file.Name -like 'extract_payment_gl_as_consolidated_hdr_*') {
+			$destinationFolder = $config.App_ConcurInvoiceImport
+			# InvoiceImport.dtsx reads a fixed path, so normalize to a stable name.
+			# The timestamped original is retained as the .pgp in the dated encrypted archive.
+			$outputName = 'invoice_header.txt'
+		}
+		elseif ($file.Name -like 'extract_CES_SAE_v3*') {
+			$destinationFolder = $config.App_ConcurTravelExpense
+			# Keep the source name, strip only the .pgp/.gpg wrapper:
+			# extract_CES_SAE_v3_..._20260918125728.txt.pgp -> extract_CES_SAE_v3_..._20260918125728.txt
+			$outputName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+		}
+		else {
+			Write-Warning "Unknown PGP file type, skipping: $($file.Name)"
+            Move-Item $file.FullName -Destination $archivePath -Force -ErrorAction Stop
+			continue
+		}
+		
+		#Create Destination folder
+		if (-not (Test-Path $destinationFolder)) {
+			New-Item -ItemType Directory -Path $destinationFolder -Force | Out-Null
+		}
 
         # Strip only the .pgp/.gpg wrapper - concur_invoice.txt.pgp -> concur_invoice.txt
-        $outputFile = Join-Path $file.DirectoryName $file.BaseName
+        $outputFile = Join-Path $destinationFolder $outputName
 
         if (Test-Path $outputFile) {
             Write-Error "Decrypt target already exists, skipping: $outputFile"
             continue
         }
+		
+		Write-Host "Decrypting $($file.FullName)"
+		Write-Host "Output: $outputFile"
 
-        if ($passPhrase) {
-            $passPhrase | gpg --quiet --batch --yes --pinentry-mode loopback `
-                              --passphrase-fd 0 `
-                              -o $outputFile `
-                              -d $file.FullName
-        }
-        else {
-            gpg --quiet --batch --yes --pinentry-mode loopback `
+        gpg --quiet --batch --yes --pinentry-mode loopback `
+                --passphrase $passPhrase `
                 -o $outputFile `
                 -d $file.FullName
-        }
-
+        
         if ($LASTEXITCODE -ne 0 -or -not (Test-Path $outputFile)) {
             Write-Error "Decryption failed for $($file.Name). Leaving it in place to retry next run."
             if (Test-Path $outputFile) { Remove-Item $outputFile -Force -ErrorAction SilentlyContinue }
@@ -102,8 +136,8 @@ function Decrypt-Files {
 
 function main {
     try{
-        Get_Files
-        #Decrypt-Files
+        #Get_Files
+        Decrypt-Files
 		#Process_Files
     }
     catch{

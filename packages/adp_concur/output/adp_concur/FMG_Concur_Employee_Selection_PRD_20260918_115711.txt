@@ -1,0 +1,2 @@
+100,0,SSO,UPDATE,EN,N,N
+305,Tamara,K,Lipp,212990,tlipp@onebarnes.com,Welcome01,tlipp@onebarnes.com,en_US,US,,0088,USD,,Y,0088,9200,,,,,,S14,Default,,0088,,,,,,,,,,,,,,,,0088,,,,,,,,,,,,,,,,,209181,,,,Y,Y,,,,,,,,,N,N,,,,,,,,,Y,,,Y,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

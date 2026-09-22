@@ -1,0 +1,16 @@
+{
+    "ti": "NAZDAR_TST",
+    "cn": "IONWorkFlow-NAZDAR_TST",
+    "dt": "12",
+    "ci": "NAZDAR_TST~tUJWyzPt1fI1ACjLhLrC0i2ORwIo-jfTooy2--7kCKw",
+    "cs": "T4NRjfxeSMsTNM9FuagS2rgwyB72FtZcXU36yN0aonS6YfHvsqkmJ4EX8p7M7raverM7_BTNOuHiVWPXdlCN4A",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/NAZDAR_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "NAZDAR_TST#eRn3r_J9sMEnKhp478Jjc3MApyEk0O6pwZ-4Csxhr5J95T1LZRAzFrQBFGLpbTyNeegdmaBGBgcEFkjY9S1XzQ",
+    "sask": "qYlzTbhIfsSV2VuVEtz8m-4oypTt0wxEBXf1gnrEIsd3JO-1EgHHwvBS1pBYBjxgt82vq7kIBqSVawZF5XRyOw"
+}

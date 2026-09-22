@@ -7,7 +7,7 @@ An explicit --db argument wins, then the ADP_CONCUR_DB environment variable,
 then the default.
 
 The shape of the data follows Kelly's workbook: two sheets of raw HR export
-columns - ADP and UKG - eight lookup tabs that map their values onto Concur
+columns - ADP and UKG - nine lookup tabs that map their values onto Concur
 values, and four record layouts (305, 350, 360, 700) built by referencing them.
 
 Both sources land in one employee table. They describe the same thing in
@@ -157,6 +157,16 @@ DERIVED_COLUMNS: list[tuple[str, str]] = [
     ("Term Date", "term_date"),                         # ADP AN / UKG BK
     ("Invoice Access", "invoice_access"),               # ADP AO / UKG BL
     ("Login ID", "login_id"),                           # not in the workbook
+    # Added with the workbook that gave UKG its own Company Map: ADP's 305
+    # Custom 21 stays a copy of Org Unit 1, so this mirrors it for ADP, but
+    # UKG now looks it up separately - see derive_ukg() and the UKG Company
+    # Map.
+    ("Concur Expense Group", "concur_expense_group"),
+    # Added with the 18th-of-the-month workbook: ADP's Ledger Code and
+    # Custom 5 stay flat copies of Org Unit 1, but UKG's now come from the
+    # Company Map's own Ledger Code / Custom 5 Code columns.
+    ("Ledger Code", "concur_ledger_code"),
+    ("Custom 5 Code", "concur_custom_5"),
 ]
 
 # What the employee editor is allowed to write. The derived columns stay out -
@@ -229,6 +239,11 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_Employees (
     term_date               TEXT,
     invoice_access          TEXT,    -- Y/N - drives the 360 roles and whether a 700 is written
     login_id                TEXT,
+    -- 305 Ledger Code / Custom 5 Department. A flat copy of org_unit_1 for
+    -- ADP; for UKG, its own lookup on the UKG Company Map's Ledger Code /
+    -- Custom 5 Code columns - see derive_ukg() in ADP_Concur_Map.py.
+    concur_ledger_code       TEXT,
+    concur_custom_5          TEXT,
     -- UKG's own columns. Everything else it sends reuses an ADP column above,
     -- because it means the same thing under a different heading.
     pay_group_code          TEXT,
@@ -280,7 +295,7 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_Employees (
 );
 
 -- ------------------------------------------------------------------ maps
--- The six lookup tabs. Each one keeps its own table rather than a generic
+-- The lookup tabs. Each one keeps its own table rather than a generic
 -- key/value pair table, because the columns differ and the editor shows them.
 
 CREATE TABLE IF NOT EXISTS ADP_Concur_StatusMap (
@@ -372,6 +387,26 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_LocaleMap (
     locale_code  TEXT,
     row_state    TEXT NOT NULL DEFAULT 'unchanged',
     UNIQUE (country_code)
+);
+
+-- UKG's own map, new with the workbook that stopped writing UKG's Site
+-- Location Code straight into Ledger Code / Org Unit 1 / Custom 5 / Custom 21.
+-- Org Unit 1 (and Custom 21) still take the Concur Org Unit / Expense Group
+-- Code. Ledger Code and Custom 5 used to be flat copies of Org Unit 1 too,
+-- but the 18th-of-the-month workbook gives them their own columns (Ledger
+-- Code, Custom 5 Code) instead - see 305 UKG columns L, P, Z and AP, and
+-- derive_ukg() in ADP_Concur_Map.py.
+CREATE TABLE IF NOT EXISTS ADP_Concur_CompanyMap (
+    map_key             INTEGER PRIMARY KEY AUTOINCREMENT,
+    site_location       TEXT,
+    site_location_code  TEXT NOT NULL,
+    concur_company_code TEXT,
+    concur_company_desc TEXT,
+    expense_group_code  TEXT,
+    ledger_code         TEXT,
+    custom_5_code       TEXT,
+    row_state           TEXT NOT NULL DEFAULT 'unchanged',
+    UNIQUE (site_location_code)
 );
 
 -- --------------------------------------------------------------- layouts
@@ -565,6 +600,11 @@ MIGRATIONS: list[tuple[str, str, str]] = [
     ("ADP_Concur_CountryMap", "country_name", "TEXT"),
     ("ADP_Concur_CountryMap", "currency_code", "TEXT"),
     ("ADP_Concur_CountryMap", "currency_name", "TEXT"),
+    ("ADP_Concur_Employees", "concur_expense_group", "TEXT"),
+    ("ADP_Concur_Employees", "concur_ledger_code", "TEXT"),
+    ("ADP_Concur_Employees", "concur_custom_5", "TEXT"),
+    ("ADP_Concur_CompanyMap", "ledger_code", "TEXT"),
+    ("ADP_Concur_CompanyMap", "custom_5_code", "TEXT"),
 ]
 
 
@@ -647,6 +687,7 @@ def counts(conn: sqlite3.Connection) -> dict:
         "supervisor_map": n("SELECT COUNT(*) FROM ADP_Concur_SupervisorMap"),
         "country_ref": n("SELECT COUNT(*) FROM ADP_Concur_CountryRef"),
         "locale_map": n("SELECT COUNT(*) FROM ADP_Concur_LocaleMap"),
+        "company_map": n("SELECT COUNT(*) FROM ADP_Concur_CompanyMap"),
         "employees_us": n("SELECT COUNT(*) FROM ADP_Concur_Employees "
                           "WHERE roster = 'us' AND row_state <> 'deleted'"),
         "employees_non_us": n("SELECT COUNT(*) FROM ADP_Concur_Employees "
@@ -758,6 +799,11 @@ def picked_clause(picked: str, alias: str = "e") -> str:
 EMPLOYEE_SOURCES = {
     "adp": {
         "label": "From ADP",
+        "recoverable": True,
+        "note": "Comes back the moment the workbook is dropped again.",
+    },
+    "ukg": {
+        "label": "From UKG",
         "recoverable": True,
         "note": "Comes back the moment the workbook is dropped again.",
     },
@@ -939,7 +985,7 @@ def clear_maps(conn: sqlite3.Connection, commit: bool = True) -> dict:
     tables = ["ADP_Concur_StatusMap", "ADP_Concur_CountryMap", "ADP_Concur_OrgMap",
               "ADP_Concur_LanguageMap", "ADP_Concur_SalaryMap",
               "ADP_Concur_SupervisorMap", "ADP_Concur_CountryRef",
-              "ADP_Concur_LocaleMap", "ADP_Concur_Layouts"]
+              "ADP_Concur_LocaleMap", "ADP_Concur_CompanyMap", "ADP_Concur_Layouts"]
     out = {}
     cur = conn.cursor()
     for t in tables:

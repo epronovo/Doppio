@@ -1,5 +1,7 @@
 {
 	"App_IncomingSavePath":"E:\\Applications\\ConcurImport\\stage",
-	"App_PgpPassPhraseLocation":"",
-	"App_EncryptedArchivePath":"E:\\Applications\\ConcurImport\\stage\\encrypted"
+	"App_PgpPassPhraseLocation":"Concur123#@!FMG",
+	"App_EncryptedArchivePath":"E:\\Applications\\ConcurImport\\stage\\encrypted",
+	"App_ConcurInvoiceImport":"E:\\Applications\\ConcurImport\\stage\\ConcurInvoice\\import",
+	"App_ConcurTravelExpense":"E:\\Applications\\ConcurImport\\stage\\ConcurTravelExpense"
 }

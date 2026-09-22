@@ -1,0 +1,16 @@
+{
+    "ti": "ZFHB4CF6VXVB9THX_PRD",
+    "cn": "ION Connect",
+    "dt": "12",
+    "ci": "ZFHB4CF6VXVB9THX_PRD~xpe4MsdbcpQyVQ8S6U05f8BhZUoY4Anq9AMfLON7Ic4",
+    "cs": "ynHhz-YtC2BCUWnReBDBQlWgIVzyxtWDfKYfeFUfQQ39xoHj4MZNj-x5itk4ksOMyOxO-ebj6hppC_q3HUIaLA",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/ZFHB4CF6VXVB9THX_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "ZFHB4CF6VXVB9THX_PRD#8DyjVgKYGccO65sisn1QmcVmo9xG98gkLUPh3XbOLMxdRm4hmEXfnR2Z8HHBEbVs5LaSalhZ0a6xasHQ7tvqxw",
+    "sask": "gjtfBSK93HiwCXRCqNvAMXn-30XR1b6Yn2FM5KwmZ6r7ZvaqE6CurTGTF8SjyDaEJsXUrc8WwTaCvgIoNMLIZw"
+}

@@ -1,0 +1,16 @@
+{
+    "ti": "HILCO_DEM",
+    "cn": "NewAPI",
+    "dt": "12",
+    "ci": "HILCO_DEM~RrYbSdmEtbOwBcFciXJj01nSmxHqTZDKrLh2lIBXvyU",
+    "cs": "SfcwiLnWd0GfdUicoNrjWi-DaWJLy1NpMQXAO4vAbDyUR35tVOG4II8tTPGOrelA__TQkseNRkuwZhHaGn6Tkg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/HILCO_DEM/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "HILCO_DEM#GoYqQuZlpIuldr9VszXFpmJsb5MPVV6dB_4NJLtvE_mZPm1gHzQ3EmLmSrLRf2Ihz8F1qTBuynFi_SDQmp_g3Q",
+    "sask": "16Ox8dm61V7zLkI3u4lebk3a-blHvXUXT2JBH2fzdDV_jMFzOELJ_0kZBobt9P6qLdm3vdmGP9fqPTUOTmkELA"
+}

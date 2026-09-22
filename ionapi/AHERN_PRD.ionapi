@@ -1,0 +1,16 @@
+{
+    "ti": "AHERN_PRD",
+    "cn": "IONWorkFlow-AHERN_PRD",
+    "dt": "12",
+    "ci": "AHERN_PRD~H7vgbqZBMpwJ2kJ7ovN_xnB3AFLxPYDHEkJrGlOSWHw",
+    "cs": "UdWMedoCPq6pC3Di68dKyJjutuGlouXwZl3Jdq0uflNc5_6VQYvpjb3_pBZg0Lf3LpFfIgTxZxQavRLMwmXJqQ",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/AHERN_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "AHERN_PRD#6G9n7ZDwsp_KJGAiONTydpCukv_gjnPhwX97ZR2a_pgUczl3srj6HbO1sfWuHnT2IbI8wWxJyGGKXN0J51BVpA",
+    "sask": "334P6IP_0250pxlReBMSKkdeTo2jr-630xuUcbyFJBIiq5_X5sffBtLdju12QxAyQZr6Ff_UX7O9V91q0uVr9g"
+}

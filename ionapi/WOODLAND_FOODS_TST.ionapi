@@ -1,0 +1,16 @@
+{
+    "ti": "CNEYSQN5JTESLUBF_TST",
+    "cn": "M3_Connect",
+    "dt": "12",
+    "ci": "CNEYSQN5JTESLUBF_TST~k2Hu7_Q2pNHLmcFcDhwKXQfY0wMjOeHHFnx-W3r9xuE",
+    "cs": "swj7mwC1UYqx83EtlE_152bbXidHyASoJoUd0sN1WIq5JBQoV9x20i0PX-tALXEiayumbzWbNz3TUD9Uqrws6w",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/CNEYSQN5JTESLUBF_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "CNEYSQN5JTESLUBF_TST#u4At79LBj11DEwDAsxE25GaiYDR1belg55W61XT_vFcJr_IqUA7TIer_5CAIgz1wQxhiMrv1oxq6Fv9_7ByRfw",
+    "sask": "2d7b1WL9yIv9MoOym7KoOt9KvMTb6tNIUS3Tff6UsdS2S5fA19y4kk92h-elsVAjGzg_4bjb4jsY0buCBBMrtQ"
+}

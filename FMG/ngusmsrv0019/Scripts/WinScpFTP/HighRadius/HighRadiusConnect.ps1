@@ -21,7 +21,7 @@ function Get-SftpFiles {
 			SshPrivateKeyPath     = $SshKeyPath
 			PrivateKeyPassphrase  = $PassPhrase
 			SshHostKeyFingerprint = $SshKey
-			PortNumber = 10022
+			PortNumber = 22
 		}
 	}
 	else{

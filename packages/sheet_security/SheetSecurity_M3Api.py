@@ -36,8 +36,10 @@ which USID/EMAL the record's M3ID/UMSG should carry.
 from __future__ import annotations
 
 import base64
+import csv
 import datetime
 import difflib
+import io
 import json
 import logging
 import re
@@ -55,10 +57,15 @@ DEFAULT_IONAPI_DIR = BASE_DIR.parent.parent / "ionapi"
 DEFAULT_TENANT = "DOPPIO_DEM"
 DEFAULT_TIMEOUT = 60
 
-# EXT124MI record shape - the key that identifies a row, then the fields
-# carried on top of it. Any other field a live LstUsrInfo happens to return
-# is still shown (see api_security() in the Flask app) - this list only
-# decides display and form order.
+# EXT124MI's own field grouping for display/form order - not the real M3
+# key. EXT124's actual unique key is (PCID, TNNM) alone: GetUsrInfo,
+# AddUsrInfo and DelUsrInfo all match on PCID+TNNM and ignore whatever AUTH
+# is passed alongside them. AUTH is grouped with PCID/TNNM here only because
+# the UI treats it as identifying - it's changed with a plain UpdUsrInfo
+# exactly like HASH/M3ID/UMSG (see M3Client.update_usr_info). Any other
+# field a live LstUsrInfo happens to return is still shown (see
+# api_security() in the Flask app) - this list only decides display and
+# form order.
 EXT124_KEY_FIELDS = ("PCID", "TNNM", "AUTH")
 EXT124_VALUE_FIELDS = ("HASH", "M3ID", "UMSG")
 EXT124_FIELD_ORDER = EXT124_KEY_FIELDS + EXT124_VALUE_FIELDS
@@ -374,7 +381,12 @@ class M3Client:
         return self.execute("EXT124MI", [{"transaction": "AddUsrInfo", "record": rec}])
 
     def update_usr_info(self, pcid: str, tnnm: str, auth: str, **changes) -> dict:
-        """EXT124MI/UpdUsrInfo - change HASH / M3ID / UMSG on an existing record."""
+        """
+        EXT124MI/UpdUsrInfo - change AUTH and/or HASH / M3ID / UMSG on the
+        record keyed by PCID+TNNM. AUTH is always sent (it's an ordinary
+        value field here, not part of the lookup key), so this is also how
+        a record moves between tabs - no Add/Delete pair needed.
+        """
         rec = {"PCID": pcid, "TNNM": tnnm, "AUTH": str(auth)}
         for key in EXT124_VALUE_FIELDS:
             if key in changes and changes[key] is not None:
@@ -395,6 +407,14 @@ class M3Client:
         EXLMTS comes back as a Java timestamp (milliseconds since the Unix
         epoch) - formatted here so the list never shows a bare 13-digit
         number.
+
+        EXAUTH is numeric too, and EXPORTMI/Select renders a numeric zero as
+        blank rather than "0" (the same reason format_java_timestamp treats
+        blank and "0" as the same thing for EXLMTS). AUTH is part of every
+        record's key, so a blank here is never a real value - only the
+        zero-suppressed export of AUTH=0 - and left as-is it stops the row
+        matching any tab's AUTH filter, making the record vanish from the UI
+        even though M3 still has it.
         """
         body = self.execute("EXPORTMI", [{
             "transaction": "Select",
@@ -405,6 +425,8 @@ class M3Client:
         for row in rows:
             if "LMTS" in row:
                 row["LMTS"] = format_java_timestamp(row["LMTS"])
+            if "AUTH" in row and not row["AUTH"].strip():
+                row["AUTH"] = "0"
         return rows
 
     # ---- MNS150MI - the M3 user directory -----------------------------
@@ -414,6 +436,20 @@ class M3Client:
             {"transaction": "LstUserData", "record": {},
              "selectedColumns": ["USID", "TX40", "EMAL", "USTA"]}])
         return self._records(body, "LstUserData")
+
+    # ---- MRS001MI - "who am I" for this client's own token -------------
+    def get_user_info(self) -> dict | None:
+        """
+        MRS001MI/GetUserInfo called with an empty record - not a lookup of
+        some other user, but the M3 user this client's own service-account
+        token itself resolves to. The same call vba/Doppio.bas's
+        Environments_GetUsers makes to fill in a tenant's default user.
+        Returns the raw record (has ZZUSID among other fields), or None if
+        the tenant returned nothing.
+        """
+        body = self.execute("MRS001MI", [{"transaction": "GetUserInfo", "record": {}}])
+        rows = self._records(body, "GetUserInfo")
+        return rows[0] if rows else None
 
 
 # ---------------------------------------------------------------------------
@@ -499,6 +535,139 @@ def guess_m3_user(tenant_name: str, pcid: str,
     return {"tenant": client.tenant, "ionapi": client.ionapi_path.name,
             "extracted": client.extracted_ionapi,
             "candidates": scored[:8], "best": best}
+
+
+# ---------------------------------------------------------------------------
+# IFS (Infor Federation Services / Ming.le) user export - an alternate,
+# tenant-independent source for the same M3ID/UMSG guess guess_m3_user()
+# makes from MNS150MI. Where MNS150MI is one M3 tenant's own user list, this
+# is Ming.le's - every login across an IFS instance, exported as a CSV by an
+# admin (columns: PersonId, FirstName, LastName, EmailId, ..., "User Name",
+# ..., "User Alias", then 250+ SecurityRoleNNN columns and
+# SecurityAccessProfiles this tool has no use for).
+#
+# "User Name" is a login, typically "<PCID>@<some ADFS/Ming.le domain>" -
+# e.g. "UMTHJ@RA.BG1857.net" for PCID "UMTHJ". "User Alias" carries the M3
+# USID that login maps to (e.g. "USMTUDO") and "EmailId" the real company
+# email (e.g. "mtudor@onebarnes.com") - matching a PCID against a row's own
+# login and reading off User Alias / EmailId answers the same M3ID/UMSG
+# question guess_m3_user() asks of MNS150MI, without a live M3 call.
+# ---------------------------------------------------------------------------
+
+IFS_EXPORT_REQUIRED_COLUMNS = ("EmailId", "User Name", "User Alias")
+
+
+def parse_ifs_export(text: str) -> list[dict]:
+    """
+    Parse an IFS user export CSV into the handful of fields guess_from_ifs_export
+    needs. Raises M3ApiError if the file doesn't even have the columns this
+    depends on - a quick check to catch "wrong file" before it silently
+    parses zero usable rows.
+    """
+    reader = csv.DictReader(io.StringIO(text))
+    missing = [c for c in IFS_EXPORT_REQUIRED_COLUMNS if c not in (reader.fieldnames or [])]
+    if missing:
+        raise M3ApiError(
+            f"Not an IFS user export - missing column(s): {', '.join(missing)}.")
+
+    rows = []
+    for r in reader:
+        login = (r.get("User Name") or "").strip()
+        pcid = login.split("@", 1)[0] if "@" in login else login
+        usid = (r.get("User Alias") or "").strip()
+        email = (r.get("EmailId") or "").strip()
+        if not (pcid or usid or email):
+            continue
+        name = " ".join(p.strip() for p in (r.get("FirstName"), r.get("LastName")) if p and p.strip())
+        rows.append({"pcid": pcid, "login": login, "usid": usid, "email": email,
+                    "name": name, "status": (r.get("Status") or "").strip()})
+    return rows
+
+
+def guess_from_ifs_export(pcid: str, ifs_rows: list[dict], hint: str | None = None) -> dict:
+    """
+    Score a parsed IFS export's rows against a PCID (or hint), the same
+    scoring guess_m3_user() runs against MNS150MI: an exact match on the
+    row's own login (its "User Name", folded down to the part before '@')
+    scores highest, everything else falls back to fuzzy matching against
+    that login, the M3 USID it carries ("User Alias") and its email/name.
+
+    hint behaves exactly as it does in guess_m3_user() - given, it replaces
+    pcid entirely rather than blending with it. At least one of pcid / hint
+    must be given.
+    """
+    hint_key = _login_key(hint)
+    term_key = hint_key or _login_key(pcid)
+    if not term_key:
+        raise M3ApiError("Enter a PCID, or a name/email hint, to look up an M3 user.")
+
+    scored = []
+    for u in ifs_rows:
+        usid, email, name = u["usid"], u["email"], u["name"]
+        if not (usid or email):
+            continue
+        score = max(
+            _match_score(term_key, u["pcid"], "", "", ""),
+            _match_score(term_key, usid, "", email, name),
+        )
+        if score >= 0.4:
+            scored.append({"usid": usid, "name": name, "email": email,
+                          "status": u["status"], "score": round(score, 3)})
+
+    scored.sort(key=lambda r: -r["score"])
+    best = scored[0] if scored and scored[0]["score"] >= 0.6 else None
+    return {"candidates": scored[:8], "best": best}
+
+
+def resolve_tenant_registration(pcid: str, tnnm: str,
+                                ionapi_dir: str | Path = DEFAULT_IONAPI_DIR,
+                                security_tenant: str | None = None) -> dict:
+    """
+    Fill in the blanks on a Tenants-tab (AUTH=20) registration by connecting
+    to the tenant it registers - same resolution as guess_m3_user() (loose
+    TNNM match, auto-extracting a missing .ionapi from security_tenant's own
+    AUTH=20 record, which for this row is the very record being resolved).
+
+    One connection answers two independent questions:
+
+    - The M3 identity that tenant's own .ionapi service account resolves to
+      (MRS001MI/GetUserInfo, "who am I", the same call vba/Doppio.bas's
+      Environments_GetUsers makes) - meant for M3ID, so a later "Assign to
+      tenant" has a real identity to hand new records instead of leaving
+      M3ID blank. Only ZZUSID is used; MRS001MI can return USFN (a display
+      name) instead when ZZUSID is blank, but a full name isn't a valid
+      M3ID, so that counts the same as no default user existing.
+    - Whether the tenant *itself* also runs EXT124MI, making it a Managing
+      System in its own right rather than just a customer tenant this
+      Managing System happens to know about: EXT124MI/GetUsrInfo against
+      that tenant's own connection, keyed exactly like this row (PCID, TNNM,
+      "20") - AUTH=20 records are keyed PCID==TNNM==the tenant name in every
+      case seen so far (see _find_type20_record), so a Managing System that
+      self-registered this same way answers with a real record.
+
+    Returns {"m3id": str, "managing_system": bool, "error": str | None} -
+    error is set only when the connection itself could not be made at all
+    (no .ionapi, nothing to extract one from, a bad token, ...); the other
+    two are left at their empty defaults in that case. A failure of the
+    EXT124MI probe alone (the ordinary case for an ordinary customer tenant,
+    which has no such extension) is not an error - it just means
+    managing_system stays False.
+    """
+    try:
+        client = M3Client.for_tenant_name(tnnm, ionapi_dir,
+                                          security_tenant=security_tenant)
+        who = client.get_user_info()
+    except M3ApiError as exc:
+        return {"m3id": "", "managing_system": False, "error": str(exc)}
+
+    m3id = ((who or {}).get("ZZUSID") or "").strip()
+    managing_system = False
+    try:
+        managing_system = client.get_usr_info(pcid, tnnm, "20") is not None
+    except M3ApiError:
+        pass
+
+    return {"m3id": m3id, "managing_system": managing_system, "error": None}
 
 
 # ---------------------------------------------------------------------------

@@ -1,0 +1,19 @@
+{
+    "ti": "HILCO_PRD",
+    "cn": "IONETL_PRD",
+    "dt": "12",
+    "ci": "HILCO_PRD~-nRj-wbSP2yBQE58pCXUjwQzHyXhVmyN6YtoRZ2OZxI",
+    "cs": "zlrn4nqGIQXX7_Vu_Ie8UtfksFT901xjff_TBYhwxYqouueMVYI3hcPOBdmNH4PJ9UxpiDk61Sy0u3xY_TZw7w",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/HILCO_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc": [
+        "Infor-M3"
+    ],
+    "ev": "U1478358101",
+    "v": "1.1",
+    "saak": "HILCO_PRD#1EeutD8bqMAkR0Md9XWVJBt5zinNG0ShQAfXEbqoXTWsHs22BBBiXSnIVDwSOsSrA-43q1LuBBqKjU8vRQTQfw",
+    "sask": "81sFMxmzVwVeljMc8DtpHWESC0KR7LHEer6I3ZKu3aPTFVnsAuSax29Z1pltIsA4QYk4jaNpCyFdZZiAGsrs2w"
+}

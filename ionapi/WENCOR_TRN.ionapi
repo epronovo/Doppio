@@ -1,0 +1,17 @@
+{
+    "ti": "WENCORGROUP_TRN",
+    "cn": "IONWorkFlow-WENCORGROUP_TRN",
+    "dt": "12",
+    "ci": "WENCORGROUP_TRN~JcfsJwJLsPvsQpnVOPKvPYFPZn9knrryZ_KCSRwG6dE",
+    "cs": "dxmddX20gJNKet3Q4WcA4qALkmRq4D8C3Ee1kXEUsJtAV8bXh702YQacPnVgiAVSFSf1JEQD6OJxZdcwu5yxRw",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/WENCORGROUP_TRN/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc": [],
+    "ev": "U1478358101",
+    "v": "1.1",
+    "saak": "WENCORGROUP_TRN#_3C5hPlLSClG5tRWmR22fJHPngzQuc2KsrXoO7rB46Ox3AjL9bOPsktzpqONLsomUrfkmzTLbXBC443_CZAKxQ",
+    "sask": "DX9JrgbzsZbHlvjiZ2Eq-G946_7K9Q0djuVyBfzqjxcw4F-MgAbh0K3nNNm6W1xKO9NrMqHS_dX0UI6ciZEt1w"
+}

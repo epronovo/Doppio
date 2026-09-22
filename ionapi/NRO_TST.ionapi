@@ -1,0 +1,16 @@
+{
+    "ti": "ICONEXLLC_TST",
+    "cn": "IONWorkFlow-ICONEXLLC_TST",
+    "dt": "12",
+    "ci": "ICONEXLLC_TST~oMMQySoXsraqCf1l3y9UsYU4IK0Fy7iHT6_MOj3cJP8",
+    "cs": "f4LUfUrNuMw1NpvDvmwDTzEsotApwO9QFW10qqL_qLyx1AyEju-w6GS6b1kgG5wnwWBe4h_eRzesZXIZhgc97A",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/ICONEXLLC_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "ICONEXLLC_TST#OLfPsAeUe2NuWb5nw4J62coQmWvnHY1CC2xX-43A5wccyzvwMMatBTZYTz3G1NbG6fUaouVZtEHdi7tetzLWyg",
+    "sask": "z8tk7cSxBEumP8bsCdVLerXqm4B4ItZ7nr1rR1DiQi7Zc2KtR9XqbH0O8bmy9MYM5i35SHYYGDa9KJ76CjjuLQ"
+}

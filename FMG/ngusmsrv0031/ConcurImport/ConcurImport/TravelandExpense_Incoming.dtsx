@@ -791,13 +791,13 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</BinaryItem>
         <DTS:PropertyExpression
           DTS:Name="Directory">@[$Package::FOLDER_ConcurSAE]</DTS:PropertyExpression>
         <DTS:PropertyExpression
-          DTS:Name="FileSpec">"CONCURSAEEXTRACT*.TXT"</DTS:PropertyExpression>
+          DTS:Name="FileSpec">"extract_CES_SAE*.TXT"</DTS:PropertyExpression>
         <DTS:ObjectData>
           <ForEachFileEnumeratorProperties>
             <FEFEProperty
               Folder="C:\temp\ConcurImport\ConcurSAE" />
             <FEFEProperty
-              FileSpec="CONCURSAEEXTRACT*.TXT" />
+              FileSpec="extract_CES_SAE*.TXT" />
             <FEFEProperty
               FileNameRetrievalType="0" />
             <FEFEProperty
@@ -5688,7 +5688,7 @@ namespace ST_22f639978bf74dc2a509498024fcc1d3
 		{
             // TODO: Add your code here
             string folder = Dts.Variables["FOLDER_ConcurSAE"].Value.ToString();
-            string fileString = "CONCURSAEEXTRACT*.TXT";
+            string fileString = "extract_CES_SAE*.TXT";
 
             var fileCount = (from file in Directory.EnumerateFiles(folder, fileString.ToLower(), SearchOption.TopDirectoryOnly)
                              select file).Count();

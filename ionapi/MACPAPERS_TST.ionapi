@@ -1,0 +1,17 @@
+{
+    "ti": "MACPAPERS_TST",
+    "cn": "ExcelAddInBS_MACPAPERS_TST",
+    "dt": "12",
+    "ci": "MACPAPERS_TST~7dvrr6qEIn27ZPM-jnSBDjwIypnf7xmn6XBuymEZ5M4",
+    "cs": "BQSD28wVv7oKLDpjgxBLNesrewRCcQRQxpHTaCy8bSY1WtDVsAZoxd_pXGraZYdNR--arc29IrKxYxB6KDjRJg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/MACPAPERS_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc": [],
+    "ev": "U1478358101",
+    "v": "1.1",
+    "saak": "MACPAPERS_TST#_8UIf_QxcYoajsK3ngfQUbUV6vEbZ3lfIt5fplT2eeL_KGmvfanF6rTa0wUFxm-Sq82ojkg4itGykecOEVuKrQ",
+    "sask": "FHfaN0rdT5cUCpKtpge8g7uyQtY7ooaUFgacvJIbZYOTwxG12CGQKzGDDA6igXHdk8Ut2u3dKkBSl25atvT0qA"
+}

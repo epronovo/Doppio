@@ -1,0 +1,16 @@
+{
+    "ti": "RUIZFOOD_TST",
+    "cn": "RUIZFOOD_TST_ION",
+    "dt": "12",
+    "ci": "RUIZFOOD_TST~L24H3PTSIxeiktVbJZaZzDrIvLvRI4aPWQbxQmsEkWU",
+    "cs": "R4zPFnbo_Qb-8cui4NvT9-VhRm7_bVkenFzJdLPEFXzMHtEuH5zTviiAQ7yw0WaI4J7zkeLskFAzGm3KanotJg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/RUIZFOOD_TST/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "RUIZFOOD_TST#cfLPv5sayrDKrYSpdexBFdreippOHTxUdjXnmUt8aV0HEeh0e2b3R4oBs91hKsHRrvF4_JAdp8FGkqd5ZK9vAQ",
+    "sask": "mWX_U0iQa473tOr5el52Cd6lxboHyy_V0ZNF0AfM6w3-8PO5A6lqNb6dd7a0G5Oi1Lc0jX5fBYblJPI2njM92g"
+}

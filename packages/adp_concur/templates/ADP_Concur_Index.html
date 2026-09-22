@@ -130,6 +130,7 @@
   .pill.bad{background:var(--bad-wash);color:var(--bad);border-color:var(--bad-line)}
   .pill.new{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
   .pill.adp{background:var(--info-wash);color:var(--info);border-color:var(--info-line)}
+  .pill.ukg{background:var(--good-wash);color:var(--good);border-color:var(--good-line)}
   .pill.manual{background:#f3eefb;color:#5b3fa0;border-color:#ded2f2}
   .pill.picked{background:var(--accent-wash);color:var(--accent);border-color:#f6ccd0;font-weight:700}
   .pill.src{background:var(--panel2);color:var(--body)}
@@ -437,6 +438,7 @@
         <option value="language">Language Map</option>
         <option value="salary">Salary Map</option>
         <option value="supervisor">Supervisor Map</option>
+        <option value="company">UKG Company Map</option>
       </select>
       <input id="mapq" placeholder="Search this map">
       <span class="sub" id="mapcount"></span>
@@ -514,6 +516,12 @@
             <label>350 covers</label>
             <select id="c-s350"><option value="all">Everyone</option>
               <option value="off">Off &mdash; leave the 350 out of the extract</option></select>
+            <label>360 covers</label>
+            <select id="c-s360"><option value="all">Everyone</option>
+              <option value="invoice">Invoice access only &mdash; leaves out anyone with N on Invoice User Role</option></select>
+            <label>700 covers</label>
+            <select id="c-s700"><option value="invoice">Invoice access only (Y)</option>
+              <option value="off">Off &mdash; leave the 700 out of the extract</option></select>
             <label>Delimiter</label>
             <select id="c-delim"><option value=",">Comma</option>
               <option value="|">Pipe</option><option value="&#9;">Tab</option></select>
@@ -593,6 +601,10 @@
             <div class="sub" style="margin-bottom:8px">Clear employees — pick what goes.</div>
             <label class="srcline"><input type="checkbox" id="src-adp" checked>
               <span><b>From ADP</b> <i id="src-adp-n"></i><br>
+              <span class="sub">Comes back the moment the workbook is dropped again.</span>
+              </span></label>
+            <label class="srcline"><input type="checkbox" id="src-ukg" checked>
+              <span><b>From UKG</b> <i id="src-ukg-n"></i><br>
               <span class="sub">Comes back the moment the workbook is dropped again.</span>
               </span></label>
             <label class="srcline"><input type="checkbox" id="src-workbook" checked>
@@ -1315,6 +1327,7 @@ function nodeEl(node, depth) {
   if (node.concur_status !== 'Y')
     marks.push(el('span', { class: 'pill inactive' }, node.concur_status || '?'));
   if (node.source === 'adp') marks.push(el('span', { class: 'pill adp' }, 'ADP'));
+  else if (node.source === 'ukg') marks.push(el('span', { class: 'pill ukg' }, 'UKG'));
   else if (node.source === 'manual') marks.push(el('span', { class: 'pill manual' }, 'by hand'));
   if (kids.length) marks.push(el('span', { class: 'pill' },
     node.n_subtree > kids.length + 1 ? `${kids.length} direct · ${node.n_subtree - 1} total`
@@ -1821,6 +1834,8 @@ async function loadConfig() {
   $('#c-lower').value = l.lowercase ? '1' : '0';
   $('#c-password').value = d.config.password || '';
   $('#c-s350').value = s['350'] || 'all';
+  $('#c-s360').value = s['360'] || 'all';
+  $('#c-s700').value = s['700'] || 'invoice';
   $('#c-delim').value = x.delimiter || ',';
   $('#c-quote').value = x.quote || 'minimal';
   $('#c-order').value = x.order || 'by_type';
@@ -1889,7 +1904,8 @@ $('#save-config').addEventListener('click', async () => {
     },
     password: $('#c-password').value,
     import_settings: importSettings(),
-    scope: { 305: 'all', 350: $('#c-s350').value, 360: 'all' },
+    scope: { 305: 'all', 350: $('#c-s350').value, 360: $('#c-s360').value,
+             700: $('#c-s700').value },
     extract: {
       delimiter: $('#c-delim').value, quote: $('#c-quote').value,
       order: $('#c-order').value, file_name: $('#c-name').value,
@@ -1964,7 +1980,7 @@ $('#c-scope').addEventListener('change', () => runExtract(false));
 /* Built from the checkboxes that exist, not from a list written out here —
    the last source added was registered in one place and not the other, and the
    82 people it covered became impossible to delete. */
-const CLEAR_SOURCES = ['adp', 'workbook', 'manual'];
+const CLEAR_SOURCES = ['adp', 'ukg', 'workbook', 'manual'];
 const HISTORY_PARTS = ['imports', 'extracts', 'results'];
 
 function clearSources() {

@@ -1,0 +1,17 @@
+{
+    "ti": "BROWNELLS_TRN",
+    "cn": "Phocus",
+    "dt": "12",
+    "ci": "BROWNELLS_TRN~xkeM-ZDK49f-nuX8Guvh4FPzt6HTFJlwe3CEuzEgzrA",
+    "cs": "1cNpYaZw3QhDY8rG6Ef2SFcBrXqdB7NflfWEPM9uNaymtqEGnku_88Pr1kTvRCR_--9EN5NAnhIFNFbBh3lDvA",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/BROWNELLS_TRN/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc": [],
+    "ev": "U1478358101",
+    "v": "1.1",
+    "saak": "BROWNELLS_TRN#YmGFvkuHC_-LoknT8emCnvav7l3u8zjiLA3fQfy89qIBlimI2Uq1JmUq9Bum5WHLQEslHQn8qNV6Zxon0Rlnww",
+    "sask": "OGQfBhyN6zZJBrQq9DH5QgecvHpYZ267Nwkym6bfzqavD76Tpg55i0_MrtFaU17LonccHM30z2QQUnF4zJVDfA"
+}

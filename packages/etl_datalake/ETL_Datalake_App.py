@@ -72,9 +72,15 @@ DEFAULT_ENV = "DOPPIO_DEM"
 ROUTINE_NAME = "etl_datalake"
 INTERVAL_SECONDS = 60  # 10 minutes
 PAGE_RECORDS = 500
+# The dataobjects search API refuses page*records > this (400 "Maximum page
+# number reached... search limit"), so a backlog larger than this can't be
+# paged through in one pass -- see etl_list_dataobjects.
+MAX_SEARCH_RESULTS = 10000
 WEB_HOST = "127.0.0.1"
 LOG_MAX_LINES = 300
-M3_CONO = "001"  # company used for the MNS120MI.Get metadata lookup (table keys)
+# "since" cutoff used to pull an object's/table's full history, e.g. after a
+# database reset or a single-table resync.
+EPOCH_SINCE = "1970-01-01T00:00:00.000Z"
 
 
 def etl_utcnow_iso():
@@ -107,6 +113,10 @@ STATUS = {
     "rows_loaded_total": 0,
     "last_error": None,
     "since_override": None,
+    "table_filter_override": None,
+    "sync_table": None,
+    "sync_objects_done": 0,
+    "sync_objects_total": 0,
 }
 LOG_LINES = deque(maxlen=LOG_MAX_LINES)
 
@@ -125,9 +135,17 @@ _LOADING_EVENT = threading.Event()
 # the run loop on its own thread/connection; only accepted while running.
 _FORCE_EVENT = threading.Event()
 _FORCE_QUEUE = deque()
+# Table names the user asked to (re)sync via the webpage. Consumed by the run
+# loop the same way as _FORCE_QUEUE; only accepted while running.
+_SYNC_TABLE_EVENT = threading.Event()
+_SYNC_TABLE_QUEUE = deque()
 _SELECTED_CFG = None
 # One-shot override for the next cycle's "since" cutoff; cleared once used.
 _SINCE_OVERRIDE = None
+# Persistent override restricting every cycle to a single table
+# (dl_document_name), until explicitly cleared via the web. Lets Start/Now
+# stay scoped to one table instead of listing the whole tenant's history.
+_TABLE_FILTER_OVERRIDE = None
 MIN_POLL_INTERVAL_SECONDS = 5
 
 
@@ -151,6 +169,40 @@ def etl_set_status(**kwargs):
 def etl_status_snapshot():
     with _STATE_LOCK:
         return dict(STATUS), list(LOG_LINES)
+
+
+def etl_db_size_bytes():
+    """Current size of the SQLite file on disk, or 0 before it's been created."""
+    try:
+        return os.path.getsize(DB_PATH)
+    except OSError:
+        return 0
+
+
+def etl_table_stats():
+    """Row count for every M3 data table (excludes LastRun and the internal
+    sqlite_% tables, which aren't data tables). Used by the status page's
+    Tables tab. A short busy timeout keeps this from erroring out if it
+    happens to run while the tracking loop is mid-commit; a table that's
+    still busy after that reports rows=None rather than failing the whole
+    listing."""
+    if not os.path.exists(DB_PATH):
+        return []
+    conn = sqlite3.connect(DB_PATH, timeout=5)
+    try:
+        names = [r[0] for r in conn.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name NOT LIKE 'sqlite_%' AND name != 'LastRun' ORDER BY name")]
+        stats = []
+        for name in names:
+            try:
+                count = conn.execute(f'SELECT COUNT(*) FROM "{name}"').fetchone()[0]
+            except sqlite3.Error:
+                count = None
+            stats.append({"name": name, "rows": count})
+        return stats
+    finally:
+        conn.close()
 
 
 # ------------------------------------------------------- step 1: environment
@@ -229,6 +281,20 @@ def etl_set_since_override(value):
         etl_log("Since override cleared via web.")
 
 
+def etl_set_table_filter_override(value):
+    """Called from the web handler; restricts every subsequent cycle to a
+    single table (dl_document_name) instead of listing every object the
+    tenant has. Stays in effect until cleared via the web (an empty value)."""
+    global _TABLE_FILTER_OVERRIDE
+    with _STATE_LOCK:
+        _TABLE_FILTER_OVERRIDE = value or None
+    etl_set_status(table_filter_override=value or None)
+    if value:
+        etl_log(f"Next run will be filtered to table: {value} (override via web)")
+    else:
+        etl_log("Table filter override cleared via web.")
+
+
 def etl_authenticate(cfg):
     """OAuth2 resource-owner (service account) grant using the .ionapi file."""
     token_url = cfg["pu"] + cfg["ot"]
@@ -250,40 +316,21 @@ def etl_base_url(cfg):
     return f"{cfg['iu'].rstrip('/')}/{cfg['ti']}/DATAFABRIC/datalake/v2"
 
 
-def etl_m3_base_url(cfg):
-    return (f"{cfg['iu'].rstrip('/')}/{cfg['ti']}/M3/m3api-rest/v2/execute"
-            f"?maxrecs=100&extendedresult=true&righttrim=true&cono={M3_CONO}")
-
-
-def etl_post_json(url, token, payload):
-    """POST a JSON body with bearer auth; returns the parsed JSON response."""
-    data = json.dumps(payload).encode()
-    headers = {
-        "accept": "application/json; charset=UTF-8",
-        "Content-Type": "application/json; charset=UTF-8",
-        "Authorization": f"Bearer {token}",
-    }
-    req = urllib.request.Request(url, data=data, method="POST", headers=headers)
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        return json.loads(resp.read().decode())
+def etl_mdp_index_keys_url(cfg, table):
+    return (f"{cfg['iu'].rstrip('/')}/{cfg['ti']}/M3/mdprest/les/getIndexKeys/"
+            f"{table}00/MVX?langId=GB")
 
 
 def etl_get_table_keys(cfg, token, table):
-    """MNS120MI.Get on "{table}00" (the unique-key file variant) returns the
-    file's key columns in KEY1-KEY9 (unused slots are empty strings), named
-    as "{2-char file mnemonic}{4-char generic field}" (e.g. "CTCONO" for
-    CSYTAB). The Data Lake NDJSON records drop that 2-char file prefix (the
-    same row is just "CONO"), so strip it here to match the actual columns."""
-    payload = {
-        "program": "MNS120MI",
-        "transactions": [{"transaction": "Get", "record": {"FILE": f"{table}00"}}],
-    }
-    data = etl_post_json(etl_m3_base_url(cfg), token, payload)
-    records = data.get("results", [{}])[0].get("records", [])
-    if not records:
-        return []
-    rec = records[0]
-    raw_keys = [rec[f"KEY{i}"] for i in range(1, 10) if rec.get(f"KEY{i}", "").strip()]
+    """getIndexKeys on "{table}00" (the unique-key index) returns the file's
+    key columns as a "list" of {"columnName": ...} entries, named as
+    "{2-char file mnemonic}{4-char generic field}" (e.g. "CTCONO" for
+    CSYTAB). Unlike MNS120MI.Get (capped at 9 KEY slots), this returns every
+    key column. The Data Lake NDJSON records drop that 2-char file prefix
+    (the same row is just "CONO"), so strip it here to match the actual
+    columns. An unknown table returns an empty "list" rather than an error."""
+    data = json.loads(etl_get(etl_mdp_index_keys_url(cfg, table), token).decode())
+    raw_keys = [item["columnName"] for item in data.get("list", [])]
     return [k[2:] for k in raw_keys]
 
 
@@ -354,21 +401,73 @@ def etl_save_last_run(conn, when):
     conn.commit()
 
 
+def etl_reset_database(conn):
+    """Drop every M3 table and its "{table}00" latest-row view (everything
+    except the LastRun bookkeeping table), then rewind LastRun to
+    EPOCH_SINCE so the next cycle re-pulls the table's full history from the
+    Data Lake. Used by the web page's "Reset & resync" button."""
+    etl_get_last_run(conn)  # ensure LastRun exists (no-op if already created)
+    rows = conn.execute(
+        "SELECT name, type FROM sqlite_master "
+        "WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'").fetchall()
+    for name, kind in rows:
+        if name == "LastRun":
+            continue
+        conn.execute(f'DROP {"VIEW" if kind == "view" else "TABLE"} IF EXISTS "{name}"')
+    conn.commit()
+    etl_save_last_run(conn, EPOCH_SINCE)
+
+
 # ----------------------------------------------------- step 4: list objects
-def etl_list_dataobjects(base, token, since):
-    """Return all data objects with dl_document_date >= since (paged)."""
-    flt = urllib.parse.quote(f'dl_document_date ge "{since}"')
-    objects, page = [], 1
+def etl_list_dataobjects(base, token, since, table=None):
+    """Return all data objects with dl_document_date >= since (paged),
+    optionally restricted to a single table (dl_document_name) for the
+    "sync a specific table" feature.
+
+    The API rejects page*records > MAX_SEARCH_RESULTS ("Maximum page number
+    reached... search limit"), which a normal cycle never approaches (since
+    is always recent) but a full-history resync (since=EPOCH_SINCE) can
+    easily exceed on a tenant with a large backlog. When the cap is hit
+    before the result set is exhausted, resume pagination from the last
+    object's own date instead of the next page; objects sharing that exact
+    date get re-fetched and are deduped by dl_id.
+
+    Checks _ABORT_EVENT between page fetches so a Stop can interrupt a
+    long-running listing (e.g. a full-history resync) instead of only
+    taking effect once the last page has already been fetched."""
+    objects, seen_ids, cursor = [], set(), since
     while True:
-        url = (f"{base}/dataobjects?filter={flt}"
-               f"&sort={urllib.parse.quote('dl_document_date:asc')}"
-               f"&page={page}&records={PAGE_RECORDS}")
-        data = json.loads(etl_get(url, token).decode())
-        fields = data.get("fields", [])
-        objects.extend(fields)
-        if len(objects) >= data.get("numFound", 0) or not fields:
+        parts = [f'dl_document_date ge "{cursor}"']
+        if table:
+            parts.append(f'dl_document_name eq "{table}"')
+        flt = urllib.parse.quote(" and ".join(parts))
+
+        batch, page, num_found = [], 1, 0
+        while page * PAGE_RECORDS <= MAX_SEARCH_RESULTS:
+            if _ABORT_EVENT.is_set():
+                return objects
+            url = (f"{base}/dataobjects?filter={flt}"
+                   f"&sort={urllib.parse.quote('dl_document_date:asc')}"
+                   f"&page={page}&records={PAGE_RECORDS}")
+            data = json.loads(etl_get(url, token).decode())
+            fields = data.get("fields", [])
+            num_found = data.get("numFound", 0)
+            batch.extend(fields)
+            if len(batch) >= num_found or not fields:
+                break
+            page += 1
+
+        for obj in batch:
+            if obj["dl_id"] not in seen_ids:
+                seen_ids.add(obj["dl_id"])
+                objects.append(obj)
+
+        if _ABORT_EVENT.is_set():
             break
-        page += 1
+
+        if not batch or len(batch) >= num_found:
+            break  # exhausted the result set
+        cursor = batch[-1]["dl_document_date"]  # hit the page cap; resume from here
     return objects
 
 
@@ -450,7 +549,7 @@ def etl_ensure_variation_unique(conn, table, existing_columns):
 
 def etl_ensure_latest_view(conn, table, cfg, token):
     """Create the "{table}00" view (latest row per unique key) the first
-    time this table is seen, using the key columns from MNS120MI.Get."""
+    time this table is seen, using the key columns from getIndexKeys."""
     view = f"{table}00"
     if etl_view_exists(conn, view):
         return
@@ -491,6 +590,62 @@ def etl_ensure_latest_view(conn, table, cfg, token):
     etl_log(f"  Created view {view} (keys: {', '.join(keys)})")
 
 
+def etl_compact_table_rows(conn, table):
+    """Delete every row in `table` that isn't the latest version for its
+    business key, i.e. isn't one of the rows the "{table}00" view currently
+    surfaces -- shrinking the raw table back down to just what the view
+    shows. Relies on variationNumber being unique across the whole table
+    (enforced by etl_ensure_variation_unique) so membership in the view can
+    be checked by variationNumber alone, without re-deriving the business
+    key. Doesn't VACUUM -- that's the caller's job, so compacting several
+    tables in one pass only needs to reclaim pages once. Returns
+    (rows_removed, rows_remaining)."""
+    existing = etl_table_columns(conn, table)
+    if not existing:
+        raise ValueError(f'table "{table}" not found')
+    if "variationNumber" not in existing:
+        raise ValueError(f'"{table}" has no variationNumber column; nothing to compact')
+    view = f"{table}00"
+    if not etl_view_exists(conn, view):
+        raise ValueError(f'"{view}" view not found; can\'t tell which rows are current')
+
+    before = conn.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
+    conn.execute(
+        f'DELETE FROM "{table}" WHERE variationNumber NOT IN '
+        f'(SELECT variationNumber FROM "{view}")'
+    )
+    conn.commit()
+    after = conn.execute(f'SELECT COUNT(*) FROM "{table}"').fetchone()[0]
+    return before - after, after
+
+
+def etl_compact_table(conn, table):
+    """Compact a single table and reclaim its freed pages immediately."""
+    removed, remaining = etl_compact_table_rows(conn, table)
+    conn.execute("VACUUM")  # reclaim the freed pages so the .db file actually shrinks
+    return removed, remaining
+
+
+def etl_compact_all_tables(conn):
+    """Compact every table that has a variationNumber column and a
+    "{table}00" latest-row view, silently skipping any that don't (nothing
+    to compact there). VACUUMs once at the end rather than once per table.
+    Returns a list of {table, removed, remaining} for each table compacted."""
+    names = [r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' "
+        "AND name NOT LIKE 'sqlite_%' AND name != 'LastRun' ORDER BY name")]
+    results = []
+    for table in names:
+        existing = etl_table_columns(conn, table)
+        if "variationNumber" not in existing or not etl_view_exists(conn, f"{table}00"):
+            continue
+        removed, remaining = etl_compact_table_rows(conn, table)
+        results.append({"table": table, "removed": removed, "remaining": remaining})
+    if results:
+        conn.execute("VACUUM")
+    return results
+
+
 def etl_load_records(conn, table, records, cfg, token):
     if not records:
         return 0
@@ -528,7 +683,7 @@ def etl_force_load_records(conn, table, records, cfg, token):
     appends a new version row per change), a forced object UPDATES the existing
     records in place: for each incoming row the current row(s) for the same
     business key are replaced, so re-forcing an object never leaves duplicate
-    rows behind. Business keys come from MNS120MI -- the same keys the {table}00
+    rows behind. Business keys come from getIndexKeys -- the same keys the {table}00
     latest-row view uses. If the keys can't be resolved, falls back to the
     normal append load."""
     if not records:
@@ -590,19 +745,20 @@ def f_quote(keys):
 # every row is inserted with variationNumber 0. The Data Lake loop then keeps
 # tracking changes on top of that baseline going forward.
 
-# States in which no cycle is running and no load is in flight, so a zip may be
-# loaded. Everything else means the routine is busy.
-_UPLOAD_OK_STATES = {"waiting-for-selection", "stopped", "error", "idle"}
+# States in which no cycle is running and no load is in flight, so a zip
+# upload or a full database reset may proceed. Everything else means the
+# routine is busy.
+_MAINTENANCE_OK_STATES = {"waiting-for-selection", "stopped", "error", "idle"}
 
 
-def etl_upload_allowed():
+def etl_maintenance_allowed():
     """True only while the routine is inactive (not cycling, not sleeping, not
-    already loading a zip). Uploads are refused otherwise so a bulk load never
-    races the tracking loop."""
+    already loading a zip or resetting). Zip uploads and database resets are
+    refused otherwise so a bulk write never races the tracking loop."""
     if _RUN_EVENT.is_set() or _NOW_EVENT.is_set() or _LOADING_EVENT.is_set():
         return False
     status, _ = etl_status_snapshot()
-    return status["state"] in _UPLOAD_OK_STATES
+    return status["state"] in _MAINTENANCE_OK_STATES
 
 
 def etl_parse_m3_binary(data, table_info_counts, table_name):
@@ -777,6 +933,12 @@ class _StatusHandler(BaseHTTPRequestHandler):
             status, log = etl_status_snapshot()
             payload = json.dumps({"status": status, "log": log}).encode()
             self._respond(200, payload, "application/json")
+        elif self.path.startswith("/tables.json"):
+            payload = json.dumps({
+                "tables": etl_table_stats(),
+                "db_size_bytes": etl_db_size_bytes(),
+            }).encode()
+            self._respond(200, payload, "application/json")
         else:
             self._respond(200, _STATUS_PAGE_HTML.encode(), "text/html; charset=utf-8")
 
@@ -795,10 +957,20 @@ class _StatusHandler(BaseHTTPRequestHandler):
             self._handle_interval()
         elif self.path.startswith("/since"):
             self._handle_since()
+        elif self.path.startswith("/tablefilter"):
+            self._handle_table_filter()
         elif self.path.startswith("/upload"):
             self._handle_upload()
         elif self.path.startswith("/loadobject"):
             self._handle_load_object()
+        elif self.path.startswith("/synctable"):
+            self._handle_sync_table()
+        elif self.path.startswith("/reset"):
+            self._handle_reset()
+        elif self.path.startswith("/compact-all"):
+            self._handle_compact_all()
+        elif self.path.startswith("/compact"):
+            self._handle_compact()
         else:
             self._respond(404, b"not found", "text/plain")
 
@@ -864,6 +1036,16 @@ class _StatusHandler(BaseHTTPRequestHandler):
         etl_set_since_override(since)
         self._respond(200, b'{"ok": true}', "application/json")
 
+    def _handle_table_filter(self):
+        """Restrict every Start/Now cycle to a single table instead of
+        listing the whole tenant's history, until cleared -- e.g. after a
+        Reset, so a resync doesn't have to crawl every table's backlog at
+        once."""
+        params = self._read_params()
+        table = (params.get("table") or [""])[0].strip()
+        etl_set_table_filter_override(table or None)
+        self._respond(200, b'{"ok": true}', "application/json")
+
     def _handle_load_object(self):
         """Queue a pasted object id (dl_id) for immediate load. Only accepted
         while the routine is running (continuous mode)."""
@@ -879,10 +1061,129 @@ class _StatusHandler(BaseHTTPRequestHandler):
         etl_queue_force_object(dl_id)
         self._respond(200, b'{"ok": true}', "application/json")
 
+    def _handle_sync_table(self):
+        """Queue a table name for a full resync (its entire history, not just
+        since the last run). Only accepted while the routine is running
+        (continuous mode), same restriction as force-loading an object."""
+        if not _RUN_EVENT.is_set():
+            self._respond(409, b'{"ok": false, "error": "routine is not running; '
+                          b'start it before syncing a table"}', "application/json")
+            return
+        params = self._read_params()
+        table = (params.get("table") or [""])[0].strip()
+        if not table:
+            self._respond(400, b'{"ok": false, "error": "missing table name"}', "application/json")
+            return
+        etl_queue_sync_table(table)
+        self._respond(200, b'{"ok": true}', "application/json")
+
+    def _handle_reset(self):
+        """Drop every table/view and rewind LastRun to EPOCH_SINCE so the next
+        run pulls the complete history from the Data Lake. Refused unless the
+        routine is inactive, same restriction as a zip upload."""
+        if not etl_maintenance_allowed():
+            self._respond(409, b'{"ok": false, "error": "routine is active; '
+                          b'stop it before resetting"}', "application/json")
+            return
+        prev_state, _ = etl_status_snapshot()
+        prev_state = prev_state["state"]
+        _LOADING_EVENT.set()
+        etl_set_status(state="resetting", last_error=None)
+        etl_log("Reset requested via web: dropping all tables for a full resync.")
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            try:
+                etl_reset_database(conn)
+            finally:
+                conn.close()
+            with _STATE_LOCK:
+                STATUS["rows_loaded_total"] = 0
+                STATUS["rows_loaded_last_cycle"] = 0
+                STATUS["cycle_count"] = 0
+            etl_log("Reset complete. The next run will pull the full history from the Data Lake.")
+            self._respond(200, b'{"ok": true}', "application/json")
+        except Exception as e:
+            etl_log(f"Reset failed: {e}")
+            payload = json.dumps({"ok": False, "error": str(e)}).encode()
+            self._respond(400, payload, "application/json")
+        finally:
+            _LOADING_EVENT.clear()
+            etl_set_status(state=prev_state)
+
+    def _handle_compact(self):
+        """Delete rows superseded by a table's "{table}00" view, shrinking it
+        back down to just its latest-per-key rows. Refused unless the routine
+        is inactive, same restriction as a zip upload or reset."""
+        if not etl_maintenance_allowed():
+            self._respond(409, b'{"ok": false, "error": "routine is active; '
+                          b'stop it before compacting"}', "application/json")
+            return
+        params = self._read_params()
+        table = (params.get("table") or [""])[0].strip()
+        valid_tables = {t["name"] for t in etl_table_stats()}
+        if table not in valid_tables:
+            self._respond(400, b'{"ok": false, "error": "unknown table"}', "application/json")
+            return
+
+        prev_state, _ = etl_status_snapshot()
+        prev_state = prev_state["state"]
+        _LOADING_EVENT.set()
+        etl_set_status(state="compacting", last_error=None)
+        etl_log(f"Compacting {table}: dropping rows superseded by {table}00 (via web).")
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            try:
+                removed, remaining = etl_compact_table(conn, table)
+            finally:
+                conn.close()
+            etl_log(f"Compact complete: {table}: removed {removed} row(s), {remaining} remaining.")
+            payload = json.dumps({"ok": True, "removed": removed, "remaining": remaining}).encode()
+            self._respond(200, payload, "application/json")
+        except Exception as e:
+            etl_log(f"Compact {table} failed: {e}")
+            payload = json.dumps({"ok": False, "error": str(e)}).encode()
+            self._respond(400, payload, "application/json")
+        finally:
+            _LOADING_EVENT.clear()
+            etl_set_status(state=prev_state)
+
+    def _handle_compact_all(self):
+        """Compact every eligible table in one pass, same restriction as a
+        single-table compact."""
+        if not etl_maintenance_allowed():
+            self._respond(409, b'{"ok": false, "error": "routine is active; '
+                          b'stop it before compacting"}', "application/json")
+            return
+
+        prev_state, _ = etl_status_snapshot()
+        prev_state = prev_state["state"]
+        _LOADING_EVENT.set()
+        etl_set_status(state="compacting", last_error=None)
+        etl_log("Compacting all tables: dropping rows superseded by each table's "
+                "{table}00 view (via web).")
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            try:
+                results = etl_compact_all_tables(conn)
+            finally:
+                conn.close()
+            total_removed = sum(r["removed"] for r in results)
+            etl_log(f"Compact all complete: {len(results)} table(s), "
+                    f"{total_removed} row(s) removed.")
+            payload = json.dumps({"ok": True, "tables": results}).encode()
+            self._respond(200, payload, "application/json")
+        except Exception as e:
+            etl_log(f"Compact all failed: {e}")
+            payload = json.dumps({"ok": False, "error": str(e)}).encode()
+            self._respond(400, payload, "application/json")
+        finally:
+            _LOADING_EVENT.clear()
+            etl_set_status(state=prev_state)
+
     def _handle_upload(self):
         """Accept a dropped zip (raw bytes as the POST body) and load each table
         as a fresh baseline. Refused unless the routine is inactive."""
-        if not etl_upload_allowed():
+        if not etl_maintenance_allowed():
             self._respond(409, b'{"ok": false, "error": "routine is active; '
                           b'stop it before loading a zip"}', "application/json")
             return
@@ -944,13 +1245,15 @@ def etl_run_cycle(cfg, conn):
     since = etl_get_last_run(conn)
     with _STATE_LOCK:
         override, _SINCE_OVERRIDE = _SINCE_OVERRIDE, None
+        table_filter = _TABLE_FILTER_OVERRIDE
     if override:
         since = override
     etl_set_status(since_override=None)
-    etl_log(f"Picking up from: {since}" + (" (manual override)" if override else ""))
+    etl_log(f"Picking up from: {since}" + (" (manual override)" if override else "")
+            + (f", filtered to table {table_filter}" if table_filter else ""))
 
     etl_set_status(state="listing-objects")
-    objects = etl_list_dataobjects(base, token, since)   # step 4
+    objects = etl_list_dataobjects(base, token, since, table=table_filter)   # step 4
     etl_log(f"Data objects to process: {len(objects)}")
     etl_set_status(objects_total=len(objects), objects_done=0)
 
@@ -973,14 +1276,22 @@ def etl_run_cycle(cfg, conn):
             with _STATE_LOCK:
                 STATUS["objects_done"] += 1
 
-    etl_save_last_run(conn, cycle_start)
+    # A table-filtered cycle only looked at one table, so advancing the
+    # shared LastRun cursor to cycle_start would make every other table
+    # silently skip whatever changed during this window on the next normal
+    # cycle. Leave LastRun untouched in that case.
+    if table_filter:
+        etl_log(f"Cycle complete. {total} rows loaded for {table_filter}. "
+                f"LastRun left unchanged (table-filtered run).")
+    else:
+        etl_save_last_run(conn, cycle_start)
+        etl_log(f"Cycle complete. {total} rows loaded. LastRun set to {cycle_start}")
     with _STATE_LOCK:
         STATUS["rows_loaded_last_cycle"] = total
         STATUS["rows_loaded_total"] += total
         STATUS["cycle_count"] += 1
         STATUS["last_cycle_end"] = etl_utcnow_iso()
         STATUS["state"] = "idle"
-    etl_log(f"Cycle complete. {total} rows loaded. LastRun set to {cycle_start}")
 
 
 # --------------------------------------------------- force-load a single object
@@ -1030,6 +1341,61 @@ def etl_process_forced_objects(cfg, conn):
             etl_set_status(last_error=str(e))
 
 
+# --------------------------------------------------------- sync a single table
+def etl_queue_sync_table(table):
+    """Called from the web handler; queues a table name for the run loop to
+    fully resync out of band. Only meaningful while the routine is running."""
+    with _STATE_LOCK:
+        _SYNC_TABLE_QUEUE.append(table)
+    _SYNC_TABLE_EVENT.set()
+    etl_log(f"Table sync requested for {table}")
+
+
+def etl_process_sync_tables(cfg, conn):
+    """Drain the sync-table queue: for each table name, pull every data
+    object the Data Lake has for it (from EPOCH_SINCE, i.e. its complete
+    history, not just since the last run) and load it via etl_load_records --
+    the same version-tracked append used by a normal cycle, which is safe to
+    repeat since the variationNumber unique index ignores rows already
+    loaded. Runs on the run loop's thread/connection so it never races the
+    tracking writes."""
+    while True:
+        with _STATE_LOCK:
+            if not _SYNC_TABLE_QUEUE:
+                _SYNC_TABLE_EVENT.clear()
+                return
+            table = _SYNC_TABLE_QUEUE.popleft()
+
+        etl_set_status(state="processing", sync_table=table,
+                       sync_objects_done=0, sync_objects_total=0)
+        try:
+            token = etl_authenticate(cfg)
+            base = etl_base_url(cfg)
+            objects = etl_list_dataobjects(base, token, EPOCH_SINCE, table=table)
+            etl_log(f"Table sync: {table}: {len(objects)} object(s) found")
+            etl_set_status(sync_objects_total=len(objects))
+            total = 0
+            for obj in objects:
+                dl_id = obj["dl_id"]
+                try:
+                    recs = etl_download_details(base, token, dl_id)
+                    total += etl_load_records(conn, table, recs, cfg, token)
+                except Exception as e:
+                    etl_log(f"  {dl_id} -> {table}: FAILED ({e})")
+                finally:
+                    with _STATE_LOCK:
+                        STATUS["sync_objects_done"] += 1
+            with _STATE_LOCK:
+                STATUS["rows_loaded_total"] += total
+            etl_log(f"Table sync complete: {table}: {total} row(s) loaded "
+                     f"from {len(objects)} object(s)")
+        except Exception as e:
+            etl_log(f"Table sync {table} FAILED: {e}")
+            etl_set_status(last_error=str(e))
+        finally:
+            etl_set_status(sync_table=None, sync_objects_done=0, sync_objects_total=0)
+
+
 def etl_run_loop(conn):
     """Waits for Start or Now (via the webpage), runs cycles until Stop is
     pressed or a ping failure pauses the routine, then waits again.
@@ -1070,6 +1436,9 @@ def etl_run_loop(conn):
         while slept < interval and _RUN_EVENT.is_set() and not _NOW_EVENT.is_set():
             if _FORCE_EVENT.is_set():   # user pasted an object id to force-load
                 etl_process_forced_objects(cfg, conn)
+                etl_set_status(state="sleeping")
+            if _SYNC_TABLE_EVENT.is_set():   # user asked to resync a table
+                etl_process_sync_tables(cfg, conn)
                 etl_set_status(state="sleeping")
             time.sleep(1)
             slept += 1

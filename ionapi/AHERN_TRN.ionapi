@@ -1,0 +1,16 @@
+{
+    "ti": "AHERN_TRN",
+    "cn": "M3 Dataloader",
+    "dt": "12",
+    "ci": "AHERN_TRN~bA173TCxOwfdPRLeieH3-ngUvWnns1TgoMiH0fiq97A",
+    "cs": "VyYDQJCcNHYe-A_7hsgJaEOT7HS_x5bYw6dqdaTPjxSpca7gv-BN7ei-FUSlkILgd5J5tvi4qkgscvH38pDhgw",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/AHERN_TRN/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "AHERN_TRN#Yk0-4MmU6kaFIYAYVzzm6I5tffuZpucYKGD4tu-3WPAui960f8TkZC9CfoGf0Rsq6xO0hF4re0HqaW1rd96oTg",
+    "sask": "jhFYqZrrMwJO1PW2T6Fo9NXfWr2XZAkTWhBHgTDZkqAtENS7ubGqTahA3VkeDOWzhUyo_TuiZ3GYDJQM0uzF-A"
+}

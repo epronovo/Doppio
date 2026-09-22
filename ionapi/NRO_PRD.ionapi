@@ -1,0 +1,17 @@
+{
+    "ti": "UGMBEDKA45W3FXB5_PRD",
+    "cn": "IONWorkFlow-UGMBEDKA45W3FXB5_PRD",
+    "dt": "12",
+    "ci": "UGMBEDKA45W3FXB5_PRD~IceBa9mKf2uiWFUkIzcoLuJPwdH2NIHCM97EUD2abiE",
+    "cs": "iD-LTjg1tVF-B2HaxgXbeQZZCRUkFbDUMQ3opAtZkisiZgLC5ykOSub7-q1WdCfyKOGEAFr0JBXY5UXHXUdj-Q",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/UGMBEDKA45W3FXB5_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc": [],
+    "ev": "U1478358101",
+    "v": "1.1",
+    "saak": "UGMBEDKA45W3FXB5_PRD#2Rx0dypXgKXoC9QPuuG38NOhd0Z3hgPFHBLysP3swhbo0gQxmHlrrpajx_drtNKqcTK10IYdg7tmKMmkyrt8sw",
+    "sask": "kVOp3gFUvvWyNX5Vjq6XewD7-qQeLR6cGnyN3MhtrDdtnQG7wnW6eMKkykS8LAnf3LVLStKjCj4dxYggCDv5rA"
+}

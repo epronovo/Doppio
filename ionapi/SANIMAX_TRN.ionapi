@@ -1,0 +1,16 @@
+{
+    "ti": "SANIMAX_TRN",
+    "cn": "Smart Data Tool",
+    "dt": "12",
+    "ci": "SANIMAX_TRN~XHu3fctvijnkbmCEbKihAujLFHVEHfkSBzx3q7AHvI0",
+    "cs": "-BLu-slaU0QSN8kTaxBF4HUmZ5yJzVpKXNtYqcmXqVyy07a40yvQAAyNz6oH93gsOz2uSwI5J__ejGO6PEWo7g",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/SANIMAX_TRN/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "SANIMAX_TRN#Erc_bRw2DonBF1ibWM6P70NAP43iWb4z7jhTtlgQACQ2ddjhRWBC0wSVcP190A3K8o7OBey0hTQqvm_szUGakA",
+    "sask": "RIrP59Al810X4_Jas5lrgDgWEOWwDN17vwe1xHkvNFysqdTdcPclo5plO5eGGmuPcwKrDveM-wP5IUDn4ylqZA"
+}

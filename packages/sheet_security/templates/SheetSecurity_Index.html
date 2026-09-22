@@ -91,19 +91,19 @@
   .empty{padding:34px 20px;text-align:center;color:var(--dim);font-size:13px}
   .countline{font-size:12px;color:var(--dim);margin:0 0 8px;flex:0 0 auto}
 
-  /* ---- the slide-in panels: add/edit record, and extract-to-.ionapi ---- */
-  #panel,#xpanel{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);z-index:80;
+  /* ---- the slide-in panels: add/edit record, extract-to-.ionapi, assign-to-tenant ---- */
+  #panel,#xpanel,#apanel{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);z-index:80;
          background:var(--bg);border-left:1px solid var(--line);transform:translateX(105%);
          transition:.22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
          box-shadow:-20px 0 48px rgba(17,18,20,.14)}
-  #xpanel{width:min(760px,96vw)}
-  #panel.on,#xpanel.on{transform:none}
-  #panel .head,#xpanel .head{padding:0 18px;height:58px;background:var(--chrome);color:#fff;
+  #xpanel,#apanel{width:min(760px,96vw)}
+  #panel.on,#xpanel.on,#apanel.on{transform:none}
+  #panel .head,#xpanel .head,#apanel .head{padding:0 18px;height:58px;background:var(--chrome);color:#fff;
                display:flex;gap:12px;align-items:center;flex:0 0 auto;font:700 15px var(--display)}
-  #panel .head button,#xpanel .head button{background:transparent;color:#fff;border-color:#3a3a40}
-  #panel .head button:hover,#xpanel .head button:hover{border-color:#fff}
-  #panel .body,#xpanel .body{padding:16px 18px;overflow:auto;flex:1;background:var(--bg)}
-  #panel .foot,#xpanel .foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;
+  #panel .head button,#xpanel .head button,#apanel .head button{background:transparent;color:#fff;border-color:#3a3a40}
+  #panel .head button:hover,#xpanel .head button:hover,#apanel .head button:hover{border-color:#fff}
+  #panel .body,#xpanel .body,#apanel .body{padding:16px 18px;overflow:auto;flex:1;background:var(--bg)}
+  #panel .foot,#xpanel .foot,#apanel .foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;
                align-items:center;flex:0 0 auto;background:var(--panel3)}
 
   .grid{display:grid;grid-template-columns:120px 1fr;gap:9px 14px;align-items:center}
@@ -176,7 +176,13 @@
     <input id="q" placeholder="Search every column&hellip;" style="min-width:260px">
     <button id="clear-filters">Clear filters</button>
     <span class="grow"></span>
+    <input type="file" id="ifs-file" accept=".csv" hidden>
+    <button id="ifs-upload">Import IFS export&hellip;</button>
+    <span class="sub" id="ifs-status"></span>
+    <button id="get-default-users">Get Default Users</button>
+    <span class="sub" id="gdu-status"></span>
     <button id="extract-ionapi">Extract Type 20 &rarr; .ionapi files</button>
+    <button id="assign-tenant">Assign to tenant&hellip;</button>
     <button class="danger" id="delete-all">Delete all</button>
     <button class="primary" id="add-record">+ Add security record</button>
   </div>
@@ -198,7 +204,10 @@
       <input id="f-AUTH" list="auth-list" placeholder="1, 20, 99&hellip;">
       <datalist id="auth-list"></datalist>
       <div></div>
-      <div class="hint">PCID, TNNM and AUTH together are the record's key.</div>
+      <div class="hint">PCID, TNNM and AUTH together are the record's key.
+        Changing AUTH on an existing record moves it to the new AUTH rather
+        than updating it in place - M3 has no way to change a key field on a
+        record that already exists.</div>
     </div>
 
     <h3>M3 user</h3>
@@ -281,6 +290,59 @@
   </div>
 </div>
 
+<div id="apanel">
+  <div class="head"><b>Assign to tenant</b><span class="grow"></span>
+    <button id="a-close">Close</button></div>
+  <div class="body">
+    <div class="note">Creates a new Users-tab record — HASH and UMSG left
+      blank — for each request checked below, against each tenant checked
+      below. <span class="mono">M3ID</span> comes straight off that target
+      tenant's own Tenants-tab registration (see the note under each tenant
+      below) — resolved automatically the first time that tenant's Tenants
+      tab loads; when it hasn't resolved yet, its records are created with
+      M3ID left blank instead. This list reflects whatever the Review tab's
+      own filters currently show — narrow it there (e.g. by
+      <span class="mono">DOMAIN</span>) before opening this panel to limit
+      who shows up here.</div>
+    <div style="margin-bottom:10px">
+      <div style="font-weight:700;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Initial AUTH</div>
+      <div style="display:flex;flex-wrap:wrap;gap:14px">
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600;color:var(--ink)">
+          <input type="radio" name="a-auth" value="0" checked style="width:auto">
+          0 — access blocked
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-weight:600;color:var(--ink)">
+          <input type="radio" name="a-auth" value="1" style="width:auto">
+          1 — access granted
+        </label>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-weight:700;color:var(--ink);font-size:12px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Target tenant(s) — TNNM</div>
+      <div id="a-tenants" style="display:flex;flex-wrap:wrap;gap:14px"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:10px">
+      <button id="a-select-all" class="small">Select all</button>
+      <button id="a-select-none" class="small">Select none</button>
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)">
+        <input type="checkbox" id="a-delete-source" checked style="width:auto">
+        Delete the review request once it's assigned
+      </label>
+    </div>
+    <div class="sub" id="a-summary"></div>
+    <div class="wrap" id="a-wrap" style="margin-top:10px;max-height:48vh">
+      <table id="t-assign"><thead><tr>
+        <th style="width:26px"><input type="checkbox" id="a-check-all" style="width:auto"></th>
+        <th>PCID</th><th>Domain</th><th>Username</th><th>Computer</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="primary" id="a-assign">Assign selected</button>
+    <span id="a-state" class="sub"></span>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -336,7 +398,8 @@ const AUTH_PILL = { '20': 'info', '1': 'good', '0': 'bad', '99': 'warn' };
 // tenant's is an .ionapi blob, a user grant's is normally empty, and a
 // review request's is decoded into USERNAME/DOMAIN/COMPUTERNAME instead.
 const TAB_HIDDEN_COLUMNS = {
-  tenants: ['M3ID', 'RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME'],
+  tenants: ['RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME',
+            'CHNO', 'CHID', 'HASH_full_length'],
   users: ['RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME'],
   review: ['UMSG', 'RGDT', 'RGTM', 'LMDT', 'HASH'],
 };
@@ -357,15 +420,23 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   t.classList.add('on');
   state.tab = t.dataset.tab;
   state.filters = {}; state.q = ''; $('#q').value = '';
+  $('#get-default-users').style.display = state.tab === 'tenants' ? '' : 'none';
   $('#extract-ionapi').style.display = state.tab === 'tenants' ? '' : 'none';
   $('#delete-all').style.display = state.tab === 'review' ? '' : 'none';
+  $('#assign-tenant').style.display = state.tab === 'review' ? '' : 'none';
   renderHead();
   renderBody();
 }));
+$('#get-default-users').style.display = state.tab === 'tenants' ? '' : 'none';
 $('#extract-ionapi').style.display = state.tab === 'tenants' ? '' : 'none';
 $('#delete-all').style.display = state.tab === 'review' ? '' : 'none';
+$('#assign-tenant').style.display = state.tab === 'review' ? '' : 'none';
 
 /* ---------------------------------------------------------- tenants --- */
+// Called at init, and again after "Get Default Users" might have tagged a
+// new Managing System - re-reads the option list without yanking the user
+// off whatever tenant they already have open, as long as it's still in the
+// refreshed list.
 async function loadTenants() {
   const d = await api('/api/tenants');
   state.authLabels = d.auth_labels || {};
@@ -373,16 +444,26 @@ async function loadTenants() {
     .map(l => `<option value="${esc(l.split(' ')[0])}">${esc(l)}</option>`).join('');
 
   const sel = $('#tenant');
+  const current = state.tenant;
   sel.innerHTML = (d.tenants || []).map(t => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
   if (!d.tenants || !d.tenants.length) {
-    $('#statusline').textContent = 'No .ionapi files found.';
+    $('#statusline').textContent = d.error ? `Could not read the Managing System list: ${d.error}` : 'No .ionapi files found.';
     return;
   }
-  sel.value = d.default && d.tenants.includes(d.default) ? d.default : d.tenants[0];
+  sel.value = current && d.tenants.includes(current) ? current
+            : (d.default && d.tenants.includes(d.default) ? d.default : d.tenants[0]);
   state.tenant = sel.value;
 }
 
-$('#tenant').addEventListener('change', () => { state.tenant = $('#tenant').value; loadSecurity(); });
+$('#tenant').addEventListener('change', () => {
+  state.tenant = $('#tenant').value;
+  // A different tenant is a different dataset - a filter typed against the
+  // old one is as likely to hide everything as to still make sense, so this
+  // is the one reload that clears it. Every other reload (refresh, or the
+  // one after an add/edit/delete) keeps what was typed.
+  state.filters = {}; state.q = ''; $('#q').value = '';
+  loadSecurity();
+});
 $('#refresh').addEventListener('click', loadSecurity);
 
 /* ----------------------------------------------------------- listing --- */
@@ -394,7 +475,6 @@ async function loadSecurity() {
     const d = await api('/api/security?tenant=' + encodeURIComponent(state.tenant));
     state.columns = d.columns || [];
     state.rows = d.rows || [];
-    state.filters = {};
     $('#statusline').textContent = `Connected — ${state.tenant}`;
     for (const tab of Object.keys(TAB_AUTH))
       $('#n-' + tab).textContent = tabRows(tab).length;
@@ -540,7 +620,10 @@ function openPanel(mode, row) {
   for (const f of ['PCID', 'TNNM', 'AUTH', 'M3ID', 'UMSG', 'HASH'])
     $('#f-' + f).value = row ? (row[f] ?? '') : '';
 
-  const keyInputs = ['#f-PCID', '#f-TNNM', '#f-AUTH'];
+  // AUTH stays editable in edit mode - unlike PCID/TNNM, changing it is a
+  // meaningful action (moving a record between tabs), and the backend
+  // updates it with a plain UpdUsrInfo like any other value field.
+  const keyInputs = ['#f-PCID', '#f-TNNM'];
   keyInputs.forEach(sel => {
     $(sel).readOnly = mode === 'edit';
     $(sel).classList.toggle('ro', mode === 'edit');
@@ -576,6 +659,7 @@ $('#p-save').addEventListener('click', async () => {
     M3ID: $('#f-M3ID').value.trim(),
     UMSG: $('#f-UMSG').value.trim(),
   };
+  const moved = state.editing && AUTH !== state.editing.AUTH;
   const body = JSON.stringify({ tenant: state.tenant, PCID, TNNM, AUTH, fields });
   $('#p-save').disabled = true;
   $('#p-state').textContent = 'Saving…';
@@ -585,7 +669,7 @@ $('#p-save').addEventListener('click', async () => {
     } else {
       await api('/api/security', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
     }
-    toast(state.editing ? 'Record updated.' : 'Record added.');
+    toast(state.editing ? (moved ? `Record moved to AUTH ${AUTH}.` : 'Record updated.') : 'Record added.');
     $('#panel').classList.remove('on');
     loadSecurity();
   } catch (e) {
@@ -641,6 +725,36 @@ $('#delete-all').addEventListener('click', async () => {
   loadSecurity();
 });
 
+/* ------------------------------------------------------ get default users --- */
+// Connects to every AUTH=20 row's own tenant to resolve M3ID (and tag
+// UMSG "Managing System" / "Connection Error") - see
+// api_resolve_tenant_defaults() in SheetSecurity_App.py. A row already
+// resolved is left alone, so running this again only spends time on what's
+// still unresolved (e.g. after fixing a bad .ionapi file).
+$('#get-default-users').addEventListener('click', async () => {
+  $('#get-default-users').disabled = true;
+  $('#gdu-status').textContent = 'Connecting to each tenant…';
+  try {
+    const d = await api('/api/tenants/resolve-defaults', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant }),
+    });
+    $('#gdu-status').textContent = '';
+    toast(
+      `Checked ${d.checked} unresolved tenant${d.checked === 1 ? '' : 's'} — ` +
+      `${d.resolved} resolved (${d.managing_system} Managing System${d.managing_system === 1 ? '' : 's'}), ` +
+      `${d.connection_errors} connection error${d.connection_errors === 1 ? '' : 's'}, ` +
+      `${d.unresolved} still unresolved.`);
+    loadSecurity();
+    loadTenants();
+  } catch (e) {
+    $('#gdu-status').textContent = '';
+    toast(e.message, true);
+  } finally {
+    $('#get-default-users').disabled = false;
+  }
+});
+
 /* ------------------------------------------------------ find M3 user --- */
 $('#p-guess').addEventListener('click', async () => {
   const tnnm = $('#f-TNNM').value.trim();
@@ -657,22 +771,30 @@ $('#p-guess').addEventListener('click', async () => {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ tnnm, pcid, hint, tenant: state.tenant }),
     });
-    $('#guess-status').textContent = d.extracted
-      ? `via ${d.ionapi} (extracted just now from ${state.tenant}'s AUTH=20 record)`
-      : `via ${d.ionapi}`;
+    const statusBits = [];
+    if (d.ionapi) {
+      statusBits.push(d.extracted
+        ? `M3 via ${d.ionapi} (extracted just now from ${state.tenant}'s AUTH=20 record)`
+        : `M3 via ${d.ionapi}`);
+    } else if (d.m3_error) {
+      statusBits.push(`M3 lookup failed: ${d.m3_error}`);
+    }
+    $('#guess-status').textContent = statusBits.join(' · ');
     box.hidden = false;
     if (!d.candidates.length) {
-      box.innerHTML = `<span class="sub">No MNS150MI users on ${esc(d.tenant)} came close to matching '${esc(searchedBy)}'.</span>`;
+      box.innerHTML = `<span class="sub">No matches for '${esc(searchedBy)}' from M3 or the IFS export.</span>`;
       return;
     }
     box.innerHTML = '';
     d.candidates.forEach(c => {
-      const isBest = d.best && d.best.usid === c.usid && d.best.email === c.email;
+      const isBest = d.best && d.best.usid === c.usid && d.best.email === c.email
+        && d.best.source === c.source;
       const row = el('div', { class: 'cand' },
         el('div', { class: 'who' },
           el('b', {}, c.usid || '(no usid)'), ' — ', c.name || '(no name)',
           el('br'), el('span', { class: 'sub' }, c.email || '(no email)')),
         el('span', { class: 'score' }, (c.score * 100).toFixed(0) + '%'),
+        el('span', { class: 'sub' }, c.source === 'ifs_export' ? 'IFS export' : 'M3'),
         isBest ? el('span', { class: 'pill good' }, 'best') : null,
         el('button', {
           class: 'small', onclick: () => {
@@ -693,6 +815,47 @@ $('#p-guess').addEventListener('click', async () => {
     box.innerHTML = `<span class="sub" style="color:var(--bad)">${esc(e.message)}</span>`;
   }
 });
+
+/* --------------------------------------------------------- IFS export --- */
+async function refreshIfsStatus() {
+  let d;
+  try {
+    d = await api('/api/ifs-export');
+  } catch (e) {
+    return;
+  }
+  const status = $('#ifs-status');
+  status.innerHTML = '';
+  if (!d.total) return;
+  status.append(`${d.filename} (${d.total} users) `);
+  status.append(el('a', {
+    href: '#',
+    onclick: async (e) => {
+      e.preventDefault();
+      await api('/api/ifs-export', { method: 'DELETE' });
+      toast('IFS export cleared.');
+      refreshIfsStatus();
+    },
+  }, 'clear'));
+}
+
+$('#ifs-upload').addEventListener('click', () => $('#ifs-file').click());
+$('#ifs-file').addEventListener('change', async () => {
+  const file = $('#ifs-file').files[0];
+  $('#ifs-file').value = '';
+  if (!file) return;
+  const fd = new FormData();
+  fd.append('file', file);
+  $('#ifs-status').textContent = 'Importing…';
+  try {
+    const d = await api('/api/ifs-export', { method: 'POST', body: fd });
+    toast(`Imported ${d.total} users from ${d.filename}.`);
+  } catch (e) {
+    toast(e.message, true);
+  }
+  refreshIfsStatus();
+});
+refreshIfsStatus();
 
 /* ------------------------------------------------- HASH decrypt/encrypt --- */
 
@@ -871,10 +1034,177 @@ $('#x-write').addEventListener('click', async () => {
   }
 });
 
+/* --------------------------------------------------- assign to tenant --- */
+// A Review (AUTH=99) request's PCID is the requester's Windows login and
+// TNNM is their machine name (see vba/Doppio.bas) - neither is the customer
+// tenant name this panel assigns access to, so a fresh (PCID, target TNNM,
+// AUTH=0) key never collides with the source row's own key. Target tenants
+// come from this security tenant's own Tenants tab (AUTH=20 registrations),
+// so there is nothing to hardcode or keep in sync by hand.
+let assignRows = [];
+let aSelected = new Map();
+
+function tenantTargets() {
+  return Array.from(new Set(
+    state.rows.filter(r => String(r.AUTH ?? '').trim() === '20')
+      .map(r => (r.TNNM || '').trim())
+      .filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b));
+}
+
+// M3ID is resolved once, automatically, the first time this tenant's
+// Tenants tab loads (see _resolve_tenant_row() in SheetSecurity_App.py) and
+// stored right on its AUTH=20 row - reading it here is a plain lookup in
+// state.rows, no live M3 call needed.
+function tenantDefault(tnnm) {
+  const row = state.rows.find(r => String(r.AUTH ?? '').trim() === '20' && (r.TNNM || '').trim() === tnnm);
+  return { usid: (row && row.M3ID) || '' };
+}
+
+function renderAssignTenants() {
+  const box = $('#a-tenants');
+  box.innerHTML = '';
+  const targets = tenantTargets();
+  if (!targets.length) {
+    box.append(el('span', { class: 'sub' },
+      'No AUTH=20 tenant registrations found on this tenant — register one on the Tenants tab first.'));
+    return;
+  }
+  targets.forEach(t => {
+    const cb = el('input', { type: 'checkbox', value: t, style: 'width:auto' });
+    cb.addEventListener('change', updateAssignSummary);
+    const def = tenantDefault(t);
+    const note = el('span', { class: 'sub', style: 'display:block;margin-left:22px' },
+      def.usid ? `defaults to ${def.usid}` : 'no default user resolved yet on the Tenants tab — records will be created with M3ID blank');
+    box.append(el('label', { style: 'display:flex;flex-direction:column;gap:2px' },
+      el('span', { style: 'display:flex;align-items:center;gap:6px;font-weight:600;color:var(--ink)' }, cb, t),
+      note));
+  });
+}
+
+function selectedTenantTargets() {
+  return Array.from(document.querySelectorAll('#a-tenants input[type=checkbox]:checked')).map(cb => cb.value);
+}
+
+function assignSelectedCount() {
+  return assignRows.filter((_, i) => aSelected.get(i)).length;
+}
+
+function updateAssignSummary() {
+  const picked = assignSelectedCount();
+  const targets = selectedTenantTargets().length;
+  $('#a-summary').textContent = assignRows.length
+    ? `${picked} of ${assignRows.length} request${assignRows.length === 1 ? '' : 's'} selected × ${targets} tenant${targets === 1 ? '' : 's'} = ${picked * targets} record${picked * targets === 1 ? '' : 's'} to create.`
+    : '';
+  $('#a-check-all').checked = assignRows.length > 0 && picked === assignRows.length;
+}
+
+function renderAssignTable() {
+  const tbody = $('#t-assign tbody');
+  tbody.innerHTML = '';
+  if (!assignRows.length) {
+    tbody.append(el('tr', {}, el('td', { colspan: 5, class: 'empty' },
+      'No review requests match the current Review tab filters.')));
+    updateAssignSummary();
+    return;
+  }
+  assignRows.forEach((r, i) => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = aSelected.get(i);
+    cb.addEventListener('change', () => { aSelected.set(i, cb.checked); updateAssignSummary(); });
+    tbody.append(el('tr', {},
+      el('td', {}, cb),
+      el('td', {}, r.PCID || ''),
+      el('td', {}, r.DOMAIN || ''),
+      el('td', {}, r.USERNAME || ''),
+      el('td', {}, r.COMPUTERNAME || '')));
+  });
+  updateAssignSummary();
+}
+
+function assignSetAll(checked) {
+  assignRows.forEach((_, i) => aSelected.set(i, checked));
+  renderAssignTable();
+}
+
+$('#assign-tenant').addEventListener('click', () => {
+  assignRows = filteredSortedRows();
+  aSelected = new Map(assignRows.map((_, i) => [i, true]));
+  $('#a-delete-source').checked = true;
+  $('#a-state').textContent = '';
+  renderAssignTenants();
+  renderAssignTable();
+  $('#apanel').classList.add('on');
+});
+$('#a-close').addEventListener('click', () => $('#apanel').classList.remove('on'));
+$('#a-select-all').addEventListener('click', () => assignSetAll(true));
+$('#a-select-none').addEventListener('click', () => assignSetAll(false));
+$('#a-check-all').addEventListener('change', e => assignSetAll(e.target.checked));
+
+$('#a-assign').addEventListener('click', async () => {
+  const targets = selectedTenantTargets();
+  const rows = assignRows.filter((_, i) => aSelected.get(i));
+  const auth = document.querySelector('input[name=a-auth]:checked').value;
+  if (!targets.length) { toast('Select at least one target tenant.', true); return; }
+  if (!rows.length) { toast('Select at least one review request.', true); return; }
+  const deleteSource = $('#a-delete-source').checked;
+
+  if (!confirm(
+    `Create up to ${rows.length * targets.length} security record(s) ` +
+    `(AUTH=${auth}) for ${rows.length} request${rows.length === 1 ? '' : 's'} ` +
+    `across ${targets.length} tenant${targets.length === 1 ? '' : 's'}?` +
+    (deleteSource ? ' Each request will be deleted once it has at least one record created.' : '')))
+    return;
+
+  $('#a-assign').disabled = true;
+
+  let created = 0, skipped = 0, failed = 0, deleted = 0;
+  for (const r of rows) {
+    let anyCreated = false;
+    for (const tnnm of targets) {
+      $('#a-state').textContent = `Assigning ${r.PCID} → ${tnnm}…`;
+      const exists = state.rows.some(x => x.PCID === r.PCID && x.TNNM === tnnm &&
+        ['0', '1'].includes(String(x.AUTH ?? '').trim()));
+      if (exists) { skipped++; continue; }
+      const def = tenantDefault(tnnm);
+      try {
+        await api('/api/security', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tenant: state.tenant, PCID: r.PCID, TNNM: tnnm, AUTH: auth,
+            fields: { HASH: '', M3ID: def.usid || '', UMSG: '' },
+          }),
+        });
+        created++; anyCreated = true;
+      } catch (e) { failed++; }
+    }
+    if (deleteSource && anyCreated) {
+      try {
+        await api('/api/security', {
+          method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenant: state.tenant, PCID: r.PCID, TNNM: r.TNNM, AUTH: r.AUTH }),
+        });
+        deleted++;
+      } catch (e) { /* leave the review request in place if its delete fails */ }
+    }
+  }
+  $('#a-assign').disabled = false;
+  $('#a-state').textContent = '';
+  toast(
+    `${created} record${created === 1 ? '' : 's'} created` +
+    (skipped ? `, ${skipped} already existed` : '') +
+    (failed ? `, ${failed} failed` : '') +
+    (deleteSource ? `, ${deleted} review request${deleted === 1 ? '' : 's'} deleted` : '') + '.',
+    !!failed);
+  $('#apanel').classList.remove('on');
+  loadSecurity();
+});
+
 document.addEventListener('keydown', e => {
   if (e.key !== 'Escape') return;
   $('#panel').classList.remove('on');
   $('#xpanel').classList.remove('on');
+  $('#apanel').classList.remove('on');
 });
 
 /* --------------------------------------------------------------- init --- */

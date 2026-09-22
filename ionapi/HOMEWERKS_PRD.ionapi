@@ -1,0 +1,16 @@
+{
+    "ti": "FEEWEDEAXW9YKEQ4_PRD",
+    "cn": "PostManBackEnd",
+    "dt": "12",
+    "ci": "FEEWEDEAXW9YKEQ4_PRD~i-Lcn4IOtV0RnKjJTDMjYIj0g2PIu7OcfNq13rKdtmY",
+    "cs": "0ZCh631LSsfw_f256uOZbPxGDQCdoTfpGjstk44yx1HMD2Ee_0FdNCBvpjAe7dQzA92aJ5u_mQNwmIwEVscEmg",
+    "iu": "https://mingle-ionapi.inforcloudsuite.com",
+    "pu": "https://mingle-sso.inforcloudsuite.com:443/FEEWEDEAXW9YKEQ4_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "ev": "U1478358101",
+    "v": "1.0",
+    "saak": "FEEWEDEAXW9YKEQ4_PRD#Un-n9zdV4z_uTiGTaJv9dvP4Og08WHHtjOUm6ITa_GtF4y-lzQP1bQ5hShGK3p7Y9hnW6bzQBKm5O5NO1fsQmg",
+    "sask": "V_nHkBrYOC8YiN8oTQ7UAucHHBd_k-dck-rKfrRuZe8ZklnlMJu6rJjW1gkXf0lOKuOHh8SGpOC2_p1eb7PpZQ"
+}

@@ -95,7 +95,7 @@ app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
 app.config["MAX_CONTENT_LENGTH"] = 256 * 1024 * 1024
 app.config["ADP_CONCUR_DB"] = None
 
-# The eight lookup tables, as the Maps tab shows them: label, table, key
+# The nine lookup tables, as the Maps tab shows them: label, table, key
 # column, and the columns that are editable in the grid.
 MAP_TABLES = {
     "org": ("Org Map", "ADP_Concur_OrgMap", "map_key",
@@ -118,6 +118,10 @@ MAP_TABLES = {
                 ["file_number", "employee_name", "access"]),
     "role": ("Role Assignment Map", "ADP_Concur_RoleMap", "map_key",
              ["role", "category", "automatic"]),
+    "company": ("UKG Company Map", "ADP_Concur_CompanyMap", "map_key",
+                ["site_location", "site_location_code", "concur_company_code",
+                 "concur_company_desc", "expense_group_code", "ledger_code",
+                 "custom_5_code"]),
 }
 
 # Columns the Employees list may sort on. Anything else falls back to the

@@ -178,7 +178,7 @@ def start(app: AppInfo, port: int | None = None) -> dict:
              f"on port {port} ---\n".encode())
     log.flush()
     proc = subprocess.Popen(
-        [sys.executable, str(app.entry), "--port", str(port)],
+        [sys.executable, "-u", str(app.entry), "--port", str(port)],
         cwd=app.dir, stdout=log, stderr=log, start_new_session=True)
     _procs[app.key] = proc
     _pid_file(app.key).write_text(str(proc.pid))

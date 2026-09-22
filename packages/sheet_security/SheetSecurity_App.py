@@ -55,6 +55,7 @@ from SheetSecurity_M3Api import (
     extract_type20_ionapi,
     guess_from_ifs_export,
     guess_m3_user,
+    list_ionapi_files,
     parse_ifs_export,
     resolve_tenant_registration,
 )
@@ -205,28 +206,17 @@ def index():
 @app.route("/api/tenants")
 def api_tenants():
     """
-    The tenant dropdown lists only Managing Systems - tenants that carry
-    their own EXT124MI/EXTXSM security table, not every customer tenant a
-    Managing System happens to have an .ionapi file for on disk (extracted
-    for "Find M3 user" or "Extract Type 20", say). DOPPIO_DEM is the
-    bootstrap: its own Tenants tab is where every other Managing System gets
-    tagged UMSG="Managing System", once "Get Default Users" has been run
-    there (see _resolve_tenant_row() / api_resolve_tenant_defaults()), so
-    that tab's AUTH=20 rows are the source of this list rather than
-    list_ionapi_files(). DOPPIO_DEM itself is always included and always
-    the default, whether or not it happens to carry a self-registration row.
+    The tenant dropdown lists every tenant with a readable .ionapi file in
+    the shared ionapi/ folder - not just Managing Systems (tenants that
+    carry their own EXT124MI/EXTXSM security table). DOPPIO_DEM is always
+    included and always the default, whether or not it has its own .ionapi
+    file on disk.
     """
     tenants = {DEFAULT_TENANT}
-    error = None
-    try:
-        rows = _client(DEFAULT_TENANT).list_extxsm()
-        tenants.update(
-            (r.get("TNNM") or "").strip() for r in rows
-            if str(r.get("AUTH") or "").strip() == "20"
-            and str(r.get("UMSG") or "").strip() == UMSG_MANAGING_SYSTEM)
-        tenants.discard("")
-    except M3ApiError as exc:
-        error = str(exc)
+    tenants.update(
+        (e.get("tenant") or "").strip() for e in list_ionapi_files(_ionapi_dir())
+        if e.get("tenant"))
+    tenants.discard("")
 
     tenants = sorted(tenants)
     return jsonify(status="success", tenants=tenants,
@@ -234,7 +224,7 @@ def api_tenants():
                            else (tenants[0] if tenants else ""),
                    auth_labels=AUTH_LABELS,
                    key_fields=list(EXT124_KEY_FIELDS),
-                   error=error)
+                   error=None)
 
 
 @app.route("/api/security")

@@ -231,46 +231,6 @@
         DTS:DataType="8"
         DTS:Name="ParameterValue">Data Source=bguss0014.corporate.local;Initial Catalog=BIxPress;Provider=SQLNCLI11;Integrated Security=SSPI;Persist Security Info=False;Auto Translate=False;</DTS:Property>
     </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library AULT1F2: AULT1F2PRD (Production) / AULT1F2QUA (Stage)"
-      DTS:DTSID="{772EE7A1-F9D4-4D13-B97D-9DBC6B4EBA43}"
-      DTS:ObjectName="LIB_AULT1F2">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">AULT1F2PRD</DTS:Property>
-    </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library AULT2F2: AULT2F2PRD (Production) / AULT2F2QUA (Stage)"
-      DTS:DTSID="{21D7E546-6C1F-4024-9180-80E94882D8B4}"
-      DTS:ObjectName="LIB_AULT2F2">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">AULT2F2PRD</DTS:Property>
-    </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library AULT3F2: AULT3F2PRD (Production) / AULT3F2QUA (Stage)"
-      DTS:DTSID="{18BDBB31-D2C7-4977-B6A8-944814D325D9}"
-      DTS:ObjectName="LIB_AULT3F2">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">AULT3F2PRD</DTS:Property>
-    </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library MODSF4: PRDMODSF4 (Production) / QUAMODSF4 (Stage)"
-      DTS:DTSID="{BB302A6B-84F5-4B8E-B6E1-2AD660A7C7CB}"
-      DTS:ObjectName="LIB_MODSF4">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">PRDMODSF4</DTS:Property>
-    </DTS:PackageParameter>
   </DTS:PackageParameters>
   <DTS:Variables>
     <DTS:Variable
@@ -515,277 +475,6 @@
       DTS:ObjectName="varSSISOps_MaxVarCharsToLog">
       <DTS:VariableValue
         DTS:DataType="3">4000</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{8910D161-E7F6-4480-8BCE-C20F31B18F04}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;SELECT A.CONO, A.ACCN04,  '20' concat Right(cast(A.PSTPER as char(5)), 4) as PSTPER, A.LEDNO, \nA.PSQYTD, A.PSQTPR, A.MEMOAC, A.NPDR04, A.NPCR04, \nA.FYDR04, A.FYCR04, A.CYDR04, A.CYCR04 \nFROM &quot; + @[$Package::LIB_AULT1F2] + &quot;.FLP004 as A\nWHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and\n PSTPER &gt;= '1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 4 months, 'YYMM') FROM sysibm.sysdummy1)&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Account_Balances_Load_GL_Account_Balances">
-      <DTS:VariableValue
-        DTS:DataType="8">SELECT A.CONO, A.ACCN04,  '20' concat Right(cast(A.PSTPER as char(5)), 4) as PSTPER, A.LEDNO, 
-A.PSQYTD, A.PSQTPR, A.MEMOAC, A.NPDR04, A.NPCR04, 
-A.FYDR04, A.FYCR04, A.CYDR04, A.CYCR04 
-FROM AULT1F2PRD.FLP004 as A
-WHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
- PSTPER &gt;= '1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 4 months, 'YYMM') FROM sysibm.sysdummy1)</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{0816845F-8230-41D5-AF5E-53D6D473D36E}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select T01.CONO As EntityID,\n T01.ACCN08 AS AccountNumber,\n T01.LINDES As LineDescription,\n T01.TXSRCE As TransactionSource,\n T01.UPDNOG As BatchCode,\n T01.TT AS TransactionType,\n T01.DOCREF As DocumentReference,\nT01.LINO As DocSeq,\n T02.DOCDT As DocumentDate,\n CASE \n    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='1' THEN\n       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/20' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2)\n    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='0' THEN\n       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/19' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2) \n    ELSE NULL END AS FormattedDate,\n  T02.SESNO AS SessionNumber,\nCAST('20' concat Right(cast(T01.PSTPER as char(5)), 4) AS VARCHAR(6))  As PostingPeriod,\n  (T01.pstamt * -1) as PostingAmount,\n  T01.prlacc as PrivateLedgerAccount,\n  RIGHT(TRIM(T01.ACCN08), 4) As CategoryAccount\n\n from &quot; + @[$Package::LIB_AULT1F2] + &quot;.flp008 as T01\n inner join\n  &quot; + @[$Package::LIB_AULT1F2] + &quot;.flp007 as T02 on T01.CONO=T02.CONO AND T01.DOCREF=T02.DOCREF AND T01.TXSRCE=T02.TXSRCE AND  T01.TT=T02.TT \nWHERE T01.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) \nAND T01.PSTPER &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 16 months, 'YYMM') FROM sysibm.sysdummy1) AS INT) \n\nAND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, 'YYMM') FROM sysibm.sysdummy1) AS INT)&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_GL_Load_GL">
-      <DTS:VariableValue
-        DTS:DataType="8">select T01.CONO As EntityID,
- T01.ACCN08 AS AccountNumber,
- T01.LINDES As LineDescription,
- T01.TXSRCE As TransactionSource,
- T01.UPDNOG As BatchCode,
- T01.TT AS TransactionType,
- T01.DOCREF As DocumentReference,
-T01.LINO As DocSeq,
- T02.DOCDT As DocumentDate,
- CASE 
-    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='1' THEN
-       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/20' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2)
-    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='0' THEN
-       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/19' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2) 
-    ELSE NULL END AS FormattedDate,
-  T02.SESNO AS SessionNumber,
-CAST('20' concat Right(cast(T01.PSTPER as char(5)), 4) AS VARCHAR(6))  As PostingPeriod,
-  (T01.pstamt * -1) as PostingAmount,
-  T01.prlacc as PrivateLedgerAccount,
-  RIGHT(TRIM(T01.ACCN08), 4) As CategoryAccount
-
- from AULT1F2PRD.flp008 as T01
- inner join
-  AULT1F2PRD.flp007 as T02 on T01.CONO=T02.CONO AND T01.DOCREF=T02.DOCREF AND T01.TXSRCE=T02.TXSRCE AND  T01.TT=T02.TT 
-WHERE T01.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) 
-AND T01.PSTPER &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 16 months, 'YYMM') FROM sysibm.sysdummy1) AS INT) 
-
-AND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, 'YYMM') FROM sysibm.sysdummy1) AS INT)</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{D16820EB-5A93-4AF8-89AD-5569593D44C2}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select \n\t1 as system_id,\n\tcono70 as entity_id,\n\tinvn70 as inv_num ,\n\tCAST(desn70 as nvarchar(6)) as inv_seq,\n\tordl70 as inv_line, \n \tcase when dtin65 = 0 then null else \n\t\tSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2) CONCAT '/' CONCAT\n               \t\tSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\n              \t\tSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  \n        \tend as dtin65,\n\tordn70 as co_num,\n\tordl70 as co_line,\n\t0 as co_release,\n\tCAST('' as nvarchar(1)) as item_customer,\n\tcatn70 as item_internal,\n\tlqty70 as qty_invoiced,\n\tbdis70 as discount,\n\tcval70 as cost,\n\tuprc70 as price,\n\tbliv70 as base_line_value,\n\tlval70 AS inv_line_value,\n\tcurn00 as currency_code,\n\tdesn70 as ship_ref,\n\tCAST('' as nvarchar(1)) as ship_line,\n\tCAST('' as nvarchar(1)) as ship_seq,\n\tinvn70 as source_inv_num,\n\t'I' as line_type,\n\tCASE\n\t\tWHEN d.qtor55 = (SELECT SUM(lqty70) FROM &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep70 AS sq where sq.cono70=a.cono70 and sq.ordn70=a.ordn70 AND sq.ordl70=a.ordl70 AND sq.dttr70 &lt;= a.dttr70 AND sq.invn70 &lt;= a.invn70)\n\t\tTHEN 1\n\t\tELSE 0\n\tEND Line_Count,\n\tCASE \n\t\tWHEN a.dttr70 &gt; d.dtdr55\n\t\tTHEN 0\n\t\tELSE 1\n\tEND as ot_count,\n\td.qtor55 as order_qty,\n(SELECT SUM(lqty70) FROM &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep70 AS sq where sq.cono70=a.cono70 and sq.ordn70=a.ordn70 AND sq.ordl70=a.ordl70 AND sq.dttr70 &lt;= a.dttr70 AND sq.invn70 &lt;= a.invn70) as cum_ship_qty\n\t\nfrom &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep70 a\ninner join &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep65 b on b.cono65 = a.cono70 and\nb.invn65 = a.invn70\ninner join &quot; + @[$Package::LIB_AULT1F2] + &quot;.COMPANY c\non a.cono70=c.cono\nLEFT JOIN &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep55 d\n\t\t\tON a.cono70=d.cono55 and a.ordn70=d.ordn55 and a.ordl70=d.ordl55\nwhere (dtin65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 30 days, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)\nOR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 30 days, 'YYMMDD') FROM sysibm.sysdummy1) AS INT))\n\n\nUNION ALL\nselect \n\t1 as system_id,\n\tcono50 as entity_id,\n\tinvn50 as inv_num,\n\tCAST(1000 + CAST(DESN50 AS INT) as nvarchar(6)) as inv_seq,\n\tsqno50 as inv_line,\n\tcase when dtin65 = 0 then null else \n\t\tSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2) CONCAT '/' CONCAT\n               \t\tSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\n              \t\tSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  \n        \tend as dtin65,\n\tordn50 as CO_NUM,\n\tSQNO50 AS CO_LINE,\n\t0 AS CO_RELEASE,\n\tCAST('' as nvarchar(1)) as item_customer,\n\tODES50 AS item_internal,\n\t1 as qty_invoiced,\n\t0 as discount,\n\t0 as cost,\n\tchgv50 as price,\n\tbchv50 as base_line_value,\n\tchgv50 AS inv_line_value,\n\tcurn00 as currency_code,\n\tdesn65 as ship_ref,\n\t0 as ship_line,\n\t0 as ship_seq,\n\tinvn50 as source_inv_num,\n\t'C' as line_type,\n0 as Line_Count,\n0 as ot_count,\n0 as order_qty,\n0 as cum_ship_qty\n\nfrom &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep50 a \ninner join &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep65 b on a.cono50=b.cono65  and\na.invn50=b.invn65\ninner join &quot; + @[$Package::LIB_AULT1F2] + &quot;.COMPANY c\non a.cono50=c.cono\nwhere  (dtin65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)\nOR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT))\nand RTRIM(LTRIM(INVN50)) &lt;&gt; ''&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Invoice_Detail_Load_invoice_detail">
-      <DTS:VariableValue
-        DTS:DataType="8">select 
-	1 as system_id,
-	cono70 as entity_id,
-	invn70 as inv_num ,
-	CAST(desn70 as nvarchar(6)) as inv_seq,
-	ordl70 as inv_line, 
- 	case when dtin65 = 0 then null else 
-		SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2) CONCAT '/' CONCAT
-               		SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
-              		SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  
-        	end as dtin65,
-	ordn70 as co_num,
-	ordl70 as co_line,
-	0 as co_release,
-	CAST('' as nvarchar(1)) as item_customer,
-	catn70 as item_internal,
-	lqty70 as qty_invoiced,
-	bdis70 as discount,
-	cval70 as cost,
-	uprc70 as price,
-	bliv70 as base_line_value,
-	lval70 AS inv_line_value,
-	curn00 as currency_code,
-	desn70 as ship_ref,
-	CAST('' as nvarchar(1)) as ship_line,
-	CAST('' as nvarchar(1)) as ship_seq,
-	invn70 as source_inv_num,
-	'I' as line_type,
-	CASE
-		WHEN d.qtor55 = (SELECT SUM(lqty70) FROM AULT2F2PRD.oep70 AS sq where sq.cono70=a.cono70 and sq.ordn70=a.ordn70 AND sq.ordl70=a.ordl70 AND sq.dttr70 &lt;= a.dttr70 AND sq.invn70 &lt;= a.invn70)
-		THEN 1
-		ELSE 0
-	END Line_Count,
-	CASE 
-		WHEN a.dttr70 &gt; d.dtdr55
-		THEN 0
-		ELSE 1
-	END as ot_count,
-	d.qtor55 as order_qty,
-(SELECT SUM(lqty70) FROM AULT2F2PRD.oep70 AS sq where sq.cono70=a.cono70 and sq.ordn70=a.ordn70 AND sq.ordl70=a.ordl70 AND sq.dttr70 &lt;= a.dttr70 AND sq.invn70 &lt;= a.invn70) as cum_ship_qty
-	
-from AULT2F2PRD.oep70 a
-inner join AULT2F2PRD.oep65 b on b.cono65 = a.cono70 and
-b.invn65 = a.invn70
-inner join AULT1F2PRD.COMPANY c
-on a.cono70=c.cono
-LEFT JOIN AULT2F2PRD.oep55 d
-			ON a.cono70=d.cono55 and a.ordn70=d.ordn55 and a.ordl70=d.ordl55
-where (dtin65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 30 days, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)
-OR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 30 days, 'YYMMDD') FROM sysibm.sysdummy1) AS INT))
-
-
-UNION ALL
-select 
-	1 as system_id,
-	cono50 as entity_id,
-	invn50 as inv_num,
-	CAST(1000 + CAST(DESN50 AS INT) as nvarchar(6)) as inv_seq,
-	sqno50 as inv_line,
-	case when dtin65 = 0 then null else 
-		SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2) CONCAT '/' CONCAT
-               		SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
-              		SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  
-        	end as dtin65,
-	ordn50 as CO_NUM,
-	SQNO50 AS CO_LINE,
-	0 AS CO_RELEASE,
-	CAST('' as nvarchar(1)) as item_customer,
-	ODES50 AS item_internal,
-	1 as qty_invoiced,
-	0 as discount,
-	0 as cost,
-	chgv50 as price,
-	bchv50 as base_line_value,
-	chgv50 AS inv_line_value,
-	curn00 as currency_code,
-	desn65 as ship_ref,
-	0 as ship_line,
-	0 as ship_seq,
-	invn50 as source_inv_num,
-	'C' as line_type,
-0 as Line_Count,
-0 as ot_count,
-0 as order_qty,
-0 as cum_ship_qty
-
-from AULT2F2PRD.oep50 a 
-inner join AULT2F2PRD.oep65 b on a.cono50=b.cono65  and
-a.invn50=b.invn65
-inner join AULT1F2PRD.COMPANY c
-on a.cono50=c.cono
-where  (dtin65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)
-OR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT))
-and RTRIM(LTRIM(INVN50)) &lt;&gt; ''</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{FC448405-8367-441C-B13B-30F231B767AE}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select\n\tCONO15\t\tas system_entity_id,\n\tLREF15\t\tas inv_num,\n\t'0'\t\tas inv_seq,\n\tCUSN15\t\tas cust_ship_num,\n\t'000'\t\tas cust_ship_seq,\n\tCUSN15\t\tas cust_inv_num,\n\t'000'\t\tas cust_inv_seq,\n\tcase when docd15 = 0 then '' else \n\t\tSUBSTR(Right('0' concat CAST(docd15 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\n\t\tSUBSTR(Right('0' concat CAST(docd15 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\n\t\tSUBSTR(Right('0' concat CAST(docd15 AS VARCHAR(7)),7), 2, 2)  \n\tend \t\tas inv_date,\n\tSUM(BTMT15)\tas inv_total,\n\tb.CURN00 \t\tas currency_code,\n\t1\t\tas currency_rate,\n\t'C' CONCAT TRIM(ETYP15)\tas inv_type,\n\tCASE WHEN SUM(BBAL15) &lt;&gt; 0 THEN 'O' ELSE 'C' END as inv_status,\n\t0\t\tas terms, --(PDUE15-DOCD15)\n\tSOPN15\t\tas co_num,\n\t''\t\tas cust_po,\n\tLREF15\t\tas ship_ref,\n\tDSEQ15\t\tas ship_seq,\nCASE WHEN LEFT(CAST(pper15 AS VARCHAR(5)), 1) = '1' THEN\n      '20' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)\nELSE\n      '19' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)\nEND AS pern\n\nfrom &quot; + @[$Package::LIB_AULT1F2] + &quot;.slp15 a\nLEFT JOIN &quot; + @[$Package::LIB_AULT1F2] + &quot;.company b\non a.cono15=b.cono\nLEFT JOIN &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep65 c\non a.cono15=c.cono65\nand a.lref15=c.invn65\n\nWHERE\n--etyp15='CR'\ninvn65 IS NULL\nand srcE15='E'\nand docd15 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)\n\ngroup by\nCONO15,\nLREF15,\nCUSN15,\nDOCD15,\nb.CURN00,\nSOPN15,\nDSEQ15,\n'C' CONCAT TRIM(ETYP15),\nCASE WHEN LEFT(CAST(pper15 AS VARCHAR(5)), 1) = '1' THEN\n      '20' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)\nELSE\n      '19' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)\nEND&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Invoice_Header_Load_credit_memos_unapplied_cash_etc">
-      <DTS:VariableValue
-        DTS:DataType="8">select
-	CONO15		as system_entity_id,
-	LREF15		as inv_num,
-	'0'		as inv_seq,
-	CUSN15		as cust_ship_num,
-	'000'		as cust_ship_seq,
-	CUSN15		as cust_inv_num,
-	'000'		as cust_inv_seq,
-	case when docd15 = 0 then '' else 
-		SUBSTR(Right('0' concat CAST(docd15 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT
-		SUBSTR(Right('0' concat CAST(docd15 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
-		SUBSTR(Right('0' concat CAST(docd15 AS VARCHAR(7)),7), 2, 2)  
-	end 		as inv_date,
-	SUM(BTMT15)	as inv_total,
-	b.CURN00 		as currency_code,
-	1		as currency_rate,
-	'C' CONCAT TRIM(ETYP15)	as inv_type,
-	CASE WHEN SUM(BBAL15) &lt;&gt; 0 THEN 'O' ELSE 'C' END as inv_status,
-	0		as terms, --(PDUE15-DOCD15)
-	SOPN15		as co_num,
-	''		as cust_po,
-	LREF15		as ship_ref,
-	DSEQ15		as ship_seq,
-CASE WHEN LEFT(CAST(pper15 AS VARCHAR(5)), 1) = '1' THEN
-      '20' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)
-ELSE
-      '19' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)
-END AS pern
-
-from AULT1F2PRD.slp15 a
-LEFT JOIN AULT1F2PRD.company b
-on a.cono15=b.cono
-LEFT JOIN AULT2F2PRD.oep65 c
-on a.cono15=c.cono65
-and a.lref15=c.invn65
-
-WHERE
---etyp15='CR'
-invn65 IS NULL
-and srcE15='E'
-and docd15 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)
-
-group by
-CONO15,
-LREF15,
-CUSN15,
-DOCD15,
-b.CURN00,
-SOPN15,
-DSEQ15,
-'C' CONCAT TRIM(ETYP15),
-CASE WHEN LEFT(CAST(pper15 AS VARCHAR(5)), 1) = '1' THEN
-      '20' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)
-ELSE
-      '19' CONCAT RIGHT(CAST(pper15 as varchar(5)), 4)
-END</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{631F409B-D99D-48D4-A20B-B584B8475BBC}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select 1 as system_id, oep65.cono65, oep65.invn65, 0 as invs65, \ncusn65, CASE WHEN TRIM(dseq65)='' THEN CUSQ65 ELSE DSEQ65 END AS DSEQ65, cusi65, cusq65, -- boln65, prob65, \ncurc65, curt65,\n case when dtin65 = 0 then '' else SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  \nend as dtin65, \nbiit65, curn65, \ncase when type65 = 'IN' then 'I'\n         when type65 = 'DR' then 'D'\n        when type65 = 'CR' then 'C'\n        else 'X'\nend as type65,\n case when dtin65 = 0 then '' else SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  \nend as shdt65,   /* ship date */\n0 as sseq65,  /* ship seq */\nstat65, pttd65, \nCASE WHEN HEX(ordn65)='FFFFFFFFFFFFFF' THEN '' ELSE ORDN65 END as ORDN65, cuso65, \nCASE WHEN LEFT(CAST(pern65 AS VARCHAR(5)), 1) = '1' THEN\n      '20' CONCAT RIGHT(CAST(pern65 as varchar(5)), 4)\nELSE\n      '19' CONCAT RIGHT(CAST(pern65 as varchar(5)), 4)\nEND AS pern\n--,cnam05, cad105, cad205, cad305, cad405, pcd105 concat pcd205 as pcd105\n\nfrom &quot; + @[$Package::LIB_AULT2F2] + &quot;.oep65 oep65\nleft join &quot; + @[$Package::LIB_AULT1F2] + &quot;.slp05 slp05 on slp05.cono05 = oep65.cono65\nand slp05.cusn05 = oep65.cusn65 and slp05.dseq05 = oep65.dseq65\n--left join &quot; + @[$Package::LIB_MODSF4] + &quot;.oep65x oep65x on oep65x.cono65 = oep65.cono65 and\n--oep65x.invn65 = oep65.invn65 \n\n-- experienced bad data on invoice #7924780 for cono77 - multiple oep65x records, order number all binary 1's - no dseq - what kind of invoice is this, drop ship? If so where is address.\nwhere --oep65.cono65 IN  (SELECT CONO FROM ASGHDCA.DWCOMPANY) and\n (dtin65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)\nOR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT))&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Invoice_Header_Load_invoice_headers">
-      <DTS:VariableValue
-        DTS:DataType="8">select 1 as system_id, oep65.cono65, oep65.invn65, 0 as invs65, 
-cusn65, CASE WHEN TRIM(dseq65)='' THEN CUSQ65 ELSE DSEQ65 END AS DSEQ65, cusi65, cusq65, -- boln65, prob65, 
-curc65, curt65,
- case when dtin65 = 0 then '' else SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT
-SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
-SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  
-end as dtin65, 
-biit65, curn65, 
-case when type65 = 'IN' then 'I'
-         when type65 = 'DR' then 'D'
-        when type65 = 'CR' then 'C'
-        else 'X'
-end as type65,
- case when dtin65 = 0 then '' else SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT
-SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
-SUBSTR(Right('0' concat CAST(dtin65 AS VARCHAR(7)),7), 2, 2)  
-end as shdt65,   /* ship date */
-0 as sseq65,  /* ship seq */
-stat65, pttd65, 
-CASE WHEN HEX(ordn65)='FFFFFFFFFFFFFF' THEN '' ELSE ORDN65 END as ORDN65, cuso65, 
-CASE WHEN LEFT(CAST(pern65 AS VARCHAR(5)), 1) = '1' THEN
-      '20' CONCAT RIGHT(CAST(pern65 as varchar(5)), 4)
-ELSE
-      '19' CONCAT RIGHT(CAST(pern65 as varchar(5)), 4)
-END AS pern
---,cnam05, cad105, cad205, cad305, cad405, pcd105 concat pcd205 as pcd105
-
-from AULT2F2PRD.oep65 oep65
-left join AULT1F2PRD.slp05 slp05 on slp05.cono05 = oep65.cono65
-and slp05.cusn05 = oep65.cusn65 and slp05.dseq05 = oep65.dseq65
---left join PRDMODSF4.oep65x oep65x on oep65x.cono65 = oep65.cono65 and
---oep65x.invn65 = oep65.invn65 
-
--- experienced bad data on invoice #7924780 for cono77 - multiple oep65x records, order number all binary 1's - no dseq - what kind of invoice is this, drop ship? If so where is address.
-where --oep65.cono65 IN  (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
- (dtin65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT)
-OR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 months, 'YYMMDD') FROM sysibm.sysdummy1) AS INT))</DTS:VariableValue>
     </DTS:Variable>
   </DTS:Variables>
   <DTS:LoggingOptions
@@ -1866,7 +1555,7 @@ WHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Account_Balances_Load_GL_Account_Balances</property>
+                      name="SqlCommandVariable"></property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -1879,7 +1568,7 @@ WHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -2525,7 +2214,7 @@ AND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, '
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_GL_Load_GL</property>
+                      name="SqlCommandVariable"></property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -2538,7 +2227,7 @@ AND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, '
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -4281,7 +3970,7 @@ and RTRIM(LTRIM(INVN50)) &lt;&gt; ''</property>
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Invoice_Detail_Load_invoice_detail</property>
+                      name="SqlCommandVariable"></property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -4294,7 +3983,7 @@ and RTRIM(LTRIM(INVN50)) &lt;&gt; ''</property>
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -6289,7 +5978,7 @@ END</property>
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Invoice_Header_Load_credit_memos_unapplied_cash_etc</property>
+                      name="SqlCommandVariable"></property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -6302,7 +5991,7 @@ END</property>
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -8183,7 +7872,7 @@ OR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 mo
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Invoice_Header_Load_invoice_headers</property>
+                      name="SqlCommandVariable"></property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -8196,7 +7885,7 @@ OR dtlc65 &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 48 mo
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."

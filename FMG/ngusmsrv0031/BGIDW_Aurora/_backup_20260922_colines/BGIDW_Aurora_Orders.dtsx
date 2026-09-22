@@ -430,7 +430,7 @@
       DTS:CreationName=""
       DTS:DTSID="{64FDA900-9A70-4FF3-995B-16F5A638B6BC}"
       DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select\ncono55 as system_entity_id,\nordn55 as co_num,\nordl55 as co_line,\n'0' as co_release,\nortp55 as order_type,\nosrc55 as order_source,\ncusn40 as cust_bill_num,\n'000' as cust_bill_seq,\ncusn40 as cust_ship_num,\ndseq40 as cust_ship_seq,\ncatn55 as item,\n'' as cust_item,\nqtor55 as qty_ordered,\nqtds55 as qty_shipped,\ndisp55 as disc_pct,\nbdis55 as disc_amt,\nuprc55 as price,\ncurn40 as currency_code,\ncase when DTDR55 = 0 then NULL else SUBSTR(Right('0' concat CAST(DTDR55 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST(DTDR55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST(DTDR55 AS VARCHAR(7)),7), 2, 2)  \nend as due_date,\ncase when DTLP55 = 0 then NULL else SUBSTR(Right('0' concat CAST(DTLP55 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST(DTLP55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST(DTLP55 AS VARCHAR(7)),7), 2, 2)  \nend as promise_date,\n' ' as status,\n'' as DPAS_code,\ncuso40 as cust_po_num,\n(ORLV55/QTOR55) * (QTOR55 - QTDS55) as line_value,\n(BORL55/QTOR55) * (QTOR55 - QTDS55) as base_line_value,\nEXDF55 as rev_rec_flag,\ncase when DTLC55= 0 then null else SUBSTR(Right('0' concat CAST(DTLC55 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 2, 2)  \nend as date_last_changed\nfrom (\n    select l.*,\n           row_number() over (partition by l.CONO55, l.ORDN55, l.ORDL55\n                              order by l.DTLC55 desc, rrn(l) desc) as rn\n    from &quot; + @[$Package::LIB_AULT2F2] + &quot;.OEP55 l\n    where l.CONO55 IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)\n      and l.stat55=' '\n      and l.qtno55=' '\n      and l.ORLV55 &lt;&gt; 0\n      and l.QTOR55 &lt;&gt; 0\n) OEP55\ninner join (\n    select h.CONO40, h.ORDN40, h.CUSN40, h.DSEQ40, h.CURN40, h.CUSO40,\n           row_number() over (partition by h.CONO40, h.ORDN40\n                              order by rrn(h) desc) as rn\n    from &quot; + @[$Package::LIB_AULT2F2] + &quot;.OEP40 h\n) OEP40 on OEP40.CONO40 = OEP55.CONO55\n       and OEP40.ORDN40 = OEP55.ORDN55\n       and OEP40.rn = 1\nwhere OEP55.rn = 1&quot;"
+      DTS:Expression="&quot;select\ncono55 as system_entity_id,\nordn55 as co_num,\nordl55 as co_line,\n'0' as co_release,\nortp55 as order_type,\nosrc55 as order_source,\ncusn40 as cust_bill_num,\n'000' as cust_bill_seq,\ncusn40 as cust_ship_num,\ndseq40 as cust_ship_seq,\ncatn55 as item,\n'' as cust_item,\nqtor55 as qty_ordered,\nqtds55 as qty_shipped,\ndisp55 as disc_pct,\nbdis55 as disc_amt,\nuprc55 as price,\ncurn40 as currency_code,\ncase when DTDR55 = 0 then NULL else SUBSTR(Right('0' concat CAST(DTDR55 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST(DTDR55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST(DTDR55 AS VARCHAR(7)),7), 2, 2)  \nend as due_date,\ncase when DTLP55 = 0 then NULL else SUBSTR(Right('0' concat CAST(DTLP55 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST(DTLP55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST(DTLP55 AS VARCHAR(7)),7), 2, 2)  \nend as promise_date,\n' ' as status,\n'' as DPAS_code,\ncuso40 as cust_po_num,\n(ORLV55/QTOR55) * (QTOR55 - QTDS55) as line_value,\n(BORL55/QTOR55) * (QTOR55 - QTDS55) as base_line_value,\nEXDF55 as rev_rec_flag,\ncase when DTLC55= 0 then null else SUBSTR(Right('0' concat CAST(DTLC55 AS VARCHAR(7)),7), 4, 2)  CONCAT '/' CONCAT\nSUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT\nSUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 2, 2)  \nend as date_last_changed\nfrom \n&quot; + @[$Package::LIB_AULT2F2] + &quot;.OEP55 OEP55\n\ninner join &quot; + @[$Package::LIB_AULT2F2] + &quot;.OEP40 OEP40 on OEP40.cono40 = OEP55.CONO55 and\nOEP40.ORDN40 = OEP55.ORDN55\n\nwhere \nCONO55 IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) \nand stat55=' '\nand qtno55=' '\nand ORLV55 &lt;&gt; 0\nand QTOR55 &lt;&gt; 0&quot;"
       DTS:IncludeInDebugDump="2345"
       DTS:Namespace="User"
       DTS:ObjectName="SQL_CO_Lines_Load_CO_Lines">
@@ -472,26 +472,18 @@ case when DTLC55= 0 then null else SUBSTR(Right('0' concat CAST(DTLC55 AS VARCHA
 SUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
 SUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 2, 2)  
 end as date_last_changed
-from (
-    select l.*,
-           row_number() over (partition by l.CONO55, l.ORDN55, l.ORDL55
-                              order by l.DTLC55 desc, rrn(l) desc) as rn
-    from AULT2F2PRD.OEP55 l
-    where l.CONO55 IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)
-      and l.stat55=' '
-      and l.qtno55=' '
-      and l.ORLV55 &lt;&gt; 0
-      and l.QTOR55 &lt;&gt; 0
-) OEP55
-inner join (
-    select h.CONO40, h.ORDN40, h.CUSN40, h.DSEQ40, h.CURN40, h.CUSO40,
-           row_number() over (partition by h.CONO40, h.ORDN40
-                              order by rrn(h) desc) as rn
-    from AULT2F2PRD.OEP40 h
-) OEP40 on OEP40.CONO40 = OEP55.CONO55
-       and OEP40.ORDN40 = OEP55.ORDN55
-       and OEP40.rn = 1
-where OEP55.rn = 1</DTS:VariableValue>
+from 
+AULT2F2PRD.OEP55 OEP55
+
+inner join AULT2F2PRD.OEP40 OEP40 on OEP40.cono40 = OEP55.CONO55 and
+OEP40.ORDN40 = OEP55.ORDN55
+
+where 
+CONO55 IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) 
+and stat55=' '
+and qtno55=' '
+and ORLV55 &lt;&gt; 0
+and QTOR55 &lt;&gt; 0</DTS:VariableValue>
     </DTS:Variable>
   </DTS:Variables>
   <DTS:LoggingOptions
@@ -1863,26 +1855,18 @@ case when DTLC55= 0 then null else SUBSTR(Right('0' concat CAST(DTLC55 AS VARCHA
 SUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 6, 2) CONCAT '/20' CONCAT
 SUBSTR(Right('0' concat CAST( DTLC55 AS VARCHAR(7)),7), 2, 2)  
 end as date_last_changed
-from (
-    select l.*,
-           row_number() over (partition by l.CONO55, l.ORDN55, l.ORDL55
-                              order by l.DTLC55 desc, rrn(l) desc) as rn
-    from AULT2F2PRD.OEP55 l
-    where l.CONO55 IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)
-      and l.stat55=' '
-      and l.qtno55=' '
-      and l.ORLV55 &lt;&gt; 0
-      and l.QTOR55 &lt;&gt; 0
-) OEP55
-inner join (
-    select h.CONO40, h.ORDN40, h.CUSN40, h.DSEQ40, h.CURN40, h.CUSO40,
-           row_number() over (partition by h.CONO40, h.ORDN40
-                              order by rrn(h) desc) as rn
-    from AULT2F2PRD.OEP40 h
-) OEP40 on OEP40.CONO40 = OEP55.CONO55
-       and OEP40.ORDN40 = OEP55.ORDN55
-       and OEP40.rn = 1
-where OEP55.rn = 1</property>
+from 
+ault2f2prd.OEP55 OEP55
+
+inner join ault2f2prd.OEP40 OEP40 on OEP40.cono40 = OEP55.CONO55 and
+OEP40.ORDN40 = OEP55.ORDN55
+
+where 
+CONO55 IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) 
+and stat55=' '
+and qtno55=' '
+and ORLV55 &lt;&gt; 0
+and QTOR55 &lt;&gt; 0</property>
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."

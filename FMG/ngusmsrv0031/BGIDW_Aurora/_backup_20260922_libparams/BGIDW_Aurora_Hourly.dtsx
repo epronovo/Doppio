@@ -198,46 +198,6 @@
         DTS:DataType="8"
         DTS:Name="ParameterValue">Data Source=bguss0014.corporate.local;Initial Catalog=BIxPress;Provider=SQLNCLI11;Integrated Security=SSPI;Persist Security Info=False;Auto Translate=False;</DTS:Property>
     </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library AULT1F2: AULT1F2PRD (Production) / AULT1F2QUA (Stage)"
-      DTS:DTSID="{97ECABD3-702C-4903-B985-21E3808AF2A4}"
-      DTS:ObjectName="LIB_AULT1F2">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">AULT1F2PRD</DTS:Property>
-    </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library AULT2F2: AULT2F2PRD (Production) / AULT2F2QUA (Stage)"
-      DTS:DTSID="{FB202291-DA85-4E6B-A1E0-FBBD7C6DC2B9}"
-      DTS:ObjectName="LIB_AULT2F2">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">AULT2F2PRD</DTS:Property>
-    </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library AULT3F2: AULT3F2PRD (Production) / AULT3F2QUA (Stage)"
-      DTS:DTSID="{B9C71E47-5790-4BB0-BA37-4B389296C319}"
-      DTS:ObjectName="LIB_AULT3F2">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">AULT3F2PRD</DTS:Property>
-    </DTS:PackageParameter>
-    <DTS:PackageParameter
-      DTS:CreationName=""
-      DTS:DataType="8"
-      DTS:Description="DB2 library MODSF4: PRDMODSF4 (Production) / QUAMODSF4 (Stage)"
-      DTS:DTSID="{6A561FBA-6966-4F80-8717-35C12663A2C0}"
-      DTS:ObjectName="LIB_MODSF4">
-      <DTS:Property
-        DTS:DataType="8"
-        DTS:Name="ParameterValue">PRDMODSF4</DTS:Property>
-    </DTS:PackageParameter>
   </DTS:PackageParameters>
   <DTS:Variables>
     <DTS:Variable
@@ -443,88 +403,6 @@
       DTS:ObjectName="varSSISOps_MaxVarCharsToLog">
       <DTS:VariableValue
         DTS:DataType="3">4000</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{ED7C7B77-D2E7-4E6C-9D77-F05006619E1C}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;SELECT A.CONO, A.ACCN04,  '20' concat Right(cast(A.PSTPER as char(5)), 4) as PSTPER, A.LEDNO, \nA.PSQYTD, A.PSQTPR, A.MEMOAC, A.NPDR04, A.NPCR04, \nA.FYDR04, A.FYCR04, A.CYDR04, A.CYCR04 \nFROM &quot; + @[$Package::LIB_AULT1F2] + &quot;.FLP004 as A\nWHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and\n PSTPER &gt;= '1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 14 months, 'YYMM') FROM sysibm.sysdummy1)&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Account_Balances_Upsert_GL_Account_Balances">
-      <DTS:VariableValue
-        DTS:DataType="8">SELECT A.CONO, A.ACCN04,  '20' concat Right(cast(A.PSTPER as char(5)), 4) as PSTPER, A.LEDNO, 
-A.PSQYTD, A.PSQTPR, A.MEMOAC, A.NPDR04, A.NPCR04, 
-A.FYDR04, A.FYCR04, A.CYDR04, A.CYCR04 
-FROM AULT1F2PRD.FLP004 as A
-WHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
- PSTPER &gt;= '1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 14 months, 'YYMM') FROM sysibm.sysdummy1)</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{A98A4E13-D2BA-4EDD-B913-1033E4F895A5}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;SELECT a.CONO, a.ACCN03, a.ATYP03, a.ACDESC, a.LEDNO, b.BPC103 , a.lvcd01, a.lvcd02, a.lvcd03, a.lvcd04, RIGHT(TRIM(a.ACCN03), 4) AS CAT_ACCT, a.dcur03, TRIM(c.CONACC) AS CTRL_ACCT FROM &quot; + @[$Package::LIB_AULT1F2] + &quot;.FLP003 as a\nLEFT JOIN (SELECT DISTINCT CONO, ACCN03, MAX(CASE WHEN RTRIM(COALESCE(BPC103, ''))='' THEN 0 ELSE 1 END) AS BPC103 FROM &quot; + @[$Package::LIB_MODSF4] + &quot;.FLP003E GROUP BY CONO, ACCN03) as b\nON a.CONO=b.CONO AND a.accn03=b.accn03\nLEFT JOIN &quot; + @[$Package::LIB_AULT1F2] + &quot;.FLP002 AS c on a.CONO=c.CONO AND a.LEDNO=c.LEDNO \nWHERE a.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Chart_Of_Accounts_chart_of_accounts">
-      <DTS:VariableValue
-        DTS:DataType="8">SELECT a.CONO, a.ACCN03, a.ATYP03, a.ACDESC, a.LEDNO, b.BPC103 , a.lvcd01, a.lvcd02, a.lvcd03, a.lvcd04, RIGHT(TRIM(a.ACCN03), 4) AS CAT_ACCT, a.dcur03, TRIM(c.CONACC) AS CTRL_ACCT FROM AULT1F2PRD.FLP003 as a
-LEFT JOIN (SELECT DISTINCT CONO, ACCN03, MAX(CASE WHEN RTRIM(COALESCE(BPC103, ''))='' THEN 0 ELSE 1 END) AS BPC103 FROM PRDMODSF4.FLP003E GROUP BY CONO, ACCN03) as b
-ON a.CONO=b.CONO AND a.accn03=b.accn03
-LEFT JOIN AULT1F2PRD.FLP002 AS c on a.CONO=c.CONO AND a.LEDNO=c.LEDNO 
-WHERE a.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{7FC9179B-EF66-40DD-9D1A-9B8325BF04F1}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select T01.CONO As EntityID,\n T01.ACCN08 AS AccountNumber,\n T01.LINDES As LineDescription,\n T01.TXSRCE As TransactionSource,\n T01.UPDNOG As BatchCode,\n T01.TT AS TransactionType,\n T01.DOCREF As DocumentReference,\nT01.LINO As DocSeq,\n T02.DOCDT As DocumentDate,\n CASE \n    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='1' THEN\n       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/20' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2)\n    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='0' THEN\n       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/19' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2) \n    ELSE NULL END AS FormattedDate,\n  T02.SESNO AS SessionNumber,\nCAST('20' concat Right(cast(T01.PSTPER as char(5)), 4) AS VARCHAR(6))  As PostingPeriod,\n  (T01.pstamt * -1) as PostingAmount,\n  T01.prlacc as PrivateLedgerAccount,\n  RIGHT(TRIM(T01.ACCN08), 4) As CategoryAccount\n\n from &quot; + @[$Package::LIB_AULT1F2] + &quot;.flp008 as T01\n inner join\n  &quot; + @[$Package::LIB_AULT1F2] + &quot;.flp007 as T02 on T01.CONO=T02.CONO AND T01.DOCREF=T02.DOCREF AND T01.TXSRCE=T02.TXSRCE AND  T01.TT=T02.TT \nWHERE T01.CONO='00' \nAND T01.PSTPER &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 1 months, 'YYMM') FROM sysibm.sysdummy1) AS INT) \n\nAND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, 'YYMM') FROM sysibm.sysdummy1) AS INT)&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_GL_for_00_Corp_Expenses_Load_GL">
-      <DTS:VariableValue
-        DTS:DataType="8">select T01.CONO As EntityID,
- T01.ACCN08 AS AccountNumber,
- T01.LINDES As LineDescription,
- T01.TXSRCE As TransactionSource,
- T01.UPDNOG As BatchCode,
- T01.TT AS TransactionType,
- T01.DOCREF As DocumentReference,
-T01.LINO As DocSeq,
- T02.DOCDT As DocumentDate,
- CASE 
-    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='1' THEN
-       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/20' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2)
-    WHEN SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 1, 1)='0' THEN
-       SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 4, 2)  CONCAT '/' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 6, 2) CONCAT '/19' CONCAT SUBSTR(CAST(T02.DOCDT AS CHAR(7)), 2, 2) 
-    ELSE NULL END AS FormattedDate,
-  T02.SESNO AS SessionNumber,
-CAST('20' concat Right(cast(T01.PSTPER as char(5)), 4) AS VARCHAR(6))  As PostingPeriod,
-  (T01.pstamt * -1) as PostingAmount,
-  T01.prlacc as PrivateLedgerAccount,
-  RIGHT(TRIM(T01.ACCN08), 4) As CategoryAccount
-
- from AULT1F2PRD.flp008 as T01
- inner join
-  AULT1F2PRD.flp007 as T02 on T01.CONO=T02.CONO AND T01.DOCREF=T02.DOCREF AND T01.TXSRCE=T02.TXSRCE AND  T01.TT=T02.TT 
-WHERE T01.CONO='00' 
-AND T01.PSTPER &gt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP - 1 months, 'YYMM') FROM sysibm.sysdummy1) AS INT) 
-
-AND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, 'YYMM') FROM sysibm.sysdummy1) AS INT)</DTS:VariableValue>
-    </DTS:Variable>
-    <DTS:Variable
-      DTS:CreationName=""
-      DTS:DTSID="{5A4EE57A-DB25-4B44-A2B0-D70A51A840C6}"
-      DTS:EvaluateAsExpression="True"
-      DTS:Expression="&quot;select cono, ledno, lednm, conacc, l1des\nfrom &quot; + @[$Package::LIB_AULT1F2] + &quot;.flp002\nWHERE CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)&quot;"
-      DTS:IncludeInDebugDump="2345"
-      DTS:Namespace="User"
-      DTS:ObjectName="SQL_Ledgers_ledgers">
-      <DTS:VariableValue
-        DTS:DataType="8">select cono, ledno, lednm, conacc, l1des
-from AULT1F2PRD.flp002
-WHERE CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)</DTS:VariableValue>
     </DTS:Variable>
   </DTS:Variables>
   <DTS:LoggingOptions
@@ -983,7 +861,7 @@ WHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Account_Balances_Upsert_GL_Account_Balances</property>
+                      name="SqlCommandVariable">User::Query_Balances</property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -996,7 +874,7 @@ WHERE A.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY) and
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -2874,7 +2752,7 @@ WHERE a.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)</property>
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Chart_Of_Accounts_chart_of_accounts</property>
+                      name="SqlCommandVariable">User::Query_ChartOfAccounts</property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -2887,7 +2765,7 @@ WHERE a.CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)</property>
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -3558,7 +3436,7 @@ AND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, '
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_GL_for_00_Corp_Expenses_Load_GL</property>
+                      name="SqlCommandVariable"></property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -3571,7 +3449,7 @@ AND T01.PSTPER &lt;= CAST('1' CONCAT (select VARCHAR_FORMAT(CURRENT TIMESTAMP, '
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."
@@ -5176,7 +5054,7 @@ WHERE CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)</property>
                     <property
                       dataType="System.String"
                       description="The variable that contains the SQL command to be executed."
-                      name="SqlCommandVariable">User::SQL_Ledgers_ledgers</property>
+                      name="SqlCommandVariable">User::Query_Ledgers</property>
                     <property
                       dataType="System.Int32"
                       description="Specifies the column code page to use when code page information is unavailable from the data source."
@@ -5189,7 +5067,7 @@ WHERE CONO IN (SELECT CONO FROM ASGHDCA.DWCOMPANY)</property>
                       dataType="System.Int32"
                       description="Specifies the mode used to access the database."
                       name="AccessMode"
-                      typeConverter="AccessMode">3</property>
+                      typeConverter="AccessMode">2</property>
                     <property
                       dataType="System.String"
                       description="The mappings between the parameters in the SQL command and variables."

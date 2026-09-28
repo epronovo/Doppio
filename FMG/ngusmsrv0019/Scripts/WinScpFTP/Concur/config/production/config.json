@@ -1,0 +1,8 @@
+﻿{
+    "App_Environment": "production",
+    "App_HostName": "mft-us2.concursolutions.com",
+    "App_UserName": "p1211732xask",
+    "App_SSHKey": "ssh-rsa 3072 A+6pVvfQpGaSZfwvDenRBatqA9GE5YAbFOiKJASC7wI",
+    "App_KeyPassPhrase": "concur123#@!",
+    "App_KeyPath": "E:\\KeysEncryptions\\Concur\\SSH\\cooncur-private.ppk"
+}

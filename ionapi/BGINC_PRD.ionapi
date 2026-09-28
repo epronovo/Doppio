@@ -1,0 +1,17 @@
+{
+    "ti": "BGINC_PRD",
+    "cn": "BGINC_PRD",
+    "dt": "12",
+    "ci": "BGINC_PRD~QT5FLh0f2vBuhLBleXEFKuTl9XekMhht0H89JU_9vvQ",
+    "cs": "vmqXBatu2R-nYYAM5BJ-WdJBla8IuTAeiHMa3-rW3UcjTM1IfP2alkbw7pSd-C_qs5po5lCSX8y2NNS9NWEvmA",
+    "iu": "https://mingle-ionapi.eu1.inforcloudsuite.com",
+    "pu": "https://mingle-sso.eu1.inforcloudsuite.com/BGINC_PRD/as/",
+    "oa": "authorization.oauth2",
+    "ot": "token.oauth2",
+    "or": "revoke_token.oauth2",
+    "sc": [],
+    "ev": "V1480769020",
+    "v": "1.1",
+    "saak": "BGINC_PRD#V7uBHP5OXwpjvqi1f9uKLrsxgLLmkI6jurksEh_hAXhmw2INiYH5-MM-FJ-fmeMItnltPzeV7YovFFpVx814AA",
+    "sask": "D7PekUWQvuFWihoR342g_8JYBNskMCrMFjqjF-lDWn0kDHek524UvAYuaAQeBUyRC-uOmseblLQPkS2yJxlO1A"
+}

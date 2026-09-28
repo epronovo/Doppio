@@ -760,14 +760,15 @@ def import_layout(conn: sqlite3.Connection, record_type: str,
     if widths and _cell(widths[0]) == record_type:
         widths = []
 
-    # The field-number row sits above the headings when the tab has one.
+    # The field-number row sits above the headings when the tab has one. The
+    # last number that matches its own position is the width - a gap is not
+    # the end: the 24 September 305 tabs leave field 36 (Custom 15) unnumbered,
+    # and stopping there made every 305 in the file 35 fields wide.
     numbers = rows[header_row - 2] if header_row >= 2 else []
     fields = 0
     for i, cell in enumerate(numbers):
         if _cell(cell).strip().isdigit() and int(_cell(cell)) == i + 1:
             fields = i + 1
-        else:
-            break
 
     cur = conn.cursor()
     cur.execute("DELETE FROM ADP_Concur_Layouts WHERE record_type = ?", (record_type,))

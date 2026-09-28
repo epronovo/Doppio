@@ -400,14 +400,14 @@ def ADP_Concur_travel_profile(emp: dict, maps: dict) -> str:
 
     350 R's header, new with the 18th-of-the-month workbook, spells out a
     naming convention the Salary Map's own Travel Map column does not yet
-    follow: 'General xx (xx is 2 digit Country code)' - "General" alone is
-    the code, and the country belongs on the end ('CA should convert to
-    US'). Every ADP traveler here is US, so that is the one suffix applied;
-    a non-US ADP traveler would need this taught the same per-country
-    lookup the header describes rather than a flat " US".
+    follow: 'General xx (xx is 2 digit Country code)'. The 24 September
+    workbook's Salary Map now carries the suffix itself - 'General US',
+    'Senior Leadership US' - so the value is taken as the map has it. Adding
+    " US" here as well made it 'General US US'. VIP has no country, on the
+    map or here.
     """
     hit = maps["salary"].get(_s(emp.get("pay_grade_code")))
-    return f"{hit[1]} US" if hit else UNMAPPED["travel_profile"]
+    return hit[1] if hit else UNMAPPED["travel_profile"]
 
 
 def ADP_Concur_legal_country(emp: dict, maps: dict) -> str:
@@ -1097,12 +1097,14 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         "B": ("field", "file_number"),
         "R": ("field", "travel_profile"),            # Travel Class Name
         "T": ("field", "org_unit_1"),                # Org Unit / Division
+        "AG": ("field", "org_unit_1"),               # Custom 1 (Division) - =T5
     },
     "360": {
         "A":  ("const", "360"),
         "B":  ("field", "file_number"),
         "C":  ("field", "invoice_access"),           # Invoice User Role
         "D":  ("field", "invoice_access"),           # Invoice Approver Role
+        "H":  ("field", "invoice_access"),           # Invoice Purchasing Role
         "I":  ("field", "invoice_access"),           # Purchase Request User
         "J":  ("field", "invoice_access"),           # Purchase Request Approver
         "R":  ("field", "supervisor_id"),            # Default PR Approver
@@ -1162,6 +1164,37 @@ FIELD_MAP_BY_SOURCE: dict[str, dict[str, dict[str, tuple[str, str]]]] = {
         },
         "700": {
             "P": ("const", "USD"),                   # Approval Limit Currency
+        },
+    },
+}
+
+# Columns that copy another column of the same record when a flag column is Y,
+# and are left blank otherwise: {record_type: {target: (flag, source)}}. The
+# source is a column reference, or ("const", value) for a fixed value.
+#
+# Read from the built record rather than from ADP_Concur_Employees, so the
+# copy follows whatever the source's own tab put in the column - Custom 21 is
+# Org Unit 1 on ADP but the Company Map's Expense Group Code on UKG.
+#
+#  * 305 AE Custom 10 - Custom 21 (AP) for anybody who is an Invoice User
+#    (BU = Y), blank for everybody else. Briefly written to CI Custom 22
+#    Concur Invoice Group Hierarchy; moved to Custom 10.
+CONDITIONAL_COPIES: dict[str, dict[str, tuple]] = {
+    "305": {
+        "AE": ("BU", "AP"),
+    },
+}
+
+# Where a source's own tab writes a conditional column differently.
+#
+#  * 305 AE Custom 10 on UKG - =IF(BU2="Y","0088","") since the LATEST
+#    workbook: a fixed 0088 for every Invoice User. Copying UKG's Custom 21
+#    sent the Expense Group Code (0400, 0218), which Concur rejected as a
+#    Custom10 list item.
+CONDITIONAL_COPIES_BY_SOURCE: dict[str, dict[str, dict[str, tuple]]] = {
+    "ukg": {
+        "305": {
+            "AE": ("BU", ("const", "0088")),
         },
     },
 }
@@ -1247,6 +1280,25 @@ def build_record(emp: dict, record_type: str, width: int, cfg: dict) -> list[str
                 out[idx] = _s(cfg.get(value, ""))
         else:
             out[idx] = _s(emp.get(value))
+
+    # After every column is filled, so the flag and source are what the record
+    # actually carries; before blanking, so blanking the source column does
+    # not also empty the copy.
+    copies = dict(CONDITIONAL_COPIES.get(record_type, {}))
+    copies.update(CONDITIONAL_COPIES_BY_SOURCE.get(_s(emp.get("source")), {})
+                  .get(record_type, {}))
+    for ref, (flag_ref, source_ref) in copies.items():
+        idx = column_ref_to_index(ref) - 1
+        flag = column_ref_to_index(flag_ref) - 1
+        if isinstance(source_ref, tuple):
+            value = lambda: _s(source_ref[1])
+            source = -1
+        else:
+            source = column_ref_to_index(source_ref) - 1
+            value = lambda: out[source]
+        if max(idx, flag, source) >= width:
+            continue
+        out[idx] = value() if out[flag].upper() == "Y" else ""
 
     # Blanked last, so a column is emptied whether it came from the base map,
     # a roster override or a constant. Case and stray spaces are forgiven

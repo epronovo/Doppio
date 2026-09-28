@@ -5,7 +5,7 @@ A running list of where everything lives. Not a technical spec — the deep deta
 `ngusmsrv0031/ConcurImport/ConcurImport-Technical-Reference.md`. The client-facing view of the same
 inventory lives in `FMG_Integration_Management_Tracker.xlsx` (see §6).
 
-**Last updated:** 2026-09-15
+**Last updated:** 2026-09-22
 
 ---
 
@@ -15,6 +15,8 @@ inventory lives in `FMG_Integration_Management_Tracker.xlsx` (see §6).
 |---|---|---|---|
 | **NGUSMSRV0031** | `ngusmsrv0031.ng.bg1857.net` | **Development + SQL box.** SQL Server, SSMS, Visual Studio | `C:\Development` — VS / SSIS projects<br>`F:\common\ConnectionStrings.config` — global connection config |
 | **NGUSMSRV0019** | `ngusmsrv0019.ng.bg1857.net` | **File transfer server.** Runs the scheduled SFTP jobs via WinSCP + PowerShell | `E:\` — the whole SFTP tree (mirrored in this repo under `sftp/`) |
+| **NGUSMSRV0030** | `ngusmsrv0030` | **Production box for NGUSMSRV0031** (stated 2026-09-22) | Not yet reviewed |
+| **NGEUMSRV0003D** | `ngeumsrv0003d` | **ETL tool for M3 → data warehouse** (stated 2026-09-22) | Not yet reviewed — see STRAT-011 |
 
 Anything else in the table below is a system we *talk to*, not a box we own.
 
@@ -57,6 +59,12 @@ Anything else in the table below is a system we *talk to*, not a box we own.
 | **HighRadius Extracts** | Outbound | HighRadius | AR customer / open item / cash files out | NGUSMSRV0031 (SSIS) | Live |
 | **JBA AR Autoposting** | Internal | JBA / I-series | Pulls the HighRadius 820/823 data into JBA so Shared Services can apply cash (10/AIAS1) | I-series | **Live** — daily, 12:15 & 12:16 ET |
 | **JBA Concur T&E posting** | Internal | JBA / I-series | Posts the Concur T&E batch landed in PLP81U to the GL via 14/GLP | I-series | Live — schedule TBC |
+| **COFIDI-65 / 75** | TBC | TBC | Named by C. Lee — function unknown | SSIS, host unknown | Unconfirmed (STRAT-015) |
+| **Data Collection** | TBC | TBC | Named by C. Lee — function unknown | Wintel, host unknown | Unconfirmed (STRAT-016) |
+| **e2open** | TBC | e2open | Named by C. Lee — first Azure-hosted piece | SSIS + Azure, host unknown | Unconfirmed (STRAT-017) |
+| **PNC invoice "matcher" file** | TBC | PNC bank | Named by C. Lee | SSIS, host unknown | Unconfirmed (STRAT-018) |
+| **PNC lockbox** | Inbound? | PNC bank | Named by C. Lee — possibly the PNC → HighRadius path | SSIS, host unknown | Unconfirmed (STRAT-019) |
+| **Robo-FTP** | TBC | TBC | Named by C. Lee — a second file-transfer tool | Wintel, host unknown | Unconfirmed (STRAT-020) |
 
 ---
 
@@ -149,6 +157,32 @@ Three things worth knowing:
 - **Nothing on NGUSMSRV0019 appears in this export.** The HSBC, HighRadius and Concur file transfers run
   under Windows Task Scheduler on that box — still a separate, unconfirmed inventory.
 
+### Applications Team list (C. Lee, 2026-09-22)
+
+Catherine Lee sent the integrations she knows the **Applications Team (Shaun, Kevin, Dean, Jane)** supports.
+Reproduced on the tracker's **Applications Team List** tab. Six were new (STRAT-015 → 020): COFIDI-65/75,
+Data Collection, e2open, PNC invoice "matcher" file, PNC lockbox, Robo-FTP.
+
+- Four of the new ones are **SSIS**, but none are in the NGUSMSRV0031 projects or its SQL Agent jobs —
+  so there is **another SSIS server / SSISDB catalog** we have not seen.
+- Her list puts **HSBC on SSIS**; what we found is PowerShell + WinSCP + GnuPG on NGUSMSRV0019.
+- **HighRadius "SSIS?"** — both: SSIS on NGUSMSRV0031 plus PowerShell/WinSCP on NGUSMSRV0019.
+
+### Infrastructure ownership (T. Klohn, 2026-09-20)
+
+Reproduced on the tracker's **Infrastructure (T. Klohn)** tab.
+
+- **Timo Klohn = infrastructure** for everything in the **NG and RA domains** and the **RA and NG Azure
+  subscriptions**, plus a few servers/resources shared with the ISG companies, partly Aerospace, and BG.
+  Aerospace is building its own infrastructure.
+- **Databases and integrations belong to the business apps teams**, not infrastructure. He has **no
+  information on ETL/data-movement servers**.
+- **Service accounts** should have an AD description, with passwords in **LastPass or the Sweden KeePass**.
+- **Most file shares are in Azure.**
+- Several **hosting locations are closing** over the coming weeks/months.
+- **Business-app server ownership is not yet defined** for the future.
+- **HCL** is expected to document much of the critical knowledge in the knowledge-transfer meetings.
+
 ### Data warehouse loads (BGI_DW_M3, BGIDW_Aurora)
 - **Run on:** NGUSMSRV0031
 - Pull from the AS/400 (JBA) and Infor M3, load into `DW_BGI_OpData` / `DW_BGI_OpStage` /
@@ -191,8 +225,12 @@ Three things worth knowing:
   it live now?
 - **HighRadius extract output path** points at `\\BGUSMSRV0019...\HighRadius\stage\out` while the
   SFTP side runs on NGUSMSRV0019 — confirm these line up.
-- Also seen but not yet placed: `ngusmsrv0030`, `bgusmsrv0030`, `bguss0012`, `bguss0014`, `bguss0029`
-  (older data warehouse hosts).
+- Also seen but not yet placed: `bgusmsrv0030`, `bguss0012`, `bguss0014`, `bguss0029` (older data warehouse
+  hosts). ~~`ngusmsrv0030`~~ — **placed 2026-09-22**: production box for NGUSMSRV0031.
+- **Is the SQL Agent export from dev?** NGUSMSRV0030 is production for NGUSMSRV0031, so the 2026-09-15 job
+  export (from 0031) may show dev schedules. Export the jobs from NGUSMSRV0030 to confirm what runs in production.
+- **NGEUMSRV0003D** runs the M3 → DW ETL tool. How does it relate to the `BGI_DW_M3` SSIS packages and the
+  `_08:00_BGIDW_ASR_M3_Daily` job?
 - ~~Where SSIS packages are actually deployed~~ — **answered 2026-09-15** by the SQL Agent job export:
   SSISDB catalog on `ngusmsrv0031.ng.bg1857.net`, folder **`\SSISDB\NG_Packages\<Project>`**. See §3.
 - **Which SSISDB environment each job binds to.** The job export shows no environment reference, so
@@ -203,6 +241,15 @@ Three things worth knowing:
   `HighRadiusInvoiceExtract.dtsx` have no SQL Agent job at all.
 - **`_ConcurExtracts-PurchaseOrder` output.** It runs nightly at 20:10 but nothing ships the files — see
   §3. Find out what has piled up in `C:\temp\ConcurInvoice` and how long it has been running.
+- **The second SSIS server.** COFIDI-65/75, e2open and both PNC flows are SSIS but not on NGUSMSRV0031 —
+  get the host from the Applications Team. Also the hosts for Data Collection and Robo-FTP (Wintel).
+- **HSBC platform.** C. Lee lists it as SSIS; we found PowerShell/WinSCP only. Is there an SSIS piece?
+- **Which hosting locations are closing, and when** (T. Klohn) — check against every interface host.
+- **Service accounts documented?** Check NG\M0042 and the SQL Agent / Task Scheduler run-as accounts
+  against AD and the password vault.
+- **Which Azure subscription holds e2open** — anything in the shared BG subscription needs a separation plan.
+- **Where the interface file shares live** now that most shares are in Azure (e.g. `\\RAUSMSRV0001\ASR\AP-Bank\HSBC\out`).
+- **HCL knowledge-transfer outputs** — request them and reconcile against the inventory.
 - Scheduled task inventory on NGUSMSRV0019 — cadences below are inferred from log timestamps, not
   read off Task Scheduler.
 

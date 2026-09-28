@@ -1,14 +1,15 @@
 """
 M3_Security_Export - write the capture back out in the inbound IFS format.
 
-Three files come out of here, each matching the shape of the export it came
+Four files come out of here, each matching the shape of the export it came
 from so it can be sent straight back in:
 
   * the users export (ExportFile_...), whose column set is rebuilt from the
     file that was loaded, including how many SecurityRoleN / FunctionalSecurityRoleN
     slots it carried;
   * the Security Role export;
-  * the Functional Security Role export.
+  * the Functional Security Role export;
+  * the SCIM Group export, wide like the users export but keyed by group name.
 
 Two scopes: 'changes' writes only what was edited (each changed record with its
 COMPLETE role list or membership, so a delta is never read as a revocation),
@@ -73,6 +74,17 @@ AND (
     )
 """
 
+# Same idea for a SCIM group: its own fields, or any role inside it.
+_SCIM_CHANGED_WHERE = """
+    g.row_state <> 'deleted'
+AND (
+        g.row_state IN ('modified', 'new')
+     OR EXISTS (SELECT 1 FROM M3_Security_ScimGroupRoles gr2
+                 WHERE gr2.scim_group_key = g.scim_group_key
+                   AND gr2.row_state IN ('modified', 'new', 'deleted'))
+    )
+"""
+
 
 def _check_scope(scope: str) -> str:
     if scope not in SCOPES:
@@ -103,7 +115,12 @@ def changed_counts(conn: sqlite3.Connection, tenant: str) -> dict:
         """,
         (tenant,),
     ).fetchone()[0]
-    return {"users": users, "roles": roles, "functional": functional}
+    scim = conn.execute(
+        f"SELECT COUNT(*) FROM M3_Security_ScimGroups g WHERE g.tenant = ? "
+        f"AND {_SCIM_CHANGED_WHERE}",
+        (tenant,),
+    ).fetchone()[0]
+    return {"users": users, "roles": roles, "functional": functional, "scim": scim}
 
 
 def mark_pushed(conn: sqlite3.Connection, tenant: str, kind: str = "both") -> dict:
@@ -190,6 +207,12 @@ def roles_file_name(tenant: str, when: datetime | None = None) -> str:
     when = when or datetime.now()
     stamp = when.strftime("%m_%d_%Y_%H_%M_%S.") + f"{when.microsecond:06d}0"
     return f"Security Role_{tenant}_{stamp}.csv"
+
+
+def scim_file_name(tenant: str, when: datetime | None = None) -> str:
+    when = when or datetime.now()
+    stamp = when.strftime("%m_%d_%Y_%H_%M_%S.") + f"{when.microsecond:06d}0"
+    return f"SCIMGroupExport_{tenant}_{stamp}.csv"
 
 
 def reusable_source_name(src, tenant: str) -> str | None:
@@ -478,12 +501,105 @@ def export_functional(
     return out_path
 
 
+def export_scim(
+    conn: sqlite3.Connection,
+    tenant: str,
+    out_dir: str | Path = DEFAULT_OUT_DIR,
+    file_name: str | None = None,
+    reuse_source_name: bool = True,
+    scope: str = "changes",
+) -> Path:
+    """
+    Rebuild the SCIM Group export for one tenant. Returns the path.
+
+    Wide, one row per group, like the users export: SCIMGroupName,
+    Description, then a SecurityRoleN block and a FunctionalSecurityRoleN
+    block, each as wide as the source file (or the widest group's membership,
+    whichever is more).
+
+    scope='changes' (default) writes only groups that were edited;
+    scope='full' writes every group held for the tenant.
+    """
+    _check_scope(scope)
+
+    where = _SCIM_CHANGED_WHERE if scope == "changes" else "g.row_state <> 'deleted'"
+    groups = conn.execute(
+        f"""
+        SELECT g.* FROM M3_Security_ScimGroups g
+        WHERE g.tenant = ? AND {where}
+        ORDER BY COALESCE(g.seq, 1000000000), g.scim_group_key
+        """,
+        (tenant,),
+    ).fetchall()
+    if not groups:
+        raise ValueError(
+            f"No changed SCIM groups to export for tenant '{tenant}' - edit "
+            f"a group first, or run a full export."
+            if scope == "changes"
+            else f"No SCIM groups held for tenant '{tenant}'."
+        )
+
+    role_rows = conn.execute(
+        """
+        SELECT scim_group_key, role_type, role_name
+        FROM M3_Security_ScimGroupRoles
+        WHERE tenant = ? AND row_state <> 'deleted'
+        ORDER BY scim_group_key, role_type, seq, scim_role_key
+        """,
+        (tenant,),
+    ).fetchall()
+    by_group = {}
+    for r in role_rows:
+        by_group.setdefault(r["scim_group_key"], {}).setdefault(
+            r["role_type"], []).append(r["role_name"])
+
+    src = latest_import(conn, "scim", tenant)
+    widths = {}
+    for prefix, role_type in ROLE_BLOCKS:
+        needed = max(
+            (len(v.get(role_type, [])) for v in by_group.values()),
+            default=0,
+        )
+        base = 0
+        if src:
+            base = (src["security_slots"] if prefix == "SecurityRole"
+                    else src["functional_slots"]) or 0
+        widths[prefix] = max(base, needed)
+
+    header = ["SCIMGroupName", "Description"]
+    for prefix, _ in ROLE_BLOCKS:
+        header += [f"{prefix}{i}" for i in range(1, widths[prefix] + 1)]
+
+    if file_name is None:
+        file_name = (reusable_source_name(src, tenant) if reuse_source_name
+                     else None) or scim_file_name(tenant)
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / file_name
+
+    with open(out_path, "w", encoding="utf-8", newline="") as fh:
+        w = csv.writer(fh, lineterminator="\r\n", quoting=csv.QUOTE_MINIMAL)
+        w.writerow(header)
+        for g in groups:
+            row = [g["name"], g["description"] or ""]
+            held = by_group.get(g["scim_group_key"], {})
+            for prefix, role_type in ROLE_BLOCKS:
+                names = held.get(role_type, [])
+                row += names + [""] * (widths[prefix] - len(names))
+            w.writerow(row)
+
+    log.info("SCIM group export (%s): %s (%s group(s), %s columns)",
+             scope, out_path, len(groups), len(header))
+    return out_path
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         description="Export M3 security data from doppio.db back to CSV.")
     ap.add_argument("--tenant", required=True)
     ap.add_argument("--kind",
-                    choices=["users", "roles", "functional", "both", "all"],
+                    choices=["users", "roles", "functional", "scim", "both", "all"],
                     default="both")
     ap.add_argument("--scope", choices=list(SCOPES), default="changes",
                     help="'changes' (default) exports only modified/added "
@@ -518,7 +634,8 @@ def main(argv: list[str] | None = None) -> int:
                      c["users"], c["roles"])
 
         for kind, fn in (("users", export_users), ("roles", export_roles),
-                         ("functional", export_functional)):
+                         ("functional", export_functional),
+                         ("scim", export_scim)):
             wanted = (args.kind == kind or args.kind == "all"
                       or (args.kind == "both" and kind in ("users", "roles")))
             if not wanted:

@@ -3,7 +3,7 @@
     "sources": [
       "work_email"
     ],
-    "suffix": ".new.uat",
+    "suffix": "",
     "replace_domain": "",
     "prefix": "",
     "lowercase": false,
@@ -40,7 +40,7 @@
   },
   "scope": {
     "305": "all",
-    "350": "all",
+    "350": "off",
     "360": "invoice",
     "700": "invoice"
   },

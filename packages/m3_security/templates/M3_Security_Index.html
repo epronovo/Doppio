@@ -209,7 +209,8 @@
     <span class="sub">
       <code>ExportFile_&lt;TENANT&gt;_&lt;guid&gt;_&lt;ticks&gt;.csv</code> (users) &nbsp;·&nbsp;
       <code>Security Role_&lt;TENANT&gt;_&lt;date&gt;.csv</code> (security roles) &nbsp;·&nbsp;
-      <code>Functional Security Role_&lt;TENANT&gt;_&lt;date&gt;.csv</code> (functional roles — drop all 75-row files, they merge)
+      <code>Functional Security Role_&lt;TENANT&gt;_&lt;date&gt;.csv</code> (functional roles — drop all 75-row files, they merge) &nbsp;·&nbsp;
+      <code>SCIMGroupExport_&lt;TENANT&gt;_&lt;date&gt;.csv</code> (SCIM groups)
       <br><span id="droptenant" class="muted"></span>
     </span>
   </details>
@@ -221,6 +222,7 @@
     <div class="tab on" data-pane="users">IFS Users</div>
     <div class="tab" data-pane="roles">IFS Security Roles</div>
     <div class="tab" data-pane="fsr">IFS Functional Security Role</div>
+    <div class="tab" data-pane="scim">SCIM Groups</div>
     <div class="tab" data-pane="functions">SES400 Function</div>
     <div class="tab" data-pane="mns405">MNS405 Roles</div>
     <div class="tab" data-pane="mns410">MNS410 Roles Per User</div>
@@ -367,6 +369,53 @@
       </div>
       <div class="wrap" id="sdetail">
         <div class="empty">Pick a functional role to add or remove security roles.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ------------------------------------------------------- SCIM GROUPS -->
+  <section class="pane" id="pane-scim">
+    <div class="toolbar">
+      <input id="gq" placeholder="Search SCIM group or description…" style="min-width:300px">
+      <input id="grole" list="scimrolelist" placeholder="Containing role…" style="min-width:220px">
+      <datalist id="scimrolelist"></datalist>
+      <div class="grow"></div>
+      <button id="gnew">+ SCIM Group</button>
+      <button class="good" id="gexport">Export changes</button>
+      <button id="gexportfull">Full export</button>
+      <button class="danger" id="gclear" title="Empty the SCIM group tables for this tenant so the next drop starts from scratch">Clear all</button>
+    </div>
+    <div class="stats" id="gstats"></div>
+    <div class="selbar" id="gselbar">
+      <span id="gselcount">0 selected</span>
+      <button id="gselall">Select all in view</button>
+      <button id="gselclear">Clear selection</button>
+      <div class="grow"></div>
+      <button class="danger" id="gselremovesec">Remove security roles</button>
+      <button class="danger" id="gselremovefunc">Remove functional roles</button>
+    </div>
+    <div id="gbulkout"></div>
+    <div class="split">
+      <div>
+        <div class="wrap">
+          <table>
+            <thead><tr>
+              <th style="width:28px"><input type="checkbox" id="gselpage" title="Select the SCIM groups on this page"></th>
+              <th data-sort="name">SCIM group</th>
+              <th data-sort="description">Description</th>
+              <th data-sort="n_security">Security roles</th>
+              <th data-sort="n_functional">Functional roles</th>
+              <th data-sort="row_state">State</th>
+            </tr></thead>
+            <tbody id="gtbody"></tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <button id="gprev">‹ Prev</button><span id="ginfo"></span><button id="gnext">Next ›</button>
+        </div>
+      </div>
+      <div class="wrap" id="gdetail">
+        <div class="empty">Pick a SCIM group to add or remove roles.</div>
       </div>
     </div>
   </section>
@@ -544,6 +593,9 @@ const state = {
   s: { page: 1, size: 50, total: 0 },      // IFS Functional Security Roles
   ssel: new Map(),       // fsr_key -> name, survives paging and filtering
   fsrRoleNames: [],
+  g: { page: 1, size: 50, total: 0 },      // SCIM Groups
+  gsel: new Map(),       // scim_group_key -> name, survives paging and filtering
+  scimRoleNames: [],
   d: { page: 1, size: 50, total: 0 },      // MNS405 Roles
   p: { page: 1, size: 50, total: 0 },      // MNS410 Roles Per User
   bod: null, m3cfg: null,
@@ -739,6 +791,11 @@ async function upload(files) {
              + `(${r.new_functional_roles} new, ${r.existing_functional_roles} already held), `
              + `${r.members_added} security role(s) added, `
              + `${r.members_skipped} duplicate(s) skipped → ${to}`;
+      if (r.kind === 'scim')
+        return `${r.groups} SCIM group(s) `
+             + `(${r.new_groups} new, ${r.existing_groups} already held), `
+             + `${r.members_added} role(s) added, `
+             + `${r.members_skipped} duplicate(s) skipped → ${to}`;
       return `${r.roles} roles / ${r.assignments} assignments → ${to}`;
     });
     (j.errors || []).forEach(e => msgs.push('⚠ ' + e.file + ': ' + e.message));
@@ -746,6 +803,7 @@ async function upload(files) {
     toast(msgs.join('   ·   '), (j.errors || []).length > 0);
     await loadStatus(true); await loadUsers(); await loadRoles();
     await loadFsrRoleNames(); await loadFsr();
+    await loadScimRoleNames(); await loadScim();
   } catch (e) { toast(e.message, true); }
   drop.querySelector('b').textContent = 'Drop the M3 security exports here';
 }
@@ -1702,15 +1760,17 @@ $('#rnew').addEventListener('click', async () => {
 
 /* --------------------------------------------------------------- export */
 async function loadChanges() {
-  if (!state.tenant) { state.changes = { users: 0, roles: 0, functional: 0 }; }
+  if (!state.tenant) { state.changes = { users: 0, roles: 0, functional: 0, scim: 0 }; }
   else state.changes = await api('/api/changes?tenant=' + encodeURIComponent(state.tenant));
   const c = state.changes;
   $('#uexport').textContent = `Export changes (${c.users})`;
   $('#rexport').textContent = `Export changes (${c.roles})`;
   $('#sexport').textContent = `Export changes (${c.functional || 0})`;
+  $('#gexport').textContent = `Export changes (${c.scim || 0})`;
   $('#uexport').disabled = !c.users;
   $('#rexport').disabled = !c.roles;
   $('#sexport').disabled = !c.functional;
+  $('#gexport').disabled = !c.scim;
   const miss = c.missing_from_mns405 || 0;
   $('#raddm3').disabled = !miss;
   $('#raddm3').textContent = miss
@@ -1771,7 +1831,8 @@ $('#rpushed').addEventListener('click', () => markPushed('roles'));
 const CLEAR_WHAT = {
   users: 'the users and the roles they hold',
   roles: 'the security roles and their members',
-  functional: 'the functional security roles and the security roles inside them'
+  functional: 'the functional security roles and the security roles inside them',
+  scim: 'the SCIM groups and the roles inside them'
 };
 async function clearFlow(kind, opts) {
   const out = $(opts.out);
@@ -2164,6 +2225,306 @@ const reS = debounce(() => { state.s.page = 1; loadFsr(); });
 ['#sq', '#srole'].forEach(s => $(s).addEventListener('input', reS));
 $('#sprev').addEventListener('click', () => { state.s.page--; loadFsr(); });
 $('#snext').addEventListener('click', () => { state.s.page++; loadFsr(); });
+
+/* ==========================================================================
+   SCIM Groups - a SCIM group is a named bag of roles, both security and
+   functional. Imports merge like the functional roles import, the export
+   writes the same wide format back (one row per group, like the users
+   export).
+   ========================================================================== */
+async function loadScimRoleNames() {
+  if (!state.tenant) return;
+  const j = await api('/api/scim/roles?tenant=' + encodeURIComponent(state.tenant));
+  state.scimRoleNames = j.names || [];
+  const dl = $('#scimrolelist'); dl.innerHTML = '';
+  state.scimRoleNames.forEach(n => dl.appendChild(el('option', { value: n })));
+}
+
+function renderScimSel() {
+  const n = state.gsel.size;
+  $('#gselcount').textContent = n === 1 ? '1 selected' : `${n} selected`;
+  $('#gselbar').classList.toggle('hot', n > 0);
+  $('#gselremovesec').disabled = !n;
+  $('#gselremovefunc').disabled = !n;
+  $('#gselclear').disabled = !n;
+}
+function clearScimSel() {
+  state.gsel.clear();
+  $('#gbulkout').innerHTML = '';
+  document.querySelectorAll('#gtbody tr.picked').forEach(tr => tr.classList.remove('picked'));
+  document.querySelectorAll('#gtbody input[type=checkbox]').forEach(c => c.checked = false);
+  $('#gselpage').checked = false;
+  renderScimSel();
+}
+
+function scimParams(extra) {
+  return new URLSearchParams(Object.assign({
+    tenant: state.tenant, q: $('#gq').value, role: $('#grole').value
+  }, extra || {}));
+}
+
+async function loadScim() {
+  if (!state.tenant) {
+    $('#gtbody').innerHTML = ''; $('#gstats').textContent = '';
+    $('#gclear').disabled = true;
+    return renderScimSel();
+  }
+  const j = await api('/api/scim?' + scimParams({ ...sortParams(state.g),
+                                                 page: state.g.page, size: state.g.size }));
+  const s = j.summary || {};
+  $('#gstats').innerHTML = s.groups
+    ? `<span><b>${(s.groups || 0).toLocaleString()}</b> SCIM group(s)</span>
+       <span><b>${(s.members || 0).toLocaleString()}</b> role assignment(s)</span>
+       <span><b>${(s.changed || 0).toLocaleString()}</b> edited</span>
+       <span class="muted">${(s.files || 0)} file(s) merged</span>`
+    : '<span class="muted">Nothing loaded yet — drop the SCIM Group export above.</span>';
+  $('#gclear').disabled = !s.groups;
+
+  paintSort($('#pane-scim thead tr'), state.g, loadScim);
+  const tb = $('#gtbody'); tb.innerHTML = '';
+  (j.rows || []).forEach(r => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = state.gsel.has(r.scim_group_key);
+    cb.addEventListener('click', ev => {
+      ev.stopPropagation();
+      if (cb.checked) state.gsel.set(r.scim_group_key, r.name); else state.gsel.delete(r.scim_group_key);
+      tr.classList.toggle('picked', cb.checked);
+      renderScimSel();
+    });
+    const tr = el('tr', { onclick: () => openScim(r.scim_group_key) }, [
+      el('td', { onclick: ev => ev.stopPropagation() }, cb),
+      el('td', {}, el('b', { text: r.name })),
+      el('td', { class: 'muted', text: r.description || '' }),
+      el('td', { text: r.n_security }),
+      el('td', { text: r.n_functional }),
+      el('td', {}, statePill(r.row_state))
+    ]);
+    tr.dataset.key = r.scim_group_key; tr.dataset.name = r.name;
+    if (cb.checked) tr.classList.add('picked');
+    tb.appendChild(tr);
+  });
+  renderScimSel();
+  $('#gselpage').checked = (j.rows || []).length > 0
+    && (j.rows || []).every(r => state.gsel.has(r.scim_group_key));
+
+  state.g.total = j.total || 0;
+  const from = j.total ? (state.g.page - 1) * state.g.size + 1 : 0;
+  $('#ginfo').textContent = `${from}–${Math.min(state.g.page * state.g.size, j.total || 0)} of ${j.total || 0}`;
+  $('#gprev').disabled = state.g.page <= 1;
+  $('#gnext').disabled = state.g.page * state.g.size >= (j.total || 0);
+}
+
+const SCIM_EMPTY = '<div class="empty">Pick a SCIM group to add or remove roles.</div>';
+
+async function openScim(key) {
+  const j = await api('/api/scim/' + key);
+  const g = j.scim;
+  const sec = [...(j.security_roles || [])];
+  const fun = [...(j.functional_roles || [])];
+  const box = $('#gdetail');
+  box.innerHTML = '';
+  const sub = () => `${sec.length} security role(s) · ${fun.length} functional role(s)`;
+  box.appendChild(el('div', { class: 'head' }, [
+    el('b', { text: g.name }),
+    el('div', { class: 'sub', text: sub() })
+  ]));
+  const body = el('div', { style: 'padding:14px' });
+  const store = { name: g.name, description: g.description || '' };
+  body.appendChild(field('SCIM group name', g.name, 'name', store,
+                         { hint: 'Renaming it here renames it on every row of the export.' }));
+  body.appendChild(field('Description', g.description, 'description', store));
+
+  const refreshSub = () => { box.querySelector('.sub').textContent = sub(); };
+
+  body.appendChild(el('h3', { text: 'Security roles' }));
+  const c1 = chipBox(sec, refreshSub, 'scimrolelist');
+  body.appendChild(c1.box); body.appendChild(c1.adder);
+
+  body.appendChild(el('h3', { text: 'Functional roles' }));
+  const c2 = chipBox(fun, refreshSub, 'scimrolelist');
+  body.appendChild(c2.box); body.appendChild(c2.adder);
+
+  body.appendChild(el('div', { class: 'addrow', style: 'margin-top:12px' }, [
+    el('button', {
+      class: 'good', text: 'Save',
+      onclick: async () => {
+        try {
+          await api('/api/scim/' + key, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: store.name, description: store.description,
+              security_roles: sec, functional_roles: fun
+            })
+          });
+          toast(`Saved — ${sec.length} security role(s), ${fun.length} functional role(s) in ${store.name}`);
+          box.innerHTML = SCIM_EMPTY;
+          await loadScim(); await loadScimRoleNames(); await loadChanges();
+        } catch (e) { toast(e.message, true); }
+      }
+    }),
+    el('button', {
+      class: 'danger', text: 'Delete',
+      onclick: async () => {
+        if (!confirm(`Flag "${g.name}" for removal?\n\n`
+                   + 'It drops out of the export, which is what removes it in IFS.')) return;
+        try {
+          await api('/api/scim/' + key, { method: 'DELETE' });
+          toast(`${g.name} flagged for removal`);
+          box.innerHTML = SCIM_EMPTY;
+          await loadScim(); await loadChanges();
+        } catch (e) { toast(e.message, true); }
+      }
+    }),
+    el('button', { text: 'Close', onclick: () => box.innerHTML = SCIM_EMPTY })
+  ]));
+  box.appendChild(body);
+}
+
+$('#gnew').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first so the tenant is known', true);
+  const name = prompt('SCIM group name');
+  if (!name) return;
+  try {
+    const j = await api('/api/scim/new', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tenant: state.tenant, name: name.trim(),
+                             description: name.trim() })
+    });
+    await loadScim(); await loadChanges();
+    await openScim(j.scim_group_key);
+    toast(`${name.trim()} added — now put roles in it`);
+  } catch (e) { toast(e.message, true); }
+});
+
+$('#gselclear').addEventListener('click', clearScimSel);
+$('#gselpage').addEventListener('change', e => {
+  const on = e.target.checked;
+  document.querySelectorAll('#gtbody tr').forEach(tr => {
+    const key = Number(tr.dataset.key);
+    if (!key) return;
+    if (on) state.gsel.set(key, tr.dataset.name || String(key));
+    else state.gsel.delete(key);
+    tr.classList.toggle('picked', on);
+    const cb = tr.querySelector('input[type=checkbox]');
+    if (cb) cb.checked = on;
+  });
+  renderScimSel();
+});
+$('#gselall').addEventListener('click', async () => {
+  if (!state.tenant) return toast('Load an export first', true);
+  const j = await api('/api/scim/keys?' + scimParams());
+  j.rows.forEach(r => state.gsel.set(r.scim_group_key, r.name));
+  await loadScim();
+  toast(`${j.total} SCIM group(s) selected`);
+});
+
+async function scimRemoveRolesFlow(roleType) {
+  const out = $('#gbulkout');
+  out.innerHTML = '';
+  const keys = [...state.gsel.keys()];
+  const label = roleType === 'Functional' ? 'functional' : 'security';
+  let j;
+  try {
+    j = await run('Checking selection', '/api/scim/remove-roles',
+                  { tenant: state.tenant, keys, role_type: roleType });
+  } catch (e) { return toast(e.message, true); }
+
+  const panel = el('div', { class: 'bulkpanel' });
+  panel.appendChild(el('div', { style: 'font-weight:600', text: j.message }));
+  panel.appendChild(el('div', {
+    class: 'muted',
+    text: 'Nothing is sent to M3: the SCIM groups are flagged as changed, '
+        + 'and importing the next SCIM Group export into IFS is what '
+        + 'actually removes the roles from them.'
+  }));
+
+  if (!j.plan.length) {
+    panel.appendChild(el('div', { class: 'warnrow',
+                                  text: `None of the selected SCIM groups contain a ${label} role.` }));
+    panel.appendChild(el('div', { class: 'addrow' },
+      el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+    return out.appendChild(panel);
+  }
+
+  const chosen = new Set(j.plan.map(p => p.role));
+  panel.appendChild(el('div', { class: 'muted', style: 'margin-top:8px',
+                                text: `${label[0].toUpperCase()}${label.slice(1)} roles to take out — untick any you want to keep:` }));
+  const wrap = el('div', { class: 'wrapsm' });
+  const tbl = el('table', {}, el('thead', {}, el('tr', {},
+    [el('th', { style: 'width:28px' }), el('th', { text: 'Role' }),
+     el('th', { text: 'SCIM groups holding it' })])));
+  const tb = el('tbody');
+  const count = el('span');
+  const retally = () => {
+    const n = j.plan.filter(p => chosen.has(p.role)).reduce((a, p) => a + p.groups, 0);
+    count.textContent = `${chosen.size} role(s), ${n} assignment(s)`;
+    go.disabled = !chosen.size;
+    go.textContent = `Remove ${chosen.size} role(s)`;
+  };
+  j.plan.forEach(p => {
+    const cb = el('input', { type: 'checkbox' });
+    cb.checked = true;
+    cb.addEventListener('change', () => {
+      if (cb.checked) chosen.add(p.role); else chosen.delete(p.role);
+      retally();
+    });
+    tb.appendChild(el('tr', {}, [
+      el('td', {}, cb), el('td', { text: p.role }), el('td', { text: p.groups })
+    ]));
+  });
+  tbl.appendChild(tb); wrap.appendChild(tbl); panel.appendChild(wrap);
+  panel.appendChild(el('div', { class: 'muted' }, count));
+
+  const inp = el('input', { placeholder: 'type REMOVE to confirm' });
+  const go = el('button', {
+    class: 'danger', text: 'Remove',
+    onclick: async () => {
+      if (inp.value.trim() !== 'REMOVE') return toast('Type REMOVE to confirm', true);
+      go.disabled = true; go.textContent = 'Removing…';
+      try {
+        const all = chosen.size === j.plan.length;
+        const res = await run(`Removing ${label} roles`, '/api/scim/remove-roles', {
+          tenant: state.tenant, keys, role_type: roleType,
+          roles: all ? [] : [...chosen], confirm: 'REMOVE'
+        });
+        toast(res.message);
+        out.innerHTML = '';
+        const done = el('div', { class: 'bulkpanel create' },
+          el('div', { text: res.message }));
+        done.appendChild(el('div', { class: 'addrow' },
+          el('button', { text: 'Close', onclick: () => out.innerHTML = '' })));
+        clearScimSel();
+        out.appendChild(done);
+        await loadScim(); await loadChanges(); await loadStatus(true);
+      } catch (e) { toast(e.message, true); go.disabled = false; }
+    }
+  });
+  retally();
+  panel.appendChild(el('div', { class: 'addrow' }, [
+    inp, go, el('button', { text: 'Cancel', onclick: () => out.innerHTML = '' })
+  ]));
+  out.appendChild(panel);
+}
+$('#gselremovesec').addEventListener('click', () => scimRemoveRolesFlow('Security'));
+$('#gselremovefunc').addEventListener('click', () => scimRemoveRolesFlow('Functional'));
+
+$('#gclear').addEventListener('click', () => clearFlow('scim', {
+  out: '#gbulkout',
+  keeps: 'Nothing else references a SCIM group, so clearing it only affects this tab.',
+  after: async () => {
+    clearScimSel();
+    $('#gdetail').innerHTML = SCIM_EMPTY;
+    state.g.page = 1;
+    await loadScim(); await loadScimRoleNames();
+  }
+}));
+
+$('#gexport').addEventListener('click', () => download('scim', 'changes'));
+$('#gexportfull').addEventListener('click', () => download('scim', 'full'));
+const reG = debounce(() => { state.g.page = 1; loadScim(); });
+['#gq', '#grole'].forEach(s => $(s).addEventListener('input', reG));
+$('#gprev').addEventListener('click', () => { state.g.page--; loadScim(); });
+$('#gnext').addEventListener('click', () => { state.g.page++; loadScim(); });
 
 /* ------------------------------------------------------------ functions */
 function mns405Pill(v) {
@@ -3231,10 +3592,11 @@ $('#tenant').addEventListener('change', async e => {
   dropTenantHint();
   $('#conobar').innerHTML = '';
   state.u.page = 1; state.r.page = 1; state.f.page = 1;
-  state.d.page = 1; state.p.page = 1; state.s.page = 1;
-  clearSel(); clearFnSel(); clearUserSel(); clearFsrSel(); dsel.clear(); psel.clear();
+  state.d.page = 1; state.p.page = 1; state.s.page = 1; state.g.page = 1;
+  clearSel(); clearFnSel(); clearUserSel(); clearFsrSel(); clearScimSel(); dsel.clear(); psel.clear();
   await loadStatus(true); await loadUsers(); await loadRoles();
   await loadFsrRoleNames(); await loadFsr();
+  await loadScimRoleNames(); await loadScim();
   await loadFnStatus(); await loadFunctions();
   await loadMns405(); await loadMns410(); await loadBodConfig();
   await loadM3Company();
@@ -3242,6 +3604,7 @@ $('#tenant').addEventListener('change', async e => {
 $('#refresh').addEventListener('click', async () => {
   await loadStatus(true); await loadUsers(); await loadRoles();
   await loadFsrRoleNames(); await loadFsr();
+  await loadScimRoleNames(); await loadScim();
   await loadFnStatus(); await loadFunctions();
   await loadMns405(); await loadMns410(); await loadBodConfig();
   await loadM3Company();
@@ -3262,6 +3625,7 @@ $('#rnext').addEventListener('click', () => { state.r.page++; loadRoles(); });
   try {
     await loadStatus(); await loadUsers(); await loadRoles();
     await loadFsrRoleNames(); await loadFsr();
+    await loadScimRoleNames(); await loadScim();
     await loadFnStatus(); await loadFunctions();
     await loadMns405(); await loadMns410(); await loadBodConfig();
   await loadM3Company();

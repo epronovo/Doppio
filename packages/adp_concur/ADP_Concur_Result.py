@@ -231,6 +231,34 @@ def field_in(message: str) -> str:
     return m.group(1).strip() if m else ""
 
 
+# Field: Custom10 Value: 0400 Validation: Could not be resolved to an existing
+# custom list item. Employee_ID: 207199.
+PARTS_RE = re.compile(
+    r"Field:\s*(?P<field>.*?)\s*Value:\s*(?P<value>.*?)\s*Validation:\s*"
+    r"(?P<validation>.*?)\s*(?:Employee_ID:\s*\S*?)?\.?\s*$", re.I | re.S)
+TRAILING_ID_RE = re.compile(r"\s*Employee_ID:\s*\S*?\.?\s*$", re.I)
+
+
+def message_parts(message: str) -> dict:
+    """
+    Field, Value and Validation out of one Concur message.
+
+    The Employee_ID on the end is dropped - the row already shows who it is.
+    A message not in that shape (circular reference, approver not assigned)
+    has no field or value, so the whole wording goes in Validation.
+    """
+    m = PARTS_RE.search(message or "")
+    if m:
+        validation = m.group("validation").strip()
+        if validation and not validation.endswith("."):
+            validation += "."
+        return {"field": m.group("field").strip(),
+                "value": m.group("value").strip(),
+                "validation": validation}
+    return {"field": "", "value": "",
+            "validation": TRAILING_ID_RE.sub("", message or "").strip()}
+
+
 # ------------------------------------------------------ the extract line index
 
 
@@ -508,7 +536,7 @@ def ADP_Concur_result_people(conn: sqlite3.Connection,
         if not row:
             return []
         load_key = row[0]
-    return [dict(r) for r in conn.execute(
+    people = [dict(r) for r in conn.execute(
         "SELECT file_number, "
         "       MAX(employee_name) AS employee_name, "
         "       MAX(employee_key)  AS employee_key, "
@@ -519,6 +547,22 @@ def ADP_Concur_result_people(conn: sqlite3.Connection,
         "WHERE load_key = ? AND file_number <> '' "
         "GROUP BY file_number "
         "ORDER BY errors DESC, warnings DESC, employee_name", (load_key,))]
+
+    # Each person's messages, split into Concur's Field / Value / Validation -
+    # this is the view somebody works down, so it carries the detail.
+    messages: dict[str, list[dict]] = {}
+    for r in conn.execute(
+            "SELECT file_number, level, record_type, field, message "
+            "FROM ADP_Concur_Results WHERE load_key = ? AND file_number <> '' "
+            "ORDER BY (level = 'Error') DESC, record_id", (load_key,)):
+        parts = message_parts(r["message"])
+        messages.setdefault(r["file_number"], []).append({
+            "level": r["level"], "record_type": r["record_type"],
+            "field": parts["field"] or r["field"], "value": parts["value"],
+            "validation": parts["validation"], "message": r["message"]})
+    for p in people:
+        p["messages"] = messages.get(p["file_number"], [])
+    return people
 
 
 def ADP_Concur_runs(conn: sqlite3.Connection) -> list[dict]:

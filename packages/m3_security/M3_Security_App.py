@@ -1,10 +1,10 @@
 """
 M3_Security_App - Flask front end for the M3 / Infor OS security capture.
 
-Six tabs over one SQLite capture: users, security roles, functional security
-roles, SES400 function authorisations, MNS405 role definitions and MNS410
-role-per-user rows. Everything the page needs arrives as JSON from the ~50
-routes below; the page itself is templates/M3_Security_Index.html.
+Seven tabs over one SQLite capture: users, security roles, functional security
+roles, SCIM groups, SES400 function authorisations, MNS405 role definitions
+and MNS410 role-per-user rows. Everything the page needs arrives as JSON from
+the ~50 routes below; the page itself is templates/M3_Security_Index.html.
 
 Anything that talks to M3 goes through M3_Security_M3Api and, when it is slow,
 through start_job() so the browser can poll /api/job/<id> instead of holding a
@@ -58,6 +58,7 @@ from M3_Security_Export import (
     changed_counts,
     export_functional,
     export_roles,
+    export_scim,
     export_users,
     mark_pushed,
 )
@@ -947,7 +948,7 @@ def api_changes():
     tenant = request.args.get("tenant", "")
     if not tenant:
         return jsonify(status="success", users=0, roles=0, functional=0,
-                       missing_from_mns405=0)
+                       scim=0, missing_from_mns405=0)
     # Also how many MNS405 roles the capture has never seen, so the roles
     # toolbar can offer to pull them in without a round trip of its own.
     missing = conn.execute(
@@ -968,14 +969,14 @@ def api_export(kind: str):
     tenant = request.args.get("tenant", "")
     new_name = request.args.get("new_name") == "1"
     scope = request.args.get("scope", "changes")
-    if kind not in ("users", "roles", "functional"):
+    if kind not in ("users", "roles", "functional", "scim"):
         return jsonify(status="error",
-                       message="kind must be users, roles or functional."), 400
+                       message="kind must be users, roles, functional or scim."), 400
     if scope not in ("changes", "full"):
         return jsonify(status="error",
                        message="scope must be changes or full."), 400
     fn = {"users": export_users, "roles": export_roles,
-          "functional": export_functional}[kind]
+          "functional": export_functional, "scim": export_scim}[kind]
     try:
         path = fn(conn, tenant, OUTPUT_DIR / scope,
                   reuse_source_name=not new_name, scope=scope)
@@ -2235,6 +2236,342 @@ def api_fsr_delete(fsr_key: int):
     return jsonify(status="success")
 
 
+# --------------------------------------------------------- SCIM groups
+
+
+SCIM_SORTS = {
+    "name": "LOWER(g.name)",
+    "description": "LOWER(COALESCE(g.description,''))",
+    "n_security": "n_security",
+    "n_functional": "n_functional",
+    "row_state": "g.row_state",
+}
+
+
+def _scim_filter() -> tuple[str, list]:
+    tenant = request.args.get("tenant", "")
+    q = (request.args.get("q") or "").strip()
+    role = (request.args.get("role") or "").strip()
+    where = ["g.tenant = ?", "g.row_state <> 'deleted'"]
+    args = [tenant]
+    if q:
+        where.append("(g.name LIKE ? OR g.description LIKE ?)")
+        args += [f"%{q}%", f"%{q}%"]
+    if role:
+        where.append("EXISTS (SELECT 1 FROM M3_Security_ScimGroupRoles gr "
+                     "WHERE gr.scim_group_key = g.scim_group_key "
+                     "AND gr.row_state <> 'deleted' AND gr.role_name = ?)")
+        args.append(role)
+    return " AND ".join(where), args
+
+
+@app.route("/api/scim")
+def api_scim():
+    conn = db()
+    page = max(1, int(request.args.get("page", 1)))
+    size = min(500, max(10, int(request.args.get("size", 50))))
+    clause, args = _scim_filter()
+    total = conn.execute(
+        f"SELECT COUNT(*) FROM M3_Security_ScimGroups g WHERE {clause}",
+        args).fetchone()[0]
+    rows = conn.execute(
+        f"""
+        SELECT g.scim_group_key, g.name, g.description, g.row_state,
+               (SELECT COUNT(*) FROM M3_Security_ScimGroupRoles gr
+                 WHERE gr.scim_group_key = g.scim_group_key
+                   AND gr.role_type = 'Security'
+                   AND gr.row_state <> 'deleted')                    AS n_security,
+               (SELECT COUNT(*) FROM M3_Security_ScimGroupRoles gr
+                 WHERE gr.scim_group_key = g.scim_group_key
+                   AND gr.role_type = 'Functional'
+                   AND gr.row_state <> 'deleted')                    AS n_functional
+        FROM M3_Security_ScimGroups g
+        WHERE {clause}
+        ORDER BY {_order_by(SCIM_SORTS, 'LOWER(g.name)')} LIMIT ? OFFSET ?
+        """,
+        args + [size, (page - 1) * size]).fetchall()
+    summary = conn.execute(
+        """
+        SELECT
+          (SELECT COUNT(*) FROM M3_Security_ScimGroups
+            WHERE tenant = ?1 AND row_state <> 'deleted')          AS groups,
+          (SELECT COUNT(*) FROM M3_Security_ScimGroupRoles
+            WHERE tenant = ?1 AND row_state <> 'deleted')          AS members,
+          (SELECT COUNT(*) FROM M3_Security_ScimGroups
+            WHERE tenant = ?1 AND row_state IN ('modified','new')) AS changed,
+          (SELECT COUNT(*) FROM M3_Security_Imports
+            WHERE tenant = ?1 AND file_kind = 'scim')              AS files
+        """,
+        (request.args.get("tenant", ""),)).fetchone()
+    return jsonify(status="success", total=total, page=page, size=size,
+                   summary=dict(summary), rows=[dict(r) for r in rows])
+
+
+@app.route("/api/scim/keys")
+def api_scim_keys():
+    conn = db()
+    clause, args = _scim_filter()
+    rows = conn.execute(
+        f"SELECT g.scim_group_key, g.name FROM M3_Security_ScimGroups g "
+        f"WHERE {clause} ORDER BY LOWER(g.name)",
+        args).fetchall()
+    return jsonify(status="success", total=len(rows),
+                   rows=[dict(r) for r in rows])
+
+
+@app.route("/api/scim/roles")
+def api_scim_role_names():
+    """
+    Pick-list of role names available to put inside a SCIM group.
+
+    type 'Functional' narrows it to functional security roles, 'Security' to
+    plain ones; without it the list is everything, matching /api/role-names.
+    """
+    conn = db()
+    tenant = request.args.get("tenant", "")
+    role_type = (request.args.get("type") or "").strip()
+    if role_type == "Functional":
+        rows = conn.execute(
+            """
+            SELECT name FROM M3_Security_FunctionalRoles
+             WHERE tenant = ? AND row_state <> 'deleted'
+            UNION
+            SELECT DISTINCT role_name FROM M3_Security_ScimGroupRoles
+             WHERE tenant = ? AND role_type = 'Functional'
+            ORDER BY 1
+            """,
+            (tenant, tenant)).fetchall()
+    elif role_type == "Security":
+        rows = conn.execute(
+            """
+            SELECT name FROM M3_Security_Roles
+             WHERE tenant = ? AND row_state <> 'deleted'
+            UNION
+            SELECT DISTINCT role_name FROM M3_Security_ScimGroupRoles
+             WHERE tenant = ? AND role_type = 'Security'
+            UNION
+            SELECT DISTINCT roll FROM M3_Security_M3RoleDefs WHERE tenant = ?
+            ORDER BY 1
+            """,
+            (tenant, tenant, tenant)).fetchall()
+    else:
+        rows = conn.execute(
+            """
+            SELECT name FROM M3_Security_Roles
+             WHERE tenant = ? AND row_state <> 'deleted'
+            UNION
+            SELECT name FROM M3_Security_FunctionalRoles
+             WHERE tenant = ? AND row_state <> 'deleted'
+            UNION
+            SELECT DISTINCT role_name FROM M3_Security_ScimGroupRoles
+             WHERE tenant = ?
+            ORDER BY 1
+            """,
+            (tenant, tenant, tenant)).fetchall()
+    return jsonify(status="success", names=[r[0] for r in rows])
+
+
+@app.route("/api/scim/<int:scim_group_key>")
+def api_scim_detail(scim_group_key: int):
+    conn = db()
+    g = conn.execute(
+        "SELECT * FROM M3_Security_ScimGroups WHERE scim_group_key = ?",
+        (scim_group_key,)).fetchone()
+    if not g:
+        return jsonify(status="error", message="Not found."), 404
+    roles = conn.execute(
+        "SELECT role_type, role_name FROM M3_Security_ScimGroupRoles "
+        "WHERE scim_group_key = ? AND row_state <> 'deleted' "
+        "ORDER BY role_type, seq, scim_role_key",
+        (scim_group_key,)).fetchall()
+    return jsonify(
+        status="success", scim=dict(g),
+        security_roles=[r["role_name"] for r in roles if r["role_type"] == "Security"],
+        functional_roles=[r["role_name"] for r in roles if r["role_type"] == "Functional"])
+
+
+@app.route("/api/scim/<int:scim_group_key>", methods=["POST"])
+def api_scim_save(scim_group_key: int):
+    """Save the name, description and roles (both blocks) inside a SCIM group."""
+    conn = db()
+    data = request.get_json(force=True) or {}
+    g = conn.execute(
+        "SELECT * FROM M3_Security_ScimGroups WHERE scim_group_key = ?",
+        (scim_group_key,)).fetchone()
+    if not g:
+        return jsonify(status="error", message="Not found."), 404
+
+    name = (data.get("name") or g["name"]).strip()
+    desc = data.get("description")
+    desc = g["description"] if desc is None else str(desc).strip()
+    conn.execute(
+        "UPDATE M3_Security_ScimGroups SET name = ?, description = ?, "
+        "row_state = CASE WHEN row_state = 'new' THEN 'new' ELSE 'modified' END, "
+        "modified_at = datetime('now') WHERE scim_group_key = ?",
+        (name, desc, scim_group_key))
+    if name != g["name"]:
+        conn.execute(
+            "UPDATE M3_Security_ScimGroupRoles SET group_name = ? "
+            "WHERE scim_group_key = ?",
+            (name, scim_group_key))
+
+    for key, role_type in (("security_roles", "Security"),
+                           ("functional_roles", "Functional")):
+        if key not in data:
+            continue
+        seen, ordered = set(), []
+        for r in (data[key] or []):
+            r = str(r).strip()
+            if not r:
+                continue
+            if r.upper() not in seen:
+                seen.add(r.upper())
+                ordered.append(r)
+        old = {r["role_name"]: r["seq"] for r in conn.execute(
+            "SELECT role_name, seq FROM M3_Security_ScimGroupRoles "
+            "WHERE scim_group_key = ? AND role_type = ?",
+            (scim_group_key, role_type)).fetchall()}
+        conn.execute(
+            "DELETE FROM M3_Security_ScimGroupRoles WHERE scim_group_key = ? "
+            "AND role_type = ?",
+            (scim_group_key, role_type))
+        conn.executemany(
+            "INSERT OR IGNORE INTO M3_Security_ScimGroupRoles "
+            "(scim_group_key, tenant, group_name, role_type, seq, role_name, "
+            " row_state) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [(scim_group_key, g["tenant"], name, role_type, i, r,
+              "unchanged" if r in old else "new")
+             for i, r in enumerate(ordered, start=1)])
+
+    conn.commit()
+    return jsonify(status="success")
+
+
+@app.route("/api/scim/new", methods=["POST"])
+def api_scim_new():
+    conn = db()
+    data = request.get_json(force=True) or {}
+    tenant = (data.get("tenant") or "").strip()
+    name = (data.get("name") or "").strip()
+    if not tenant or not name:
+        return jsonify(status="error",
+                       message="Tenant and name are required."), 400
+    try:
+        cur = conn.execute(
+            "INSERT INTO M3_Security_ScimGroups "
+            "(tenant, name, description, row_state, seq) "
+            "VALUES (?, ?, ?, 'new', (SELECT COALESCE(MAX(seq), 0) + 1 "
+            "FROM M3_Security_ScimGroups WHERE tenant = ?))",
+            (tenant, name, (data.get("description") or name).strip(), tenant))
+    except sqlite3.IntegrityError:
+        return jsonify(status="error",
+                       message=f"'{name}' already exists."), 400
+    conn.commit()
+    return jsonify(status="success", scim_group_key=cur.lastrowid)
+
+
+@app.route("/api/scim/<int:scim_group_key>", methods=["DELETE"])
+def api_scim_delete(scim_group_key: int):
+    conn = db()
+    if request.args.get("hard") == "1":
+        conn.execute(
+            "DELETE FROM M3_Security_ScimGroups WHERE scim_group_key = ?",
+            (scim_group_key,))
+    else:
+        conn.execute(
+            "UPDATE M3_Security_ScimGroups SET row_state = 'deleted', "
+            "modified_at = datetime('now') WHERE scim_group_key = ?",
+            (scim_group_key,))
+    conn.commit()
+    return jsonify(status="success")
+
+
+@app.route("/api/scim/clear", methods=["POST"])
+def api_scim_clear():
+    """Kept for symmetry with /api/fsr/clear; /api/clear/scim is the route."""
+    return api_clear("scim")
+
+
+@app.route("/api/scim/remove-roles", methods=["POST"])
+def api_scim_remove_roles():
+    """
+    Take roles out of a set of SCIM groups.
+
+    role_type 'Security' or 'Functional' picks the block; roles limits it to
+    named roles, empty means every role of that type the selected groups hold.
+    Preview unless confirm == 'REMOVE'.
+    """
+    conn = db()
+    data = request.get_json(force=True) or {}
+    tenant = (data.get("tenant") or "").strip()
+    keys = [int(k) for k in (data.get("keys") or [])]
+    role_type = (data.get("role_type") or "Security").strip()
+    names = [str(r) for r in (data.get("roles") or [])]
+    confirm = data.get("confirm")
+    if not tenant:
+        return jsonify(status="error", message="Tenant is required."), 400
+    if not keys:
+        return jsonify(status="error", message="No SCIM groups selected."), 400
+    if role_type not in ("Security", "Functional"):
+        return jsonify(status="error",
+                       message="role_type must be Security or Functional."), 400
+    if confirm and confirm != "REMOVE":
+        return jsonify(status="error", message="Type REMOVE to confirm."), 400
+
+    marks = ",".join("?" * len(keys))
+    args = [tenant, role_type] + keys
+    name_clause = ""
+    if names:
+        name_clause = " AND gr.role_name IN (%s)" % ",".join("?" * len(names))
+        args += names
+
+    breakdown = [dict(r) for r in conn.execute(
+        f"""
+        SELECT gr.role_name AS role, COUNT(DISTINCT gr.scim_group_key) AS groups
+        FROM M3_Security_ScimGroupRoles gr
+        WHERE gr.tenant = ? AND gr.role_type = ? AND gr.row_state <> 'deleted'
+          AND gr.scim_group_key IN ({marks}){name_clause}
+        GROUP BY gr.role_name ORDER BY LOWER(gr.role_name)
+        """,
+        args).fetchall()]
+    totals = {"selected": len(keys), "roles": len(breakdown),
+              "links": sum(b["groups"] for b in breakdown)}
+    label = "functional" if role_type == "Functional" else "security"
+
+    if not confirm:
+        return jsonify(
+            status="success", dry_run=True, plan=breakdown, totals=totals,
+            role_type=role_type,
+            message=f"{totals['links']} {label} role assignment(s) would be removed from "
+                    f"{totals['selected']} SCIM group(s), across "
+                    f"{totals['roles']} role(s).")
+
+    cur = conn.cursor()
+    cur.execute(
+        f"""
+        UPDATE M3_Security_ScimGroupRoles SET row_state = 'deleted'
+         WHERE tenant = ? AND role_type = ? AND scim_group_key IN ({marks})
+           AND row_state <> 'deleted'
+           {name_clause.replace('gr.role_name', 'role_name')}
+        """,
+        args)
+    removed = cur.rowcount
+    cur.execute(
+        f"""
+        UPDATE M3_Security_ScimGroups SET row_state =
+               CASE WHEN row_state = 'new' THEN 'new' ELSE 'modified' END,
+               modified_at = datetime('now')
+         WHERE tenant = ? AND scim_group_key IN ({marks})
+        """,
+        [tenant] + keys)
+    conn.commit()
+    return jsonify(
+        status="success", dry_run=False, plan=breakdown, totals=totals,
+        role_type=role_type, removed=removed,
+        message=f"{removed} {label} role assignment(s) removed from "
+                f"{len(keys)} SCIM group(s). Export and import to apply it in IFS.")
+
+
 # -------------------------------------------------------------- clearing
 
 
@@ -2264,6 +2601,13 @@ CLEAR_KINDS: dict[str, dict] = {
         "changed": ("M3_Security_FunctionalRoles",
                     "row_state IN ('modified','new')"),
     },
+    "scim": {
+        "label": "SCIM group",
+        "parts": [("SCIM group(s)", "M3_Security_ScimGroups", ""),
+                  ("role assignment(s)", "M3_Security_ScimGroupRoles", "")],
+        "changed": ("M3_Security_ScimGroups",
+                    "row_state IN ('modified','new')"),
+    },
 }
 
 
@@ -2279,7 +2623,8 @@ def api_clear(kind: str):
     spec = CLEAR_KINDS.get(kind)
     if not spec:
         return jsonify(status="error",
-                       message="kind must be users, roles or functional."), 400
+                       message="kind must be one of: "
+                               + ", ".join(CLEAR_KINDS) + "."), 400
     conn = db()
     data = request.get_json(force=True) or {}
     tenant = (data.get("tenant") or "").strip()

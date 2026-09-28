@@ -12,8 +12,19 @@ if (-not (Test-Path $configPath)) {
     exit 1
 }
 
-$config = Get-Content $configPath | ConvertFrom-Json
+try {
+    $config = Get-Content $configPath -Raw | ConvertFrom-Json -ErrorAction Stop
+}
+catch {
+    Write-Error "Invalid JSON in config file ${configPath}: $_"
+    exit 1
+}
+
 $SavePath = $config.App_IncomingSavePath
+if (-not $SavePath) {
+    Write-Error "App_IncomingSavePath is missing or empty in $configPath"
+    exit 1
+}
 
 Start-Transcript -Path "$PSScriptRoot\concurget.log" -Append
 
@@ -136,7 +147,7 @@ function Decrypt-Files {
 
 function main {
     try{
-        #Get_Files
+        Get_Files
         Decrypt-Files
 		#Process_Files
     }

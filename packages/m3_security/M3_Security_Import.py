@@ -1,14 +1,15 @@
 """
 M3_Security_Import - load the Infor OS / M3 security exports into doppio.db.
 
-Three file kinds, decided from the header row rather than the file name:
+Four file kinds, decided from the header row rather than the file name:
 
   * the users export (ExportFile_...), which MERGES on PersonId - a re-drop
     refreshes the fields but keeps the roles held here, because role work done
     locally has not reached IFS yet and a file load must not undo it;
   * the Security Role export, which is a full refresh per tenant;
   * the Functional Security Role export, which MERGES, because IFS caps that
-    export at 75 rows and a real capture arrives as several files.
+    export at 75 rows and a real capture arrives as several files;
+  * the SCIM Group export, which MERGES on SCIMGroupName the same way.
 
 The tenant comes from the file name where it is there, and from the tenant
 selected in the front end where it is not.
@@ -52,7 +53,7 @@ RE_USERS_NAME = re.compile(
 # The label IFS puts in front of a role export. Dropping it leaves the tenant.
 RE_EXPORT_LABEL = re.compile(
     r"^(?:functional[_\s-]*security[_\s-]*role|security[_\s-]*role"
-    r"|export[_\s-]*file)[_\s-]+",
+    r"|export[_\s-]*file|scim[_\s-]*group[_\s-]*export)[_\s-]+",
     re.IGNORECASE,
 )
 
@@ -70,6 +71,8 @@ USERS_HEADER_KEY = "personid"
 USER_KEY_COLUMN = "PersonId"
 ROLES_HEADER = ["name", "description", "emailid"]
 FSR_HEADER = ["functional securityrole name", "description", "securityrole"]
+GROUP_KEY_COLUMN = "SCIMGroupName"
+SCIM_HEADER = ["scimgroupname", "description"]
 
 
 def parse_file_name(file_name: str) -> dict:
@@ -130,12 +133,14 @@ def detect_kind(header: list[str]) -> str:
         return "users"
     if norm[:3] == FSR_HEADER:
         return "functional"
+    if norm[:2] == SCIM_HEADER:
+        return "scim"
     if norm[:3] == ROLES_HEADER:
         return "roles"
     raise ValueError(
         "Unrecognised CSV header. Expected an IFS user export (starts with "
-        "PersonId) or a Security Role export (Name,Description,EmailId). "
-        f"Got: {header[:5]}")
+        "PersonId), a Security Role export (Name,Description,EmailId), or a "
+        f"SCIM Group export (SCIMGroupName,Description,...). Got: {header[:5]}")
 
 
 def read_header(path: Path) -> list[str]:
@@ -567,6 +572,147 @@ def import_functional(path: Path, conn: sqlite3.Connection,
     }
 
 
+def import_scim(path: Path, conn: sqlite3.Connection, tenant: str | None = None,
+                tenant_fallback: str | None = None) -> dict:
+    """
+    Load a "SCIM Group Export".
+
+    One row per group, wide like the users export: SCIMGroupName, Description,
+    then the same repeating SecurityRoleN / FunctionalSecurityRoleN column
+    blocks. This MERGES the way the functional roles import does - a re-drop
+    refreshes a blank description but only adds role members, never removes
+    one, so a group edited locally ahead of the next IFS pull keeps that
+    membership.
+    """
+    meta = parse_file_name(path.name)
+    tenant, tenant_source = resolve_tenant(
+        path.name, meta, tenant, tenant_fallback,
+        "Add the tenant to the file name (e.g. 'SCIMGroupExport_"
+        "ZFQP353QZYV89ZHG_TST_09_23_2026_14_45_00.0023715.csv').")
+
+    with open(path, "r", encoding="utf-8-sig", newline="") as fh:
+        reader = csv.reader(fh)
+        header = next(reader)
+        header = [h.strip() for h in header]
+        col_ix = {h: i for i, h in enumerate(header)}
+        if GROUP_KEY_COLUMN not in col_ix:
+            raise ValueError(
+                f"SCIM Group export has no '{GROUP_KEY_COLUMN}' column - "
+                f"header starts {header[:4]}")
+        desc_ix = col_ix.get("Description")
+        slots = _role_slot_map(header)
+        prefix_to_type = dict(ROLE_BLOCKS)
+
+        cur = conn.cursor()
+        cur.execute(
+            """
+            INSERT INTO M3_Security_Imports
+                (file_kind, file_name, tenant, file_stamp, security_slots,
+                 functional_slots, row_count)
+            VALUES ('scim', ?, ?, ?, ?, ?, 0)
+            """,
+            (path.name, tenant, meta["stamp"],
+             len(slots["SecurityRole"]), len(slots["FunctionalSecurityRole"])),
+        )
+        import_id = cur.lastrowid
+
+        existing_groups = {r[0]: r[1] for r in conn.execute(
+            "SELECT name, scim_group_key FROM M3_Security_ScimGroups "
+            "WHERE tenant = ?", (tenant,)).fetchall()}
+        existing_members = {(r[0], r[1], r[2]) for r in conn.execute(
+            "SELECT group_name, role_type, role_name FROM "
+            "M3_Security_ScimGroupRoles WHERE tenant = ?",
+            (tenant,)).fetchall()}
+        role_counts = {}
+        for r in conn.execute(
+                "SELECT scim_group_key, role_type, COUNT(*) AS n FROM "
+                "M3_Security_ScimGroupRoles WHERE tenant = ? "
+                "GROUP BY scim_group_key, role_type", (tenant,)):
+            role_counts[(r["scim_group_key"], r["role_type"])] = r["n"]
+        next_seq = conn.execute(
+            "SELECT COALESCE(MAX(seq), 0) FROM M3_Security_ScimGroups "
+            "WHERE tenant = ?", (tenant,)).fetchone()[0] + 1
+
+        n_rows = 0
+        new_groups, seen_groups = [], set()
+        added_members, dup_members = 0, 0
+
+        for row_no, row in enumerate(reader, start=1):
+            if not row or not any(v.strip() for v in row):
+                continue
+            if len(row) < len(header):
+                row = row + [""] * (len(header) - len(row))
+            name = row[col_ix[GROUP_KEY_COLUMN]].strip()
+            if not name:
+                continue
+            desc = row[desc_ix].strip() if desc_ix is not None else ""
+            n_rows += 1
+            seen_groups.add(name)
+
+            key = existing_groups.get(name)
+            if key is None:
+                cur.execute(
+                    "INSERT INTO M3_Security_ScimGroups (tenant, name, "
+                    "description, seq, import_id, row_state) "
+                    "VALUES (?, ?, ?, ?, ?, 'unchanged')",
+                    (tenant, name, desc, next_seq, import_id))
+                key = cur.lastrowid
+                existing_groups[name] = key
+                next_seq += 1
+                new_groups.append(name)
+            elif desc:
+                cur.execute(
+                    "UPDATE M3_Security_ScimGroups SET description = ? "
+                    "WHERE scim_group_key = ? AND COALESCE(description, '') = ''",
+                    (desc, key))
+
+            for prefix, role_type in prefix_to_type.items():
+                seen = set()
+                for idx, _slot in slots[prefix]:
+                    role_name = row[idx].strip()
+                    if not role_name or role_name.upper() in seen:
+                        continue
+                    seen.add(role_name.upper())
+                    if (name, role_type, role_name) in existing_members:
+                        dup_members += 1
+                        continue
+                    count_key = (key, role_type)
+                    seq = role_counts.get(count_key, 0) + 1
+                    cur.execute(
+                        "INSERT OR IGNORE INTO M3_Security_ScimGroupRoles "
+                        "(scim_group_key, tenant, group_name, role_type, seq, "
+                        " role_name) VALUES (?, ?, ?, ?, ?, ?)",
+                        (key, tenant, name, role_type, seq, role_name))
+                    if cur.rowcount:
+                        role_counts[count_key] = seq
+                        added_members += 1
+                        existing_members.add((name, role_type, role_name))
+                    else:
+                        dup_members += 1
+
+        cur.execute(
+            "UPDATE M3_Security_Imports SET row_count = ? WHERE import_id = ?",
+            (n_rows, import_id))
+        conn.commit()
+
+    return {
+        "kind": "scim",
+        "tenant": tenant,
+        "tenant_source": tenant_source,
+        "import_id": import_id,
+        "file_name": path.name,
+        "rows": n_rows,
+        "groups": len(seen_groups),
+        "new_groups": len(new_groups),
+        "existing_groups": len(seen_groups) - len(new_groups),
+        "members_added": added_members,
+        "members_skipped": dup_members,
+        "security_slots": len(slots["SecurityRole"]),
+        "functional_slots": len(slots["FunctionalSecurityRole"]),
+        "stamp": meta["stamp"],
+    }
+
+
 def import_file(file_path: str | Path, conn: sqlite3.Connection | None = None,
                 tenant: str | None = None, db_path: str | None = None,
                 tenant_fallback: str | None = None) -> dict:
@@ -589,6 +735,8 @@ def import_file(file_path: str | Path, conn: sqlite3.Connection | None = None,
             return import_users(path, conn, tenant, tenant_fallback)
         if kind == "functional":
             return import_functional(path, conn, tenant, tenant_fallback)
+        if kind == "scim":
+            return import_scim(path, conn, tenant, tenant_fallback)
         return import_roles(path, conn, tenant, tenant_fallback)
     finally:
         if own_conn:
@@ -643,6 +791,13 @@ def main(argv: list[str] | None = None) -> int:
                              res["functional_roles"],
                              res["new_functional_roles"],
                              res["existing_functional_roles"],
+                             res["members_added"], res["members_skipped"])
+                elif res["kind"] == "scim":
+                    log.info("%s -> tenant %s: %s SCIM group(s) (%s new, %s "
+                             "already held), %s member(s) added, %s "
+                             "duplicate(s) skipped",
+                             res["file_name"], res["tenant"], res["groups"],
+                             res["new_groups"], res["existing_groups"],
                              res["members_added"], res["members_skipped"])
                 else:
                     log.info("%s -> tenant %s: %s roles, %s assignments "

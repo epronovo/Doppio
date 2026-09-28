@@ -1,0 +1,2 @@
+100,0,SSO,UPDATE,EN,N,N
+305,Timo,,Klohn,203967,TKlohn@onebarnes.com,Welcome01,TKlohn@onebarnes.com,de_DE,DE,,0400,EUR,,Y,0400,140102,,,,,,S15,Default,,0400,,,,,,,,,,,,,,,,0400,,,,,,,,,,,,,,,,,207199,,,,Y,Y,,,,,,,,,N,N,,,,,,,,,Y,,,Y,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,

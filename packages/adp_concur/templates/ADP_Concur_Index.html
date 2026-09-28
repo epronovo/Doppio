@@ -438,6 +438,8 @@
         <option value="language">Language Map</option>
         <option value="salary">Salary Map</option>
         <option value="supervisor">Supervisor Map</option>
+        <option value="invoice">Invoice Exception Map</option>
+        <option value="role">Role Assignment Map</option>
         <option value="company">UKG Company Map</option>
       </select>
       <input id="mapq" placeholder="Search this map">
@@ -2301,23 +2303,32 @@ function renderResultPeople(d, box) {
   const table = el('table');
   table.append(el('thead', {}, el('tr', {},
     el('th', {}, 'File #'), el('th', {}, 'Name'),
-    el('th', {}, 'Errors'), el('th', {}, 'Warnings'),
-    el('th', {}, 'What came back'))));
+    el('th', {}, 'Level'),
+    el('th', {}, 'Field'), el('th', {}, 'Value'), el('th', {}, 'Validation'))));
   const body = el('tbody');
+  // One row per message, split into Concur's Field / Value / Validation. The
+  // person is named on their first row only, so each one reads as a block;
+  // the full wording stays on the tooltip for pasting into a ticket.
   for (const p of people) {
-    const tr = el('tr', {});
-    if (p.employee_key)
-      tr.style.cursor = 'pointer',
-      tr.onclick = () => openEmployee(p.employee_key);
-    tr.append(
-      el('td', { class: 'mono' }, p.file_number),
-      el('td', {}, p.employee_name || el('span', { class: 'sub' },
-        'not in this load')),
-      el('td', {}, p.errors
-        ? el('span', { class: 'pill bad' }, String(p.errors)) : ''),
-      el('td', {}, p.warnings ? String(p.warnings) : ''),
-      el('td', { class: 'sub' }, (p.categories || '').split(',').join(' · ')));
-    body.append(tr);
+    (p.messages || []).forEach((m, i) => {
+      const tr = el('tr', { title: m.message });
+      if (p.employee_key)
+        tr.style.cursor = 'pointer',
+        tr.onclick = () => openEmployee(p.employee_key);
+      if (i === 0 && p.messages.length > 1)
+        tr.style.borderTop = '2px solid var(--line)';
+      const bad = m.level === 'Error';
+      tr.append(
+        el('td', { class: 'mono' }, i ? '' : p.file_number),
+        el('td', {}, i ? '' : (p.employee_name || el('span', { class: 'sub' },
+          'not in this load'))),
+        el('td', {}, el('span', { class: 'pill ' + (bad ? 'bad' : 'inactive') },
+          bad ? 'error' : (m.level || '').toLowerCase())),
+        el('td', { class: 'mono' }, m.field || ''),
+        el('td', { class: 'mono' }, m.value || ''),
+        el('td', {}, m.validation || ''));
+      body.append(tr);
+    });
   }
   table.append(body);
   box.append(el('div', { class: 'wrap' }, table));

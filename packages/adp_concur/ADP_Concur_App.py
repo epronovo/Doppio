@@ -806,7 +806,14 @@ def api_records(record_type: str):
         "WHERE record_type = ?", (record_type,))}
 
     from ADP_Concur_Map import column_ref_to_index
-    used = sorted(column_ref_to_index(ref) for ref in FIELD_MAP[record_type])
+    from ADP_Concur_Map import CONDITIONAL_COPIES, FIELD_MAP_BY_SOURCE
+    # Every position anything writes - the base map, a source's own columns,
+    # and the conditional copies (305 AE Custom 10 Invoice Group is only one
+    # of those, so it went unshown).
+    refs = set(FIELD_MAP[record_type]) | set(CONDITIONAL_COPIES.get(record_type, {}))
+    for by_type in FIELD_MAP_BY_SOURCE.values():
+        refs |= set(by_type.get(record_type, {}))
+    used = sorted(column_ref_to_index(ref) for ref in refs)
     positions = list(range(1, width + 1)) if request.args.get("full") == "1" else used
 
     page, size = _paging()

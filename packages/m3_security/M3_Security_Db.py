@@ -281,6 +281,41 @@ CREATE TABLE IF NOT EXISTS M3_Security_FunctionalRoleMembers (
 CREATE INDEX IF NOT EXISTS ix_m3sec_fsrmem ON M3_Security_FunctionalRoleMembers (tenant, fsr_name);
 CREATE INDEX IF NOT EXISTS ix_m3sec_fsrmem_role ON M3_Security_FunctionalRoleMembers (tenant, security_role);
 
+-- --------------------------------------------------------- SCIM groups
+-- A SCIM group is a named bag of roles - both SecurityRoleN and
+-- FunctionalSecurityRoleN columns, the same repeating blocks the users export
+-- uses. Loaded from the "SCIMGroupExport" file, one row per group.
+CREATE TABLE IF NOT EXISTS M3_Security_ScimGroups (
+    scim_group_key INTEGER PRIMARY KEY AUTOINCREMENT,
+    tenant      TEXT NOT NULL,
+    name        TEXT NOT NULL,          -- SCIMGroupName
+    description TEXT,                   -- Description
+    row_state   TEXT NOT NULL DEFAULT 'unchanged',
+    seq         INTEGER,                -- first appearance across imports
+    import_id   INTEGER,
+    created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+    modified_at TEXT,
+    UNIQUE (tenant, name)
+);
+CREATE INDEX IF NOT EXISTS ix_m3sec_scim ON M3_Security_ScimGroups (tenant, name);
+
+-- The roles inside each SCIM group, security and functional alike.
+CREATE TABLE IF NOT EXISTS M3_Security_ScimGroupRoles (
+    scim_role_key  INTEGER PRIMARY KEY AUTOINCREMENT,
+    scim_group_key INTEGER NOT NULL
+                   REFERENCES M3_Security_ScimGroups (scim_group_key) ON DELETE CASCADE,
+    tenant         TEXT NOT NULL,
+    group_name     TEXT NOT NULL,
+    role_type      TEXT NOT NULL,          -- 'Security' | 'Functional'
+    seq            INTEGER NOT NULL,
+    role_name      TEXT NOT NULL,
+    row_state      TEXT NOT NULL DEFAULT 'unchanged',
+    created_at     TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (scim_group_key, role_type, role_name)
+);
+CREATE INDEX IF NOT EXISTS ix_m3sec_scimrole_grp  ON M3_Security_ScimGroupRoles (tenant, group_name);
+CREATE INDEX IF NOT EXISTS ix_m3sec_scimrole_role ON M3_Security_ScimGroupRoles (tenant, role_name);
+
 -- ------------------------------------------- MNS405 role master from M3
 -- The role definitions as they are in M3, independent of the CSV capture in
 -- M3_Security_Roles. This is what the MNS405 Roles tab reads and writes.
@@ -374,6 +409,7 @@ def tenants(conn: sqlite3.Connection) -> list[str]:
         SELECT tenant FROM M3_Security_Users
         UNION SELECT tenant FROM M3_Security_Roles
         UNION SELECT tenant FROM M3_Security_FunctionalRoles
+        UNION SELECT tenant FROM M3_Security_ScimGroups
         UNION SELECT tenant FROM M3_Security_Imports
         UNION SELECT tenant FROM M3_Security_M3RoleDefs
         UNION SELECT tenant FROM M3_Security_FunctionRoles

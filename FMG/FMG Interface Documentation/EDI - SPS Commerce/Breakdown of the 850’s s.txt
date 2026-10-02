@@ -1,0 +1,145 @@
+Below is a breakdown of the 850’s segments with their element values:
+
+ISA – Interchange Control Header
+• ISA01: 00
+• ISA02: (10 spaces)
+• ISA03: 00
+• ISA04: (10 spaces)
+• ISA05: 01
+• ISA06: 137361242      
+• ISA07: ZZ
+• ISA08: ASSOCSPRING       
+• ISA09: 250228
+• ISA10: 0507
+• ISA11: U
+• ISA12: 00401
+• ISA13: 000003343
+• ISA14: 0
+• ISA15: P
+• ISA16: >
+
+GS – Functional Group Header
+• GS01: PO
+• GS02: 097248199
+• GS03: 01167AG
+• GS04: 20250228
+• GS05: 0507
+• GS06: 3307
+• GS07: X
+• GS08: 004010
+
+ST – Transaction Set Header
+• ST01: 850
+• ST02: 23229
+
+BEG – Beginning Segment for Purchase Order
+• BEG01: 00
+• BEG02: UD
+• BEG03: TD-L337654
+• BEG04: (empty)
+• BEG05: 20250228
+• BEG06: (empty)
+• BEG07: AC
+
+CUR – Currency
+• CUR01: BY
+• CUR02: USD
+
+REF – Reference Identification
+• REF01: ON
+• REF02: AE95309
+
+PER – Contact Information
+• PER01: BD
+• PER02: A. HAKIM
+
+FOB – Free on Board Details
+• FOB01: CC
+• FOB02: OR
+• FOB03: YPSILANTI, MI
+
+ITD – Terms of Sale
+• ITD01: 01
+• ITD02: 3
+• ITD03: (empty)
+• ITD04: (empty)
+• ITD05: (empty)
+• ITD06: (empty)
+• ITD07: 30
+
+TD5 – Carrier Details
+• TD501–TD505: (all empty)
+• TD506: UPSG UPS GROUND SVC
+
+N1 – Party Identification (First)
+• N101: SE
+• N102: ASSOCIATED SPRING RAYMOND
+• N103: 92
+• N104: 01167AG
+
+N3 – Address Information (First)
+• N301: 370 W DUSSEL DR. SUITE A
+• N302: 370 W DUSSEL DR
+
+N4 – Geographic Location (First)
+• N401: MAUMEE
+• N402: OH
+• N403: 43537
+
+N1 – Party Identification (Second)
+• N101: ST
+• N102: KENWORTH OF ALBANY
+• N103: 92
+• N104: K858
+
+N3 – Address Information (Second)
+• N301: 1 REXFORD WAY
+
+N4 – Geographic Location (Second)
+• N401: HALFMOON
+• N402: NY
+• N403: 12065
+
+PO1 – Purchase Order Line Item
+• PO101: 00000000001
+• PO102: 1
+• PO103: EA
+• PO104: 47.91
+• PO105: (empty)
+• PO106: BP
+• PO107: L71-1030
+• PO108: VP
+• PO109: L71-1030
+
+PID – Product/Item Description
+• PID01: F
+• PID02–PID05: (empty)
+• PID06: ASSIST-STRUT HOOD MLU MH
+
+SCH – Schedule
+• SCH01: 1
+• SCH02: EA
+• SCH03: (empty)
+• SCH04: (empty)
+• SCH05: 010
+• SCH06: 20250228
+
+CTT – Transaction Totals
+• CTT01: 1
+• CTT02: 1
+
+AMT – Monetary Amount
+• AMT01: TT
+• AMT02: 47.91
+
+SE – Transaction Set Trailer
+• SE01: 20
+• SE02: 23229
+
+GE – Functional Group Trailer
+• GE01: 1
+• GE02: 3307
+
+IEA – Interchange Control Trailer
+• IEA01: 1
+• IEA02: 000003343

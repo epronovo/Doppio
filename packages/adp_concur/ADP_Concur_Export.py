@@ -165,7 +165,8 @@ def sort_by_hierarchy(people: list[dict]) -> list[dict]:
 
 
 def collect(conn: sqlite3.Connection, cfg: dict,
-            keys: list[int] | None = None) -> tuple[list[list[str]], dict]:
+            keys: list[int] | None = None,
+            only: list[str] | None = None) -> tuple[list[list[str]], dict]:
     """
     Every record the extract will carry, in the configured order.
 
@@ -179,18 +180,25 @@ def collect(conn: sqlite3.Connection, cfg: dict,
     One file carries both sources. Which record types a person produces is
     decided by the system they came from - UKG has no 350 tab - and that is
     applied inside selected_employees() rather than here.
+
+    `only` narrows the file to the record types picked on the Extract tab -
+    a 360 / 700 top-up for people Concur already holds, say. None is every
+    type record_types_for() allows.
     """
     cfg_extract = cfg.get("extract") or {}
-    types = record_types_for(cfg)
+    types = [t for t in record_types_for(cfg) if only is None or t in only]
     widths = {rt: layout_width(conn, rt) for rt in types}
     people = {rt: selected_employees(conn, rt, cfg, keys) for rt in types}
 
     # The 305s carry the hierarchy, so they are the ones that are sorted. The
     # other three follow the 305 order for the people they cover, so the whole
-    # file reads the same way down.
-    ordered_305 = sort_by_hierarchy(people.get("305", []))
+    # file reads the same way down - even when the 305s themselves are left
+    # out, so they are still read for the order.
+    ordered_305 = sort_by_hierarchy(people["305"] if "305" in people
+                                    else selected_employees(conn, "305", cfg, keys))
     rank = {str(e.get("file_number")): i for i, e in enumerate(ordered_305)}
-    people["305"] = ordered_305
+    if "305" in people:
+        people["305"] = ordered_305
     for rt in types:
         if rt == "305":
             continue
@@ -245,7 +253,8 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
                       file_name: str | None = None,
                       keys: list[int] | None = None,
                       selection_label: str = "",
-                      dry_run: bool = False) -> dict:
+                      dry_run: bool = False,
+                      record_types: list[str] | None = None) -> dict:
     """
     Write the extract.
 
@@ -256,9 +265,13 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
 
     dry_run builds everything and reports the counts without touching the
     disk, which is what the front end previews with.
+
+    `record_types` limits the file to those types; None writes every one.
     """
     cfg = cfg or load_config()
-    lines, counts = collect(conn, cfg, keys)
+    lines, counts = collect(conn, cfg, keys, record_types)
+    types = [t for t in record_types_for(cfg)
+             if record_types is None or t in record_types]
     text = render(lines, cfg)
 
     directory = Path(out_dir).expanduser() if out_dir else outbound_dir(cfg)
@@ -269,6 +282,8 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
         scope = (f"selection of {len(keys)}"
                  + (f" ({selection_label})" if selection_label else "")
                  + "; " + scope)
+    if types != record_types_for(cfg):
+        scope += "; records " + "/".join(types)
 
     result = {"file_name": name, "path": str(target), "records": len(lines),
               "n_305": counts["305"], "n_350": counts["350"],
@@ -276,7 +291,7 @@ def ADP_Concur_export(conn: sqlite3.Connection, cfg: dict | None = None,
               "bytes": len(text.encode(
                   (cfg.get("extract") or {}).get("encoding", "utf-8"))),
               "dry_run": dry_run, "scope": scope,
-              "record_types": record_types_for(cfg),
+              "record_types": types,
               "selection": keys is not None,
               "selected": len(keys) if keys is not None else None,
               "selection_label": selection_label,

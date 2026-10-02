@@ -1,0 +1,6 @@
+redirecttype=true
+
+self, parent, top or blank
+
+which window is handling the request
+

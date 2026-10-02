@@ -122,6 +122,12 @@ MAP_TABLES = {
                 ["site_location", "site_location_code", "concur_company_code",
                  "concur_company_desc", "expense_group_code", "ledger_code",
                  "custom_5_code"]),
+    "company_source": ("Company Data Source Map", "ADP_Concur_CompanySourceMap",
+                       "map_key",
+                       ["hr_site_location", "hr_location_code", "hr_source",
+                        "concur_org_unit", "expense_group_code", "ledger_code",
+                        "custom_5_code", "travel_wizard", "expense_entry",
+                        "expense_approval"]),
 }
 
 # Columns the Employees list may sort on. Anything else falls back to the
@@ -989,9 +995,18 @@ def api_export():
         keys = [int(k) for k in body["keys"]]
         label = str(body.get("label") or "")
 
+    # The record types ticked on the Extract tab. Absent means all of them,
+    # so older callers keep getting the whole file.
+    types = body.get("record_types")
+    if types is not None:
+        types = [str(t) for t in types if str(t) in RECORD_TYPES]
+        if not types:
+            return jsonify(status="error",
+                           message="Pick at least one record type."), 400
+
     try:
         res = ADP_Concur_export(conn, cfg, keys=keys, selection_label=label,
-                                dry_run=dry)
+                                dry_run=dry, record_types=types)
     except ValueError as exc:
         # A bad 100 record is the most likely reason a write refuses, and the
         # message names the field and what SAP accepts.

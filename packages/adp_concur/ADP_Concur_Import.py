@@ -49,6 +49,10 @@ SHEET_SIGNATURES: list[tuple[str, list[str]]] = [
     ("supervisor_map", ["exception employee id", "supervisor id"]),
     ("role_map",       ["role", "assign role automatically"]),
     ("invoice_map",    ["invoice exception employee", "invoice access value"]),
+    # New with the 1 October workbook. Its own headings, not the UKG Company
+    # Map's: 'HR System Location Code' and 'HR Source' appear nowhere else.
+    ("company_source_map", ["hr system location code", "hr source",
+                            "expense group code"]),
     ("company_map",    ["site location code", "concur company code",
                         "expense group code"]),
 ]
@@ -553,6 +557,45 @@ def import_company_map(conn, rows, header_row) -> int:
     return _refresh(conn, "ADP_Concur_CompanyMap", list(idx), out)
 
 
+def import_company_source_map(conn, rows, header_row) -> int:
+    """
+    The Company Data Source Map: one row per HR site location, UKG and ADP
+    alike, with three Y/N flags - Travel Wizzard, Expense Entry and Expense
+    Approval.
+
+    The 350 ADP tab gates every column on
+    =IF(VLOOKUP('305 ADP Employee (All)'!AP5,'Company Data Source Map'!E:H,4,FALSE)="Y",...,"")
+    so it is keyed on Expense Group Code (E) and the first row of each code
+    wins, matching VLOOKUP. NGP Sweden is there twice under 0077, with the
+    same flags, so nothing is lost.
+    """
+    h = rows[header_row - 1]
+    idx = {
+        "hr_site_location": column_index(h, "hr system site location"),
+        "hr_location_code": column_index(h, "hr system location code"),
+        "hr_source": column_index(h, "hr source"),
+        "concur_org_unit": column_index(h, "concur org unit"),
+        "expense_group_code": column_index(h, "expense group code"),
+        "ledger_code": column_index(h, "ledger code"),
+        "custom_5_code": column_index(h, "custom 5 code"),
+        "travel_wizard": column_index(h, "travel wizzard", "travel wizard"),
+        "expense_entry": column_index(h, "expense entry"),
+        "expense_approval": column_index(h, "expense approval"),
+    }
+    key = idx["expense_group_code"]
+    out, seen = [], set()
+    for r in rows[header_row:]:
+        if key is None or key >= len(r):
+            continue
+        code = _cell(r[key])
+        if not code or code in seen:
+            continue
+        seen.add(code)
+        out.append([_cell(r[i]) if i is not None and i < len(r) else ""
+                    for i in idx.values()])
+    return _refresh(conn, "ADP_Concur_CompanySourceMap", list(idx), out)
+
+
 def import_language_map(conn, rows, header_row) -> int:
     """
     Only the first three columns are read.
@@ -809,6 +852,8 @@ HANDLERS = {
     "salary_map": ("ADP_Concur_SalaryMap", import_salary_map),
     "supervisor_map": ("ADP_Concur_SupervisorMap", import_supervisor_map),
     "company_map": ("ADP_Concur_CompanyMap", import_company_map),
+    "company_source_map": ("ADP_Concur_CompanySourceMap",
+                           import_company_source_map),
 }
 
 EXTRA_BLOCKS["country_map"] = [("country_ref", "ADP_Concur_CountryRef",

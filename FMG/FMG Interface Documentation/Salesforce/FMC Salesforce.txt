@@ -1,0 +1,2 @@
+check missing elements on Salesforce ERP Reference from M3 (Delivery terms)
+

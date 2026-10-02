@@ -35,10 +35,16 @@ tool: given the record's TNNM and PCID it connects to *that* tenant's own
 from __future__ import annotations
 
 import argparse
+import ipaddress
 import logging
+import os
 import sys
+import threading
+import time
 import traceback
 from pathlib import Path
+
+import requests
 
 from flask import Flask, jsonify, render_template, request
 
@@ -56,9 +62,12 @@ from SheetSecurity_M3Api import (
     guess_from_ifs_export,
     guess_m3_user,
     list_ionapi_files,
+    match_ionapi_name,
     parse_ifs_export,
     resolve_tenant_registration,
+    score_m3_users,
 )
+from SheetSecurity_M3Api import _login_key
 
 # The two UMSG values a Tenants-tab (AUTH=20) row can be tagged with once
 # its M3ID has been resolved - see _resolve_tenant_row() and api_tenants().
@@ -86,6 +95,35 @@ HASH_PREVIEW_LEN = 24
 # runs, like every other piece of tenant state here - see api_ifs_export_*()
 # and the merge into api_guess() below.
 _ifs_export: dict = {"filename": None, "rows": []}
+
+# AbuseIPDB, for the Review tab's PUBLICIP. The public check page
+# (abuseipdb.com/check/<ip>) sits behind Cloudflare and refuses anything that
+# is not a browser, so the score comes from their v2 API instead
+# (docs.abuseipdb.com - GET /api/v2/check, key in the Key header), which
+# needs a key. It is looked for in --abuseipdb-key, then ABUSEIPDB_API_KEY,
+# then ABUSEIPDB_KEY_FILE - outside the repo on purpose, since ionapi/ is
+# committed - which the Review tab's "AbuseIPDB key" button writes. Without
+# one the Review tab still links each IP to its check page, just unscored.
+# Scores are cached in memory for ABUSEIPDB_CACHE_SECONDS, because the free
+# plan allows 1,000 checks a day and every reload of the list would otherwise
+# spend one per IP.
+ABUSEIPDB_CHECK_URL = "https://api.abuseipdb.com/api/v2/check"
+ABUSEIPDB_CACHE_SECONDS = 6 * 3600
+ABUSEIPDB_MAX_AGE_DAYS = 90
+ABUSEIPDB_KEY_FILE = Path.home() / ".config" / "doppio" / "abuseipdb.key"
+
+
+def _read_abuse_key_file() -> str:
+    try:
+        return ABUSEIPDB_KEY_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+app.config["ABUSEIPDB_API_KEY"] = (os.environ.get("ABUSEIPDB_API_KEY", "").strip()
+                                   or _read_abuse_key_file())
+_abuse_cache: dict[str, tuple[float, dict]] = {}
+_abuse_lock = threading.Lock()
 
 
 @app.errorhandler(M3ApiError)
@@ -129,8 +167,8 @@ def _decode_review_hash(hash_val: str) -> dict:
     """
     An AUTH=99 record's HASH isn't an .ionapi like a tenant registration's -
     it's workbook telemetry ({"userName":..., "userDomain":...,
-    "computerName":..., ...}), so the Review tab shows those three fields
-    instead of the raw blob. Anything that fails to decode (or doesn't look
+    "computerName":..., "publicIP":..., ...}), so the Review tab shows those
+    fields instead of the raw blob. Anything that fails to decode (or doesn't look
     like this shape) is left blank rather than breaking the whole list.
     """
     if not hash_val:
@@ -143,7 +181,68 @@ def _decode_review_hash(hash_val: str) -> dict:
         return {}
     return {"USERNAME": data.get("userName") or "",
             "DOMAIN": data.get("userDomain") or "",
-            "COMPUTERNAME": data.get("computerName") or ""}
+            "COMPUTERNAME": data.get("computerName") or "",
+            "PUBLICIP": str(data.get("publicIP") or "").strip()}
+
+
+def _abuse_request(ip: str, key: str) -> requests.Response:
+    return requests.get(
+        ABUSEIPDB_CHECK_URL,
+        headers={"Key": key, "Accept": "application/json"},
+        params={"ipAddress": ip, "maxAgeInDays": ABUSEIPDB_MAX_AGE_DAYS},
+        timeout=10)
+
+
+def _abuse_error(resp: requests.Response, body: dict) -> str:
+    detail = "; ".join(e.get("detail", "") for e in body.get("errors", []))
+    if resp.status_code == 429:
+        # The free plan's 1,000 a day. Retry-After is in seconds.
+        wait = resp.headers.get("Retry-After")
+        detail = "Daily AbuseIPDB limit reached" + (
+            f" - try again in {int(wait) // 60} min" if wait and wait.isdigit() else "")
+    return f"AbuseIPDB {resp.status_code}: {detail or resp.reason}"
+
+
+def _abuse_check(ip: str) -> dict:
+    """
+    One IP's AbuseIPDB result: {"score": 0-100, "reports": n, "country",
+    "isp", "usage"} or {"error": "..."}. A private or malformed address is
+    answered here without spending a check.
+    """
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return {"error": "Not an IP address."}
+    if not addr.is_global:
+        return {"error": "Private or reserved address - nothing to check."}
+
+    now = time.time()
+    with _abuse_lock:
+        hit = _abuse_cache.get(ip)
+        if hit and now - hit[0] < ABUSEIPDB_CACHE_SECONDS:
+            return hit[1]
+
+    try:
+        resp = _abuse_request(ip, app.config["ABUSEIPDB_API_KEY"])
+    except requests.RequestException as exc:
+        return {"error": f"AbuseIPDB unreachable: {exc}"}
+    body = {}
+    try:
+        body = resp.json()
+    except ValueError:
+        pass
+    if resp.status_code != 200:
+        return {"error": _abuse_error(resp, body)}
+
+    data = body.get("data") or {}
+    result = {"score": data.get("abuseConfidenceScore"),
+              "reports": data.get("totalReports"),
+              "country": data.get("countryCode") or "",
+              "isp": data.get("isp") or "",
+              "usage": data.get("usageType") or ""}
+    with _abuse_lock:
+        _abuse_cache[ip] = (now, result)
+    return result
 
 
 def _row_key(data: dict) -> tuple[str, str, str]:
@@ -227,15 +326,46 @@ def api_tenants():
                    error=None)
 
 
+# Where TNNM links to on the Tenants and Users tabs - the tenant's Ming.le
+# portal, by the 'ti' in its .ionapi.
+MINGLE_PORTAL_URL = "https://mingle-portal.inforcloudsuite.com/v2/{ti}"
+
+
+def _tnnm_ti(row: dict, files: list[dict]) -> str:
+    """
+    The 'ti' a record's TNNM belongs to, or "" when it cannot be told.
+
+    A Tenants-tab (AUTH=20) record's HASH *is* the .ionapi, so its own 'ti'
+    is read first. Anything else - and a tenant whose HASH will not decode -
+    is matched to an .ionapi file in the shared folder by name, the same
+    loose match "Find M3 user" connects with; an ambiguous name gets no link
+    rather than a guess.
+    """
+    if str(row.get("AUTH") or "").strip() == "20" and row.get("HASH"):
+        try:
+            ti = str(decode_hash_blob(row["HASH"]).get("ti") or "").strip()
+        except (M3ApiError, AttributeError):
+            ti = ""
+        if ti:
+            return ti
+    hits = match_ionapi_name(row.get("TNNM") or "", files)
+    return str(hits[0].get("tenant") or "").strip() if len(hits) == 1 else ""
+
+
 @app.route("/api/security")
 def api_security_list():
     tenant = request.args.get("tenant", "")
     client = _client(tenant)
     rows = client.list_extxsm()
+    files = list_ionapi_files(_ionapi_dir())
 
     out = []
     for r in rows:
         row = {k: ("" if v is None else v) for k, v in r.items()}
+        if str(row.get("AUTH") or "").strip() in ("20", "1", "0"):
+            ti = _tnnm_ti(row, files)
+            if ti:
+                row["TNNM_URL"] = MINGLE_PORTAL_URL.format(ti=ti)
         if str(row.get("AUTH") or "").strip() == "99":
             row.update(_decode_review_hash(row.get("HASH")))
         if "HASH" in row and len(row["HASH"]) > HASH_PREVIEW_LEN:
@@ -245,6 +375,61 @@ def api_security_list():
 
     return jsonify(status="success", tenant=tenant, total=len(out),
                    columns=_order_columns(out), rows=out)
+
+
+@app.route("/api/abuseipdb", methods=["POST"])
+def api_abuseipdb():
+    """
+    AbuseIPDB scores for the Review tab's PUBLICIP column, asked for after
+    the list has loaded so a slow or missing AbuseIPDB never holds the list
+    up. `configured` is false when there is no API key, and nothing is
+    looked up.
+    """
+    data = request.get_json(force=True) or {}
+    ips = sorted({str(ip).strip() for ip in (data.get("ips") or []) if str(ip).strip()})
+    if not app.config["ABUSEIPDB_API_KEY"]:
+        return jsonify(status="success", configured=False, results={})
+    return jsonify(status="success", configured=True,
+                   results={ip: _abuse_check(ip) for ip in ips})
+
+
+@app.route("/api/abuseipdb/key", methods=["GET", "POST"])
+def api_abuseipdb_key():
+    """
+    GET: whether a key is set. POST {key}: check it against AbuseIPDB (one
+    lookup of 8.8.8.8, out of the daily allowance) and, if it is accepted,
+    save it to ABUSEIPDB_KEY_FILE, readable by this user only. The key is
+    never sent back to the browser.
+    """
+    if request.method == "GET":
+        return jsonify(status="success",
+                       configured=bool(app.config["ABUSEIPDB_API_KEY"]),
+                       key_file=str(ABUSEIPDB_KEY_FILE))
+    key = str((request.get_json(force=True) or {}).get("key") or "").strip()
+    if not key:
+        return jsonify(status="error", message="Paste an API key."), 400
+    try:
+        resp = _abuse_request("8.8.8.8", key)
+    except requests.RequestException as exc:
+        return jsonify(status="error", message=f"AbuseIPDB unreachable: {exc}"), 502
+    if resp.status_code != 200:
+        try:
+            body = resp.json()
+        except ValueError:
+            body = {}
+        return jsonify(status="error", message=_abuse_error(resp, body)), 400
+
+    ABUSEIPDB_KEY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    fd = os.open(ABUSEIPDB_KEY_FILE, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+    with os.fdopen(fd, "w", encoding="utf-8") as fh:
+        fh.write(key + "\n")
+    os.chmod(ABUSEIPDB_KEY_FILE, 0o600)
+    app.config["ABUSEIPDB_API_KEY"] = key
+    with _abuse_lock:
+        _abuse_cache.clear()
+    return jsonify(status="success", configured=True,
+                   key_file=str(ABUSEIPDB_KEY_FILE),
+                   remaining=resp.headers.get("X-RateLimit-Remaining"))
 
 
 @app.route("/api/tenants/resolve-defaults", methods=["POST"])
@@ -341,6 +526,23 @@ def api_security_delete():
                    message=f"Security record deleted for {pcid} on {tnnm}.")
 
 
+@app.route("/api/security/bulk", methods=["DELETE"])
+def api_security_delete_bulk():
+    """
+    Delete many records with one batched EXT124MI/DelUsrInfo call - used by
+    the Review tab's "Delete all". The browser sends the rows in chunks so it
+    can draw a progress bar; each chunk is a single m3api-rest request.
+    """
+    data = request.get_json(force=True) or {}
+    client = _client(data.get("tenant"))
+    keys = [_row_key(r) for r in (data.get("rows") or [])]
+    errors = client.delete_usr_info_many(keys)
+    failed = [{"PCID": k[0], "TNNM": k[1], "error": e}
+              for k, e in zip(keys, errors) if e]
+    return jsonify(status="success", deleted=len(keys) - len(failed),
+                   failed=failed)
+
+
 @app.route("/api/guess", methods=["POST"])
 def api_guess():
     """
@@ -402,6 +604,116 @@ def api_guess():
     if m3_error:
         result["m3_error"] = m3_error
     return jsonify(status="success", **result)
+
+
+# The Users tab's "Auto-match M3 users": a match is only proposed when the
+# best candidate scores over this (the same score "Find M3 user" shows), and
+# no candidate for a *different* M3 user also clears it - two near-perfect
+# answers is a question for a person, not something to pick between.
+AUTO_MATCH_THRESHOLD = 0.6
+
+
+@app.route("/api/users/match", methods=["POST"])
+def api_users_match():
+    """
+    "Find M3 user" for many Users-tab records at once - all on one TNNM,
+    which is how the page sends them, so that tenant's MNS150MI user list is
+    read once rather than once per record. The uploaded IFS export, if any,
+    is scored too, exactly as /api/guess does. Nothing is written; the page
+    shows the proposals and sends the ones kept to /api/security/bulk-update.
+
+    Each row comes back with `match` ({usid, email, name, score, source}) when
+    it is safe to apply, or `skip` saying why not.
+    """
+    data = request.get_json(force=True) or {}
+    tnnm = str(data.get("tnnm") or "").strip()
+    rows = data.get("rows") or []
+    threshold = float(data.get("threshold") or AUTO_MATCH_THRESHOLD)
+    if not tnnm:
+        return jsonify(status="error", message="TNNM is required."), 400
+
+    users, m3_error, ionapi = [], None, None
+    try:
+        client = M3Client.for_tenant_name(tnnm, _ionapi_dir(),
+                                          security_tenant=(data.get("tenant") or None))
+        users = client.list_user_data()
+        ionapi = client.ionapi_path.name
+    except M3ApiError as exc:
+        m3_error = str(exc)
+    ifs_rows = _ifs_export["rows"]
+    if m3_error and not ifs_rows:
+        return jsonify(status="success", tnnm=tnnm, m3_error=m3_error, ionapi=None,
+                       rows=[{**r, "skip": f"M3 lookup failed: {m3_error}"} for r in rows])
+
+    out = []
+    for r in rows:
+        pcid = str(r.get("PCID") or "").strip()
+        row = {k: r.get(k, "") for k in ("PCID", "TNNM", "AUTH", "M3ID", "UMSG")}
+        term = _login_key(pcid)
+        if not term:
+            out.append({**row, "skip": "No PCID to search by."})
+            continue
+        cands = [{**c, "source": "m3"} for c in score_m3_users(users, term)]
+        if ifs_rows:
+            cands += [{**c, "source": "ifs_export"}
+                      for c in guess_from_ifs_export(pcid, ifs_rows)["candidates"]]
+        cands.sort(key=lambda c: -c["score"])
+        if not cands:
+            out.append({**row, "skip": "No candidates."})
+            continue
+        best = cands[0]
+        if best["score"] <= threshold:
+            out.append({**row, "best": best,
+                        "skip": f"Best match only {best['score'] * 100:.0f}%."})
+            continue
+        rivals = {c["usid"].upper() for c in cands
+                  if c["score"] > threshold and c["usid"]} - {best["usid"].upper()}
+        # Two users over the bar is settled by the M3ID the record already
+        # carries, when it is one of them - somebody chose it on purpose.
+        current = str(row["M3ID"] or "").strip().upper()
+        if rivals and current and current in rivals | {best["usid"].upper()}:
+            best = next(c for c in cands
+                        if c["score"] > threshold and c["usid"].upper() == current)
+            rivals = set()
+        if rivals:
+            out.append({**row, "best": best,
+                        "skip": "Ambiguous - also over the bar: " + ", ".join(sorted(rivals))})
+            continue
+        if not best["usid"]:
+            out.append({**row, "best": best, "skip": "Best match has no M3 user id."})
+            continue
+        if (best["usid"] == str(row["M3ID"]).strip()
+                and (best["email"] or "") == str(row["UMSG"]).strip()):
+            out.append({**row, "best": best, "skip": "Already set."})
+            continue
+        out.append({**row, "match": best})
+    res = {"tnnm": tnnm, "ionapi": ionapi, "rows": out}
+    if m3_error:
+        res["m3_error"] = m3_error
+    return jsonify(status="success", **res)
+
+
+@app.route("/api/security/bulk-update", methods=["POST"])
+def api_security_update_bulk():
+    """
+    Write many M3ID / UMSG changes with one batched EXT124MI/UpdUsrInfo call
+    - the Users tab's auto-match "Apply". Only M3ID and UMSG are taken from
+    each row; AUTH is sent as the record already has it, and HASH is left
+    alone.
+    """
+    data = request.get_json(force=True) or {}
+    client = _client(data.get("tenant"))
+    updates = []
+    for r in data.get("rows") or []:
+        pcid, tnnm, auth = _row_key(r)
+        updates.append({"PCID": pcid, "TNNM": tnnm, "AUTH": auth,
+                        "M3ID": str(r.get("M3ID") or "").strip(),
+                        "UMSG": str(r.get("UMSG") or "").strip()})
+    errors = client.update_usr_info_many(updates)
+    failed = [{"PCID": u["PCID"], "TNNM": u["TNNM"], "error": e}
+              for u, e in zip(updates, errors) if e]
+    return jsonify(status="success", updated=len(updates) - len(failed),
+                   failed=failed)
 
 
 @app.route("/api/ifs-export")
@@ -490,8 +802,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--port", type=int, default=5062)
     ap.add_argument("--ionapi-dir", default=str(DEFAULT_IONAPI_DIR),
                     help="Folder holding the .ionapi files")
+    ap.add_argument("--abuseipdb-key", default=None,
+                    help="AbuseIPDB API key for the Review tab's IP scores "
+                         "(default: $ABUSEIPDB_API_KEY, then "
+                         f"{ABUSEIPDB_KEY_FILE})")
     ap.add_argument("--debug", action="store_true")
     args = ap.parse_args(argv)
+    if args.abuseipdb_key:
+        app.config["ABUSEIPDB_API_KEY"] = args.abuseipdb_key.strip()
 
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
@@ -501,6 +819,8 @@ def main(argv: list[str] | None = None) -> int:
 
     app.config["SHEET_SECURITY_IONAPI_DIR"] = Path(args.ionapi_dir)
     log.info("ION API  : %s", args.ionapi_dir)
+    log.info("AbuseIPDB: %s", "API key set" if app.config["ABUSEIPDB_API_KEY"]
+             else "no API key - IPs are linked but not scored")
     log.info("Open     : http://%s:%s", args.host, args.port)
     app.run(host=args.host, port=args.port, debug=args.debug, threaded=True)
     return 0

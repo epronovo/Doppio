@@ -161,6 +161,9 @@
   .grid{display:grid;grid-template-columns:220px 1fr;gap:8px 14px;align-items:center}
   .grid label{color:var(--dim);font-size:12px;font-weight:600}
   .grid input,.grid select{width:100%}
+  .rtpick{display:flex;gap:16px;flex-wrap:wrap}
+  .rtpick label{display:flex;gap:6px;align-items:center;color:var(--ink);font-size:13px;font-weight:600}
+  .grid .rtpick input{width:auto;accent-color:var(--accent)}
   .ro{background:var(--panel2);color:var(--dim);border-style:dashed}
 
   .exc{border-left:3px solid var(--warn);padding:8px 11px;margin:7px 0;
@@ -568,6 +571,8 @@
           <div class="recprev" id="i-preview" style="margin-top:10px"></div>
 
           <div class="grid" style="margin-top:7px">
+            <label>Record types in this file</label>
+            <div class="rtpick" id="c-types"></div>
             <label>This file covers</label>
             <select id="c-scope">
               <option value="everyone">Everyone the scopes allow</option>
@@ -1929,12 +1934,14 @@ $('#save-config').addEventListener('click', async () => {
 async function runExtract(write, useSelection) {
   const scoped = useSelection ?? ($('#c-scope').value === 'selection');
   if (scoped && !selCount()) return toast('Nothing is picked.', true);
+  const types = pickedTypes();
+  if (!types.length) return toast('Tick at least one record type.', true);
   try {
     const d = await api('/api/export', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       // The selection lives on the server, so the file asks for it by name
       // rather than the page posting 150 keys back.
-      body: JSON.stringify({ write: !!write, selection: scoped }),
+      body: JSON.stringify({ write: !!write, selection: scoped, record_types: types }),
     });
     $('#c-scope').value = scoped ? 'selection' : 'everyone';
     $('#extract-result').innerHTML =
@@ -1945,8 +1952,9 @@ async function runExtract(write, useSelection) {
           'mistaken for the full company in the pickup folder.</div>'
         : '') +
       `<div class="kv"><span><b>${d.records}</b> records</span>` +
-      `<span><b>${d.n_305}</b> × 305</span><span><b>${d.n_350}</b> × 350</span>` +
-      `<span><b>${d.n_360}</b> × 360</span><span><b>${d.bytes.toLocaleString()}</b> bytes</span></div>` +
+      RECORD_TYPES.filter(t => d.record_types.includes(t))
+        .map(t => `<span><b>${d['n_' + t]}</b> × ${t}</span>`).join('') +
+      `<span><b>${d.bytes.toLocaleString()}</b> bytes</span></div>` +
       (write ? `<div style="margin-top:8px">Written to <span class="mono">${esc(d.path)}</span> — ` +
         `<a href="/api/download/${encodeURIComponent(d.file_name)}" style="color:var(--accent)">download a copy</a></div>`
         : `<div class="sub" style="margin-top:8px">Nothing written. Would be ` +
@@ -1968,6 +1976,26 @@ async function runExtract(write, useSelection) {
     toast(write ? 'Extract written.' : 'Preview built.');
   } catch (e) { toast(e.message, true); }
 }
+
+/* The record types ticked for this file. Remembered in the browser rather
+   than saved to the config, because it is a per-file choice - a 360 / 700
+   top-up today does not mean the next full load should skip the 305. */
+const TYPES_KEY = 'adp_concur.extract_types';
+function renderTypePicker() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(TYPES_KEY) || 'null'); } catch (e) {}
+  $('#c-types').innerHTML = RECORD_TYPES.map(t =>
+    `<label><input type="checkbox" value="${t}"` +
+    `${!Array.isArray(saved) || saved.includes(t) ? ' checked' : ''}> ${t}</label>`).join('');
+}
+function pickedTypes() {
+  return [...document.querySelectorAll('#c-types input:checked')].map(i => i.value);
+}
+renderTypePicker();
+$('#c-types').addEventListener('change', () => {
+  try { localStorage.setItem(TYPES_KEY, JSON.stringify(pickedTypes())); } catch (e) {}
+  if (pickedTypes().length) runExtract(false);
+});
 
 $('#preview-extract').addEventListener('click', () => runExtract(false));
 $('#write-extract').addEventListener('click', () => runExtract(true));

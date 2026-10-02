@@ -1,17 +1,17 @@
 # MIG_* — M3 migration sync tools
 
-Nine tools for moving M3 configuration between tenants during a migration —
+Ten tools for moving M3 configuration between tenants during a migration —
 panel views, partner media, partner reference data, sort options, sort
 orders, translation data, standard field-group generation, export-log
-summaries, and a live-count migration review — wrapped in one small Flask
-app instead of nine separate `input()`-prompting command line scripts.
+summaries, a live-count migration review, and Xtend/CTOS extension code
+generation — wrapped in one small Flask app instead of ten separate `input()`-prompting command line scripts.
 
 All routines are prefixed `MIG_` so they group together in the folder.
 
 | File | Role |
 |------|------|
 | `MIG_Api.py` | Self-contained auth/HTTP module — `Tenant`, `authenticate()`, `post_to_m3()`, upload/process helpers |
-| `MIG_App.py` | Flask front end — nine tabs, tenant connect, background jobs |
+| `MIG_App.py` | Flask front end — ten tabs, tenant connect, background jobs |
 | `MIG_SyncPanelViews.py` | Panel view (CSYSPV) diff + EVS100 export |
 | `MIG_SyncPartnerMedia.py` | Partner media (CRS949) diff + direct write |
 | `MIG_SyncPartnerRef.py` | Partner reference (CRS945) diff + direct write |
@@ -21,6 +21,7 @@ All routines are prefixed `MIG_` so they group together in the folder.
 | `MIG_GenerateFieldGroups.py` | CMS005MI.GenStandard + MNS320 job poll |
 | `MIG_ExportSummary.py` | `.log` → `.xlsx` export-log summariser (no M3 calls) |
 | `MIG_MigrationReview.py` | Live M3 record counts written into a review workbook |
+| `MIG_GenerateXtendCode.py` | `m3xtend` sqlite table → Xtend dynamic-table + Get/Del/Add/Upd/Lst transaction JSON (no M3 calls) |
 | `templates/MIG_Index.html` | The single-page UI |
 
 ## Quick start
@@ -204,3 +205,53 @@ questionable one. The reviewed copy lands in
 original moves to `output/mig_sync/migration_review/processed/`. Upload
 workbooks, then use **Scan folder** (needs a connected tenant) to process
 whatever is waiting in `input/mig_sync/migration_review/`.
+
+## Xtend Code
+
+Ported from the repo-root `GenerateXtendCode.py`. No tenant. Reads the
+`m3xtend` table in `~/sqlite/doppio.db` (override with `MIG_SYNC_DB`) and, for
+every distinct `miname`/`trname` group, writes a `DYNAMICDB_<table>.json`
+dynamic-table definition plus five `TRANSACTION-<MI>-<Get|Del|Add|Upd|Lst><trname>.json`
+files (Groovy source embedded base64 + SHA256-hashed) ready to import in M3
+Xtend. The tab lists the groups found, with a filter box (matches MI program,
+transaction, main table, table name or dynamic table; space-separated terms
+must all match) and a checkbox per group — the header checkbox selects or
+clears everything currently shown, groups just imported are pre-selected, and
+the filter + selection are remembered in this browser. **Generate selected**
+writes only the ticked groups' files to
+`output/mig_sync/xtend_code/` (not `~/Downloads` like the CLI) with
+per-file links and an all-in-one zip. Output is identical to the original
+script apart from the random UUIDs. Running the module directly still writes
+to `~/Downloads`.
+
+The **Import / extract definitions** card round-trips the `m3xtend` table
+itself. **Extract to .xlsx** writes every row to
+`M3Xtend_Definitions_<timestamp>.xlsx` (one `m3xtend` sheet, one column per
+table column). Dropping an `.xlsx` or `.csv` with those headers (case doesn't
+matter; `miname`, `trname`, `MainTable`, `DynamicTable`, `direction` and
+`FieldName` are required) imports it: every `miname`/`trname` group in the
+file **replaces** that group's existing rows, other groups are untouched, and
+the whole import is one transaction — a bad row aborts it with nothing
+changed. So the usual loop is extract → edit in Excel → import → Generate.
+
+A dropped `.xlsx` that isn't in `m3xtend` format but is an **MDP table-column
+export** (needs the tab's tenant connected; `Table Name:` in A1/B1, then a `Column Name | Description | Data
+Type | Length | Decimals | Edit Code | Indexes` header) is mapped instead: the
+tab asks for **miname**, **trname** and **DynamicTable**, then writes one
+`m3xtend` row per column:
+
+| m3xtend | From |
+|---|---|
+| `MainTable` | `Table Name:` |
+| `MainTableName` | `TX40` from `MNS120MI.Get` with `FILE` = `Table Name:` (blank, with a warning, if M3 doesn't know the table) |
+| `direction` | `I` if `Indexes` contains `00`, else `O` |
+| `MainPrefix` | first two characters of `Column Name` |
+| `FieldName` | `EX` + last four characters of `Column Name` if DynamicTable starts with `EXT`, else `Column Name` |
+| `description` | `Description` |
+| `dataType` | `Data Type` |
+| `length` | `Length` |
+| `nrOfDecimals` | `Decimals` (blank → 0) |
+| `F2FLDI` | `Column Name` |
+
+Every column in the workbook becomes a row, so trim the workbook first if the
+extension table should only carry some of them.

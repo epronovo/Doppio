@@ -1,0 +1,29 @@
+FT-M3WM security role
+
+
+rausp2001
+
+
+Problem #1 - Label Format [Infor]
+Return to Stock Labels
+LBLFMT is incorrect, receiving fwdqty3X2 instead of STDRECEV
+
+Customer label - must come from lookup table, I do see 'GraingerBat' in one of the calls, may be working.
+
+Need to see how to maintain
+CRS881, 882 - Maintenance Tables
+
+Problem #2 - No printer is being passed [Infor]
+Need to see how to maintain by station as discussed
+
+
+Problem #3 - Label not reaching printer [Barnes]
+Print job is not printing
+
+
+
+
+
+
+
+

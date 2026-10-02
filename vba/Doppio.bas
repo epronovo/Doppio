@@ -3606,6 +3606,23 @@ Public Sub Keywords(value As String)
         Postman_Build
         Exit Sub
     End If
+
+    If value = "pcid" Or value = "username" Then
+        Dim pcidUserName As String
+        Dim pcidFullUserName As String
+        Dim pcidMachineName As String
+        GetUserAndMachineInfo pcidUserName, pcidFullUserName, pcidMachineName
+        #If Mac Then
+            MsgBox "User name: " & pcidUserName & vbCrLf & _
+                   "Full name: " & pcidFullUserName & vbCrLf & _
+                   "Machine: " & pcidMachineName, vbInformation, "User / PC ID"
+        #Else
+            MsgBox "User name: " & pcidUserName & vbCrLf & _
+                   "Domain: " & pcidFullUserName & vbCrLf & _
+                   "Machine: " & pcidMachineName, vbInformation, "User / PC ID"
+        #End If
+        Exit Sub
+    End If
     
     If value = "pivot" Then
         RunBuildMatrix

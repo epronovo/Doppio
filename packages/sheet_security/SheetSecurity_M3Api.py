@@ -200,6 +200,28 @@ def _normalize_name(s: str | None) -> str:
     return " ".join(str(s or "").replace("_", " ").split()).strip().lower()
 
 
+def match_ionapi_name(name: str, files: list[dict]) -> list[dict]:
+    """
+    The list_ionapi_files() entries a loose tenant name matches, by
+    resolve_ionapi_fuzzy()'s rules: an exact 'ti', then an exact file stem,
+    then every file the name is contained in. One entry is a match; several
+    is ambiguous; none is no match. Takes the file list rather than reading
+    the folder so a caller resolving many names reads it once.
+    """
+    target = _normalize_name(name)
+    if not target:
+        return []
+    for f in files:
+        if f.get("path") and _normalize_name(f.get("tenant")) == target:
+            return [f]
+    for f in files:
+        if f.get("path") and _normalize_name(Path(f["file"]).stem) == target:
+            return [f]
+    return [f for f in files
+            if f.get("path") and (target in _normalize_name(f.get("tenant"))
+                                  or target in _normalize_name(Path(f["file"]).stem))]
+
+
 def resolve_ionapi_fuzzy(name: str, ionapi_dir: str | Path = DEFAULT_IONAPI_DIR) -> Path:
     """
     Find the .ionapi file for a tenant name that may not exactly equal any
@@ -207,20 +229,10 @@ def resolve_ionapi_fuzzy(name: str, ionapi_dir: str | Path = DEFAULT_IONAPI_DIR)
     the file/ti pair is usually "NUTRACORP_TST".
     """
     files = list_ionapi_files(ionapi_dir)
-    target = _normalize_name(name)
-    if not target:
+    if not _normalize_name(name):
         raise M3ApiError("A tenant name is required.")
 
-    for f in files:
-        if _normalize_name(f.get("tenant")) == target:
-            return Path(f["path"])
-    for f in files:
-        if _normalize_name(Path(f["file"]).stem) == target:
-            return Path(f["path"])
-
-    candidates = [f for f in files
-                  if target in _normalize_name(f.get("tenant"))
-                  or target in _normalize_name(Path(f["file"]).stem)]
+    candidates = match_ionapi_name(name, files)
     if len(candidates) == 1:
         return Path(candidates[0]["path"])
     if len(candidates) > 1:
@@ -398,6 +410,56 @@ class M3Client:
         rec = {"PCID": pcid, "TNNM": tnnm, "AUTH": str(auth)}
         return self.execute("EXT124MI", [{"transaction": "DelUsrInfo", "record": rec}])
 
+    def update_usr_info_many(self, updates: list[dict]) -> list[str | None]:
+        """
+        EXT124MI/UpdUsrInfo for many records in one m3api-rest batch. Each
+        update is {PCID, TNNM, AUTH, plus any of HASH / M3ID / UMSG}; fields
+        left out are left alone, as in update_usr_info(). Returns one entry
+        per update, in order: None if it was written, else the error.
+        """
+        if not updates:
+            return []
+        records = []
+        for u in updates:
+            rec = {"PCID": u["PCID"], "TNNM": u["TNNM"], "AUTH": str(u["AUTH"])}
+            for key in EXT124_VALUE_FIELDS:
+                if u.get(key) is not None:
+                    rec[key] = u[key]
+            records.append({"transaction": "UpdUsrInfo", "record": rec})
+        body = self.execute("EXT124MI", records)
+        results = (body or {}).get("results", [])
+        out: list[str | None] = []
+        for i in range(len(updates)):
+            res = results[i] if i < len(results) else {"errorMessage": "No result returned"}
+            err = (res.get("errorMessage") or "").strip()
+            code = (res.get("errorCode") or "").strip()
+            out.append((f"{code}: {err}" if code else err) if err else None)
+        return out
+
+    def delete_usr_info_many(self, keys: list[tuple[str, str, str]]) -> list[str | None]:
+        """
+        EXT124MI/DelUsrInfo for many records in one m3api-rest batch. Returns
+        one entry per key, in order: None if it was deleted (or was already
+        gone - "not found" counts as done, as in _records()), else the error.
+        """
+        if not keys:
+            return []
+        body = self.execute("EXT124MI", [
+            {"transaction": "DelUsrInfo",
+             "record": {"PCID": pcid, "TNNM": tnnm, "AUTH": str(auth)}}
+            for pcid, tnnm, auth in keys])
+        results = (body or {}).get("results", [])
+        out: list[str | None] = []
+        for i in range(len(keys)):
+            res = results[i] if i < len(results) else {"errorMessage": "No result returned"}
+            err = (res.get("errorMessage") or "").strip()
+            if err and "not found" not in err.lower():
+                code = (res.get("errorCode") or "").strip()
+                out.append(f"{code}: {err}" if code else err)
+            else:
+                out.append(None)
+        return out
+
     # ---- EXPORTMI - EXTXSM read straight off the table -----------------
     def list_extxsm(self) -> list[dict]:
         """
@@ -513,8 +575,20 @@ def guess_m3_user(tenant_name: str, pcid: str,
 
     client = M3Client.for_tenant_name(tenant_name, ionapi_dir,
                                       security_tenant=security_tenant)
-    users = client.list_user_data()
+    scored = score_m3_users(client.list_user_data(), term_key)
+    best = scored[0] if scored and scored[0]["score"] >= 0.6 else None
+    return {"tenant": client.tenant, "ionapi": client.ionapi_path.name,
+            "extracted": client.extracted_ionapi,
+            "candidates": scored[:8], "best": best}
 
+
+def score_m3_users(users: list[dict], term_key: str) -> list[dict]:
+    """
+    Every MNS150MI/LstUserData user scored against one search term (already
+    folded via _login_key), best first, anything under 0.4 dropped. Split out
+    of guess_m3_user() so the Users tab's mass auto-match can read a tenant's
+    user list once and score every record against it.
+    """
     scored = []
     for u in users:
         usid = (u.get("USID") or "").strip()
@@ -531,10 +605,7 @@ def guess_m3_user(tenant_name: str, pcid: str,
                           "score": round(score, 3)})
 
     scored.sort(key=lambda r: -r["score"])
-    best = scored[0] if scored and scored[0]["score"] >= 0.6 else None
-    return {"tenant": client.tenant, "ionapi": client.ionapi_path.name,
-            "extracted": client.extracted_ionapi,
-            "candidates": scored[:8], "best": best}
+    return scored
 
 
 # ---------------------------------------------------------------------------

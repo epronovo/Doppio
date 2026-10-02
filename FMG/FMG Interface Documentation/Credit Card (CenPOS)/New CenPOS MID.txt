@@ -1,0 +1,5 @@
+MID: Associated Spring Raymond UAT, 790010234
+Administrator User ID: Admin
+Password: 256IwAqOsU-o
+Integration User ID: Infortest
+Integration User Password: Cenpos@12345

@@ -1,0 +1,8 @@
+Sghtu0cTYcBT2bMd7I2q@
+
+{ "username": "Admin", "password": "Sghtu0cTYcBT2bMd7I2q@" }
+
+
+wJh7I8pcacz1laEOCMa2@
+
+{ "username": "ASR_M3_Service", "password": "wJh7I8pcacz1laEOCMa2@" }

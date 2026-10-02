@@ -1,0 +1,25 @@
+End to end test plan
+	- 
+Salesforce technical meeting with Infor (Issue 1287 - email sent Mon Jun-9)
+--- 
+
+Test plans (consolidate and give sales team access(
+
+ASR UAT end to end:
+https://url.avanan.click/v2/r01/___https://inforonline.sharepoint.com/:x:/r/sites/PWA-Barnes/Shared%20Documents/030%20WIP%20Docs/025%20Cutover%20Planning/UAT%20Readiness/ASR%20UAT%20End%20to%20End%20Test.xlsx?d=w8499c70aa5f2464781d5c0956645057b&csf=1&web=1&e=eL8Qgy___.YXAzOmJnaW5jOmE6bzpmYjE3N2FiNmUyMWU0Y2JkNWFmMzU5NzFkNWJiZDQzNzo3OjI5YzM6OGMxZWUyNGZiYzdiZjM5YmIxZWVjOWQ2NjIwN2JjYjQyN2VkYzNkZDAyOGVkOGZiNGU2ZDM4MDg1NjA2NzEyZTpoOkY6Tg
+
+
+Torborjn
+https://inforonline.sharepoint.com/sites/PWA-Barnes/TEST%20SCRIPTS/Forms/AllItems.aspx?csf=1&web=1&e=aFDs1M&CID=42869b67%2D793e%2D41a9%2D9750%2D11b3e5d65374&FolderCTID=0x0120009DEFAA9880F58F42AF5ECAB5A38CA46C&id=%2Fsites%2FPWA%2DBarnes%2FTEST%20SCRIPTS%2FBarnes%20Specific%20Test%20Scripts%2FSales
+
+---
+Infor --- 
+
+Make sales team has test plan repository
+--- 
+
+Frank/Dean - Power 
+
+
+
+

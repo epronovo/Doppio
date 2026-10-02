@@ -167,6 +167,10 @@ DERIVED_COLUMNS: list[tuple[str, str]] = [
     # Company Map's own Ledger Code / Custom 5 Code columns.
     ("Ledger Code", "concur_ledger_code"),
     ("Custom 5 Code", "concur_custom_5"),
+    # 350 AI Custom 3 (Country of Employment), new with the 1 October
+    # workbook: the 305 Ctry Code, but only where the Company Data Source
+    # Map's Travel Wizzard flag for the 305 Custom 21 is Y. Blank otherwise.
+    ("Travel Country", "travel_country"),
 ]
 
 # What the employee editor is allowed to write. The derived columns stay out -
@@ -244,6 +248,9 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_Employees (
     -- Custom 5 Code columns - see derive_ukg() in ADP_Concur_Map.py.
     concur_ledger_code       TEXT,
     concur_custom_5          TEXT,
+    -- 350 Custom 3. The Ctry Code, gated on the Company Data Source Map's
+    -- Travel Wizzard flag - see ADP_Concur_travel_country().
+    travel_country           TEXT,
     -- UKG's own columns. Everything else it sends reuses an ADP column above,
     -- because it means the same thing under a different heading.
     pay_group_code          TEXT,
@@ -407,6 +414,27 @@ CREATE TABLE IF NOT EXISTS ADP_Concur_CompanyMap (
     custom_5_code       TEXT,
     row_state           TEXT NOT NULL DEFAULT 'unchanged',
     UNIQUE (site_location_code)
+);
+
+-- The Company Data Source Map, new with the 1 October workbook: one row per
+-- HR site location, for UKG and ADP alike, carrying the Concur codes and three
+-- Y/N flags. The 350 ADP tab gates every column on the Travel Wizzard flag,
+-- looked up by Expense Group Code (VLOOKUP on E:H, so E is the key and the
+-- first row of each code wins).
+CREATE TABLE IF NOT EXISTS ADP_Concur_CompanySourceMap (
+    map_key             INTEGER PRIMARY KEY AUTOINCREMENT,
+    hr_site_location    TEXT,
+    hr_location_code    TEXT,
+    hr_source           TEXT,
+    concur_org_unit     TEXT,
+    expense_group_code  TEXT NOT NULL,
+    ledger_code         TEXT,
+    custom_5_code       TEXT,
+    travel_wizard       TEXT,
+    expense_entry       TEXT,
+    expense_approval    TEXT,
+    row_state           TEXT NOT NULL DEFAULT 'unchanged',
+    UNIQUE (expense_group_code)
 );
 
 -- --------------------------------------------------------------- layouts
@@ -605,6 +633,7 @@ MIGRATIONS: list[tuple[str, str, str]] = [
     ("ADP_Concur_Employees", "concur_custom_5", "TEXT"),
     ("ADP_Concur_CompanyMap", "ledger_code", "TEXT"),
     ("ADP_Concur_CompanyMap", "custom_5_code", "TEXT"),
+    ("ADP_Concur_Employees", "travel_country", "TEXT"),
 ]
 
 
@@ -688,6 +717,7 @@ def counts(conn: sqlite3.Connection) -> dict:
         "country_ref": n("SELECT COUNT(*) FROM ADP_Concur_CountryRef"),
         "locale_map": n("SELECT COUNT(*) FROM ADP_Concur_LocaleMap"),
         "company_map": n("SELECT COUNT(*) FROM ADP_Concur_CompanyMap"),
+        "company_source_map": n("SELECT COUNT(*) FROM ADP_Concur_CompanySourceMap"),
         "employees_us": n("SELECT COUNT(*) FROM ADP_Concur_Employees "
                           "WHERE roster = 'us' AND row_state <> 'deleted'"),
         "employees_non_us": n("SELECT COUNT(*) FROM ADP_Concur_Employees "
@@ -985,7 +1015,8 @@ def clear_maps(conn: sqlite3.Connection, commit: bool = True) -> dict:
     tables = ["ADP_Concur_StatusMap", "ADP_Concur_CountryMap", "ADP_Concur_OrgMap",
               "ADP_Concur_LanguageMap", "ADP_Concur_SalaryMap",
               "ADP_Concur_SupervisorMap", "ADP_Concur_CountryRef",
-              "ADP_Concur_LocaleMap", "ADP_Concur_CompanyMap", "ADP_Concur_Layouts"]
+              "ADP_Concur_LocaleMap", "ADP_Concur_CompanyMap",
+              "ADP_Concur_CompanySourceMap", "ADP_Concur_Layouts"]
     out = {}
     cur = conn.cursor()
     for t in tables:

@@ -1,9 +1,9 @@
 """
 MIG_App - Flask front end for the MIG Sync package.
 
-Nine tabs, one per original MIG_Sync*.py / MIG_*.py CLI script: Panel Views,
+Ten tabs, one per original MIG_Sync*.py / MIG_*.py CLI script: Panel Views,
 Partner Media, Partner Ref, Sorting Options, Sorting Orders, Transl Data,
-Field Groups, Export Summary, Migration Review.
+Field Groups, Export Summary, Migration Review, Xtend Code.
 
 This is a THIN WEB WRAPPER, not a persistent-database app like m3_security.
 There is no SQLite capture of the sync data itself: every run does a live
@@ -24,6 +24,8 @@ import threading
 import time
 import traceback
 import uuid
+import zipfile
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -32,6 +34,7 @@ from flask import Flask, jsonify, render_template, request, send_file
 import MIG_Api
 import MIG_ExportSummary
 import MIG_GenerateFieldGroups
+import MIG_GenerateXtendCode
 import MIG_MigrationReview
 import MIG_SyncPanelViews
 import MIG_SyncPartnerMedia
@@ -224,6 +227,7 @@ _DOWNLOAD_DIRS = {
     "transl_data": OUTPUT_DIR / "transl_data",
     "export_summary": MIG_ExportSummary.DEFAULT_OUTPUT_FOLDER,
     "migration_review": MIG_MigrationReview.OUTPUT_DIR,
+    "xtend_code": MIG_GenerateXtendCode.DEFAULT_OUTPUT_DIR,
 }
 
 
@@ -861,6 +865,111 @@ def api_migration_review_scan():
 
 
 # =============================================================================
+# Xtend Code  (no tenant - m3xtend sqlite table -> Xtend/CTOS import JSON)
+# =============================================================================
+
+@app.route("/api/xtend-code/groups")
+def api_xtend_code_groups():
+    return jsonify(status="success", groups=MIG_GenerateXtendCode.list_groups(),
+                   db=str(MIG_GenerateXtendCode.SQLITE_DB_PATH))
+
+
+@app.route("/api/xtend-code/generate", methods=["POST"])
+def api_xtend_code_generate():
+    data = request.get_json(force=True) or {}
+    out_dir = MIG_GenerateXtendCode.DEFAULT_OUTPUT_DIR
+    # {"groups": [{"miname", "trname"}, ...]} limits the run to those groups;
+    # omitted means every group.
+    selected = None
+    if data.get("groups") is not None:
+        selected = [((g.get("miname") or "").strip(), (g.get("trname") or "").strip())
+                    for g in data["groups"]]
+        if not selected:
+            return jsonify(status="error", message="No definitions selected."), 400
+
+    def work(progress):
+        result = MIG_GenerateXtendCode.generate_all(out_dir, progress=progress, selected=selected)
+        if result["files"]:
+            zip_path = out_dir / f"XtendCode_{datetime.now():%Y%m%d_%H%M%S}.zip"
+            with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                for name in result["files"]:
+                    zf.write(out_dir / name, arcname=name)
+            result["zip_file"] = zip_path.name
+            result["zip_download"] = "xtend_code/" + zip_path.name
+        for g in result["groups"]:
+            g["downloads"] = [{"file": n, "download": "xtend_code/" + n} for n in g["files"]]
+        return result
+
+    return jsonify(status="success", job_id=start_job("Xtend Code generate", work))
+
+
+@app.route("/api/xtend-code/export", methods=["POST"])
+def api_xtend_code_export():
+    res = MIG_GenerateXtendCode.export_definitions(MIG_GenerateXtendCode.DEFAULT_OUTPUT_DIR)
+    return jsonify(status="success", file=res["file"], download="xtend_code/" + res["file"],
+                   message=f"{res['rows']} m3xtend row(s) exported to {res['file']}.")
+
+
+_XTEND_UPLOAD_DIR = UPLOAD_DIR / "xtend_code"
+
+
+def _xtend_import_message(name: str, res: dict) -> str:
+    return (f"Imported {res['rows']} row(s) from {name} into m3xtend "
+            f"({len(res['groups'])} group(s); {res['replaced']} existing row(s) replaced).")
+
+
+@app.route("/api/xtend-code/import", methods=["POST"])
+def api_xtend_code_import():
+    fs = request.files.get("file")
+    name = Path((fs.filename if fs else "") or "").name
+    if not name:
+        return jsonify(status="error", message="No file received."), 400
+    if not name.lower().endswith((".xlsx", ".csv")) or name.startswith("~$"):
+        return jsonify(status="error", message=f"{name}: not a .xlsx or .csv file."), 400
+
+    _XTEND_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    path = _XTEND_UPLOAD_DIR / name
+    fs.save(path)
+
+    # Not in m3xtend format? If it's an MDP table-column export, hand back
+    # what the browser needs to prompt for miname / trname / DynamicTable,
+    # then /api/xtend-code/import-mapped finishes the job.
+    mdp = MIG_GenerateXtendCode.read_mdp_workbook(path)
+    if mdp is not None:
+        keys = [c["Column Name"] for c in mdp["columns"]
+                if "00" in [i.strip() for i in c.get("Indexes", "").split(",")]]
+        return jsonify(status="success", needs_mapping=True, file=name, table=mdp["table"],
+                       columns=len(mdp["columns"]), keys=keys,
+                       message=f"{name} is an MDP table-column workbook for {mdp['table']} "
+                               f"({len(mdp['columns'])} column(s), {len(keys)} index-00 key(s)).")
+    try:
+        res = MIG_GenerateXtendCode.import_definitions(path)
+    except ValueError as exc:
+        return jsonify(status="error", message=str(exc)), 400
+    return jsonify(status="success", **res, message=_xtend_import_message(name, res))
+
+
+@app.route("/api/xtend-code/import-mapped", methods=["POST"])
+def api_xtend_code_import_mapped():
+    data = request.get_json(force=True) or {}
+    name = Path((data.get("file") or "")).name
+    path = _XTEND_UPLOAD_DIR / name
+    if not name or not path.is_file():
+        return jsonify(status="error", message=f"{name or 'File'} not found - drop it again."), 404
+    # MainTableName comes from MNS120MI.Get, so a tenant is required here.
+    tenant = _tenant(data.get("tenant_id"))
+    try:
+        res = MIG_GenerateXtendCode.import_mdp_workbook(
+            path, data.get("miname"), data.get("trname"), data.get("dynamic_table"), tenant)
+    except ValueError as exc:
+        return jsonify(status="error", message=str(exc)), 400
+    message = _xtend_import_message(name, res)
+    message += (f" MainTableName: {res['main_table_name']}." if res["main_table_name"]
+                else f" MainTableName left blank - {res['warning']}.")
+    return jsonify(status="success", **res, message=message)
+
+
+# =============================================================================
 # Entry point
 # =============================================================================
 
@@ -875,7 +984,7 @@ def main() -> None:
                          format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     for d in (UPLOAD_DIR, OUTPUT_DIR, _EXPORT_SUMMARY_UPLOAD_DIR, _EXPORT_SUMMARY_OUTPUT_DIR,
               MIG_MigrationReview.INPUT_DIR, MIG_MigrationReview.PROCESSED_DIR,
-              MIG_MigrationReview.OUTPUT_DIR):
+              MIG_MigrationReview.OUTPUT_DIR, MIG_GenerateXtendCode.DEFAULT_OUTPUT_DIR):
         d.mkdir(parents=True, exist_ok=True)
 
     log.info("ionapi   : %s", IONAPI_DIR)

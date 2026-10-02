@@ -90,20 +90,29 @@
         border-radius:var(--r);background:var(--panel)}
   .empty{padding:34px 20px;text-align:center;color:var(--dim);font-size:13px}
   .countline{font-size:12px;color:var(--dim);margin:0 0 8px;flex:0 0 auto}
+  .progress{display:none;align-items:center;gap:10px;margin:0 0 8px;flex:0 0 auto;
+            font-size:12px;color:var(--body)}
+  .progress.on{display:flex}
+  th.pick,td.pick{width:28px;text-align:center;padding-left:8px;padding-right:4px}
+  th.pick input,td.pick input{width:auto;accent-color:var(--accent);cursor:pointer}
+  tr.picked td{background:var(--info-wash)}
+  .progress .bar{flex:1;max-width:420px;height:8px;border-radius:4px;
+                 background:var(--panel2);border:1px solid var(--line);overflow:hidden}
+  .progress .fill{height:100%;width:0;background:var(--accent);transition:width .25s ease}
 
   /* ---- the slide-in panels: add/edit record, extract-to-.ionapi, assign-to-tenant ---- */
-  #panel,#xpanel,#apanel{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);z-index:80;
+  #panel,#xpanel,#apanel,#mpanel{position:fixed;top:0;right:0;height:100%;width:min(560px,94vw);z-index:80;
          background:var(--bg);border-left:1px solid var(--line);transform:translateX(105%);
          transition:.22s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;
          box-shadow:-20px 0 48px rgba(17,18,20,.14)}
-  #xpanel,#apanel{width:min(760px,96vw)}
-  #panel.on,#xpanel.on,#apanel.on{transform:none}
-  #panel .head,#xpanel .head,#apanel .head{padding:0 18px;height:58px;background:var(--chrome);color:#fff;
+  #xpanel,#apanel,#mpanel{width:min(760px,96vw)}
+  #panel.on,#xpanel.on,#apanel.on,#mpanel.on{transform:none}
+  #panel .head,#xpanel .head,#apanel .head,#mpanel .head{padding:0 18px;height:58px;background:var(--chrome);color:#fff;
                display:flex;gap:12px;align-items:center;flex:0 0 auto;font:700 15px var(--display)}
-  #panel .head button,#xpanel .head button,#apanel .head button{background:transparent;color:#fff;border-color:#3a3a40}
-  #panel .head button:hover,#xpanel .head button:hover,#apanel .head button:hover{border-color:#fff}
-  #panel .body,#xpanel .body,#apanel .body{padding:16px 18px;overflow:auto;flex:1;background:var(--bg)}
-  #panel .foot,#xpanel .foot,#apanel .foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;
+  #panel .head button,#xpanel .head button,#apanel .head button,#mpanel .head button{background:transparent;color:#fff;border-color:#3a3a40}
+  #panel .head button:hover,#xpanel .head button:hover,#apanel .head button:hover,#mpanel .head button:hover{border-color:#fff}
+  #panel .body,#xpanel .body,#apanel .body,#mpanel .body{padding:16px 18px;overflow:auto;flex:1;background:var(--bg)}
+  #panel .foot,#xpanel .foot,#apanel .foot,#mpanel .foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;gap:8px;
                align-items:center;flex:0 0 auto;background:var(--panel3)}
 
   .grid{display:grid;grid-template-columns:120px 1fr;gap:9px 14px;align-items:center}
@@ -181,12 +190,17 @@
     <span class="sub" id="ifs-status"></span>
     <button id="get-default-users">Get Default Users</button>
     <span class="sub" id="gdu-status"></span>
+    <button id="auto-match" title="Find M3 user for every Users row shown, and fill in the matches over 60%">Auto-match M3 users&hellip;</button>
     <button id="extract-ionapi">Extract Type 20 &rarr; .ionapi files</button>
+    <button id="abuse-key" title="Set the AbuseIPDB API key used to score PUBLICIP">AbuseIPDB key&hellip;</button>
     <button id="assign-tenant">Assign to tenant&hellip;</button>
+    <button class="danger" id="delete-selected" disabled>Delete selected</button>
     <button class="danger" id="delete-all">Delete all</button>
     <button class="primary" id="add-record">+ Add security record</button>
   </div>
   <div class="countline" id="countline"></div>
+  <div class="progress" id="del-progress"><div class="bar"><div class="fill"></div></div>
+    <span id="del-progress-text"></span></div>
   <div class="wrap"><table id="t-sec"><thead></thead><tbody></tbody></table></div>
 </main>
 
@@ -253,6 +267,45 @@
     <span id="p-state" class="sub"></span>
     <span class="grow"></span>
     <button class="danger" id="p-delete" style="display:none">Delete</button>
+  </div>
+</div>
+
+<div id="mpanel">
+  <div class="head"><b>Auto-match M3 users</b><span class="grow"></span>
+    <button id="m-close">Close</button></div>
+  <div class="body">
+    <div class="note">"Find M3 user" for every Users-tab row currently shown
+      (the filters apply). A row is proposed only when its best match scores
+      <b>over <span id="m-pct">60</span>%</b> and no other M3 user also does;
+      M3ID becomes that user's USID and UMSG their email, just as clicking
+      "Use" would. Nothing is written until you click Apply.</div>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:10px">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)">
+        <input type="checkbox" id="m-blank-only" style="width:auto" checked>
+        Only rows with no UMSG yet
+      </label>
+      <button id="m-select-all" class="small">Select all</button>
+      <button id="m-select-none" class="small">Select none</button>
+    </div>
+    <div class="sub" id="m-summary"></div>
+    <div class="wrap" style="margin-top:10px;max-height:44vh">
+      <table id="t-match"><thead><tr>
+        <th style="width:26px"><input type="checkbox" id="m-check-all" style="width:auto" checked></th>
+        <th>PCID</th><th>TNNM</th><th>M3ID</th><th>UMSG</th><th>Score</th><th>From</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+    <h3 style="margin:16px 0 6px">Not matched <span class="sub" id="m-skip-n"></span></h3>
+    <div class="wrap" style="max-height:24vh">
+      <table id="t-match-skip"><thead><tr>
+        <th>PCID</th><th>TNNM</th><th>Why</th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+  <div class="foot">
+    <button class="primary" id="m-apply" disabled>Apply</button>
+    <span id="m-state" class="sub"></span>
+    <span class="grow"></span>
+    <button id="m-refresh">Re-match</button>
   </div>
 </div>
 
@@ -385,7 +438,13 @@ const state = {
   tenant: '', columns: [], rows: [], authLabels: {},
   sort: '', dir: 'asc', filters: {}, q: '', tab: 'tenants',
   editing: null,   // {PCID, TNNM, AUTH} of the row being edited, or null when adding
+  picked: new Set(),   // Review rows ticked for "Delete selected", by rowKey()
 };
+
+// A record's real key is PCID + TNNM (see the module docstring in
+// SheetSecurity_App.py), so that is what a ticked row is remembered by.
+const rowKey = r => `${r.PCID}\u0001${r.TNNM}`;
+const reviewSelecting = () => state.tab === 'review';
 
 // Which AUTH values belong on each tab - 20 is a tenant registration, 1/0
 // are a user's access granted/blocked, 99 is a pending review request.
@@ -396,13 +455,32 @@ const AUTH_PILL = { '20': 'info', '1': 'good', '0': 'bad', '99': 'warn' };
 // Columns hidden from each tab's list - still on the edit panel, just not
 // worth a column in a table this narrow. HASH is never shown in a list: a
 // tenant's is an .ionapi blob, a user grant's is normally empty, and a
-// review request's is decoded into USERNAME/DOMAIN/COMPUTERNAME instead.
+// review request's is decoded into USERNAME/DOMAIN/COMPUTERNAME/PUBLICIP
+// instead.
 const TAB_HIDDEN_COLUMNS = {
   tenants: ['RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME',
-            'CHNO', 'CHID', 'HASH_full_length'],
-  users: ['RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME'],
-  review: ['UMSG', 'RGDT', 'RGTM', 'LMDT', 'HASH'],
+            'PUBLICIP', 'CHNO', 'CHID', 'HASH_full_length', 'TNNM_URL'],
+  users: ['RGDT', 'RGTM', 'LMDT', 'HASH', 'USERNAME', 'DOMAIN', 'COMPUTERNAME',
+          'PUBLICIP', 'TNNM_URL'],
+  review: ['UMSG', 'M3ID', 'RGDT', 'RGTM', 'LMDT', 'HASH', 'CHNO', 'CHID',
+           'HASH_full_length', 'TNNM_URL'],
 };
+
+// On the Review tab USERNAME and COMPUTERNAME (decoded from the HASH) are
+// normally just PCID and TNNM again. A cell that repeats its key field is
+// left blank, and a column where every row does is dropped altogether, so
+// what is left on screen is only a request whose HASH disagrees with its key.
+const REVIEW_ECHOES = { USERNAME: 'PCID', COMPUTERNAME: 'TNNM' };
+const sameText = (a, b) =>
+  String(a ?? '').trim().toLowerCase() === String(b ?? '').trim().toLowerCase();
+const isEcho = (r, c) =>
+  state.tab === 'review' && REVIEW_ECHOES[c] && sameText(r[c], r[REVIEW_ECHOES[c]]);
+
+// The Review tab's AbuseIPDB score, filled in after the list loads (see
+// loadAbuseScores()). Not an EXTXSM field, so it is added here, beside
+// PUBLICIP, rather than coming back from /api/security.
+const ABUSE_COL = 'ABUSE_SCORE';
+const abuseUrl = ip => 'https://www.abuseipdb.com/check/' + encodeURIComponent(ip);
 
 function tabRows(tab) {
   const wanted = TAB_AUTH[tab || state.tab] || [];
@@ -411,7 +489,52 @@ function tabRows(tab) {
 
 function visibleColumns() {
   const hidden = TAB_HIDDEN_COLUMNS[state.tab] || [];
-  return state.columns.filter(c => !hidden.includes(c));
+  const rows = tabRows();
+  const cols = state.columns.filter(c => !hidden.includes(c) &&
+    !(state.tab === 'review' && REVIEW_ECHOES[c] && rows.every(r => isEcho(r, c))));
+  const ip = cols.indexOf('PUBLICIP');
+  if (state.tab === 'review' && ip >= 0) cols.splice(ip + 1, 0, ABUSE_COL);
+  return cols;
+}
+
+// One request for every distinct Review IP; the server caches what it gets
+// back, so a reload does not spend the daily AbuseIPDB allowance again.
+async function loadAbuseScores() {
+  const rows = tabRows('review').filter(r => r.PUBLICIP);
+  const ips = [...new Set(rows.map(r => r.PUBLICIP))];
+  if (!ips.length) return;
+  for (const r of rows) r[ABUSE_COL] = '…';
+  if (state.tab === 'review') renderBody();
+  try {
+    const d = await api('/api/abuseipdb', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ips }),
+    });
+    for (const r of rows) {
+      const res = d.results[r.PUBLICIP];
+      r[ABUSE_COL] = !d.configured ? '' : (res && res.score != null ? res.score : '');
+      r._abuse = d.configured ? (res || {}) : { error: 'No AbuseIPDB API key set on the server.' };
+    }
+  } catch (e) {
+    for (const r of rows) { r[ABUSE_COL] = ''; r._abuse = { error: e.message }; }
+  }
+  if (state.tab === 'review') renderBody();
+}
+
+function abuseCell(r) {
+  const a = r._abuse || {};
+  const v = r[ABUSE_COL];
+  if (v === '…') return el('td', { class: 'sub' }, '…');
+  if (v === '' || v == null)
+    return el('td', { class: 'sub', title: a.error || '' }, r.PUBLICIP ? '—' : '');
+  const n = Number(v);
+  const cls = n >= 50 ? 'bad' : n > 0 ? 'warn' : 'good';
+  const title = [`${n}% abuse confidence`, `${a.reports ?? 0} report(s) in 90 days`,
+                 a.isp, a.usage, a.country].filter(Boolean).join(' · ');
+  return el('td', { title },
+    el('a', { href: abuseUrl(r.PUBLICIP), target: '_blank', rel: 'noopener',
+              style: 'text-decoration:none' },
+      el('span', { class: 'pill ' + cls }, n + '%')));
 }
 
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
@@ -422,15 +545,41 @@ document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () =>
   state.filters = {}; state.q = ''; $('#q').value = '';
   $('#get-default-users').style.display = state.tab === 'tenants' ? '' : 'none';
   $('#extract-ionapi').style.display = state.tab === 'tenants' ? '' : 'none';
+  $('#auto-match').style.display = state.tab === 'users' ? '' : 'none';
   $('#delete-all').style.display = state.tab === 'review' ? '' : 'none';
+  $('#delete-selected').style.display = state.tab === 'review' ? '' : 'none';
+  state.picked.clear(); updatePicked();
   $('#assign-tenant').style.display = state.tab === 'review' ? '' : 'none';
+  $('#abuse-key').style.display = state.tab === 'review' ? '' : 'none';
   renderHead();
   renderBody();
 }));
 $('#get-default-users').style.display = state.tab === 'tenants' ? '' : 'none';
 $('#extract-ionapi').style.display = state.tab === 'tenants' ? '' : 'none';
 $('#delete-all').style.display = state.tab === 'review' ? '' : 'none';
+$('#auto-match').style.display = state.tab === 'users' ? '' : 'none';
+$('#delete-selected').style.display = state.tab === 'review' ? '' : 'none';
 $('#assign-tenant').style.display = state.tab === 'review' ? '' : 'none';
+$('#abuse-key').style.display = state.tab === 'review' ? '' : 'none';
+
+// The key is checked against AbuseIPDB and saved on the server, outside the
+// repo; it is never read back into the page.
+$('#abuse-key').addEventListener('click', async () => {
+  let set = false;
+  try { set = (await api('/api/abuseipdb/key')).configured; } catch (e) {}
+  const key = prompt((set ? 'An AbuseIPDB key is already set. Paste a new one to replace it.'
+                          : 'Paste your AbuseIPDB API key (APIv2).') +
+                     '\nIt is checked with AbuseIPDB, then saved on this machine only.');
+  if (!key || !key.trim()) return;
+  try {
+    const d = await api('/api/abuseipdb/key', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: key.trim() }),
+    });
+    toast('AbuseIPDB key saved' + (d.remaining ? ` — ${d.remaining} checks left today.` : '.'));
+    loadAbuseScores();
+  } catch (e) { toast(e.message, true); }
+});
 
 /* ---------------------------------------------------------- tenants --- */
 // Called at init, and again after "Get Default Users" might have tagged a
@@ -480,6 +629,7 @@ async function loadSecurity() {
       $('#n-' + tab).textContent = tabRows(tab).length;
     renderHead();
     renderBody();
+    loadAbuseScores();
   } catch (e) {
     state.columns = []; state.rows = [];
     for (const tab of Object.keys(TAB_AUTH)) $('#n-' + tab).textContent = '';
@@ -499,9 +649,19 @@ function renderHead() {
   if (!columns.length) return;
 
   const head = el('tr');
+  if (reviewSelecting()) {
+    // Ticks every row the current filters show - not rows filtered out of view.
+    const all = el('input', { type: 'checkbox', id: 'pick-all', title: 'Select every row shown' });
+    all.addEventListener('change', () => {
+      for (const r of filteredSortedRows())
+        all.checked ? state.picked.add(rowKey(r)) : state.picked.delete(rowKey(r));
+      renderBody();
+    });
+    head.append(el('th', { class: 'pick' }, all));
+  }
   columns.forEach(c => {
     const th = el('th', { class: 'sortable', 'data-col': c },
-      fmtCol(c), el('span', { class: 'arrow' }, '↑'));
+      (c === ABUSE_COL ? 'ABUSEIPDB SCORE' : fmtCol(c)), el('span', { class: 'arrow' }, '↑'));
     th.addEventListener('click', () => {
       if (state.sort !== c) { state.sort = c; state.dir = 'asc'; }
       else if (state.dir === 'asc') state.dir = 'desc';
@@ -527,6 +687,7 @@ function renderHead() {
     filterRow.append(el('th', {}, input));
   });
   filterRow.append(el('th', {}));
+  if (reviewSelecting()) filterRow.prepend(el('th', { class: 'pick' }));
   thead.append(filterRow);
 }
 
@@ -571,19 +732,46 @@ function renderBody() {
     : '';
 
   if (!base.length) {
-    tbody.append(el('tr', {}, el('td', { colspan: columns.length + 1, class: 'empty' },
+    tbody.append(el('tr', {}, el('td', { colspan: columns.length + (reviewSelecting() ? 2 : 1), class: 'empty' },
       columns.length ? 'No security records on this tab.' : ' ')));
     return;
   }
   if (!rows.length) {
-    tbody.append(el('tr', {}, el('td', { colspan: columns.length + 1, class: 'empty' },
+    tbody.append(el('tr', {}, el('td', { colspan: columns.length + (reviewSelecting() ? 2 : 1), class: 'empty' },
       'Nothing matches the current filters.')));
     return;
   }
 
   rows.forEach(r => {
     const tr = el('tr');
+    if (reviewSelecting()) {
+      const box = el('input', { type: 'checkbox' });
+      box.checked = state.picked.has(rowKey(r));
+      box.addEventListener('change', () => {
+        box.checked ? state.picked.add(rowKey(r)) : state.picked.delete(rowKey(r));
+        tr.classList.toggle('picked', box.checked);
+        updatePicked();
+      });
+      tr.classList.toggle('picked', box.checked);
+      tr.append(el('td', { class: 'pick' }, box));
+    }
     columns.forEach(c => {
+      if (c === ABUSE_COL) { tr.append(abuseCell(r)); return; }
+      // TNNM_URL is the tenant's Ming.le portal, built server-side from the
+      // 'ti' in its .ionapi - see _tnnm_ti() in SheetSecurity_App.py.
+      if (c === 'TNNM' && r.TNNM_URL) {
+        tr.append(el('td', { title: 'Open ' + r.TNNM_URL },
+          el('a', { href: r.TNNM_URL, target: '_blank', rel: 'noopener',
+                    style: 'color:var(--accent)' }, r.TNNM)));
+        return;
+      }
+      if (c === 'PUBLICIP' && r.PUBLICIP) {
+        tr.append(el('td', { class: 'mono', title: 'Open on AbuseIPDB' },
+          el('a', { href: abuseUrl(r.PUBLICIP), target: '_blank', rel: 'noopener',
+                    style: 'color:var(--accent)' }, r.PUBLICIP)));
+        return;
+      }
+      if (isEcho(r, c)) { tr.append(el('td', { title: `Same as ${REVIEW_ECHOES[c]}` }, '')); return; }
       const isHash = c.toUpperCase() === 'HASH';
       const isAuth = c.toUpperCase() === 'AUTH';
       const title = isHash
@@ -601,6 +789,24 @@ function renderBody() {
     tr.append(el('td', {}, el('div', { class: 'acts' }, editBtn, delBtn)));
     tbody.append(tr);
   });
+  updatePicked();
+}
+
+// The button's count, and the header box: ticked when every row shown is
+// picked, half-ticked when some are.
+function updatePicked() {
+  const live = new Set(tabRows('review').map(rowKey));
+  for (const k of [...state.picked]) if (!live.has(k)) state.picked.delete(k);
+  const n = state.picked.size;
+  $('#delete-selected').disabled = !n;
+  $('#delete-selected').textContent = n ? `Delete selected (${n})` : 'Delete selected';
+  const all = $('#pick-all');
+  if (all) {
+    const shown = filteredSortedRows();
+    const on = shown.filter(r => state.picked.has(rowKey(r))).length;
+    all.checked = !!shown.length && on === shown.length;
+    all.indeterminate = on > 0 && on < shown.length;
+  }
 }
 
 /* --------------------------------------------------------- add/edit --- */
@@ -702,27 +908,210 @@ async function deleteRow(row) {
   }
 }
 
+// Review rows are deleted with batched EXT124MI/DelUsrInfo calls (one
+// m3api-rest request per chunk - see /api/security/bulk), sent a chunk at a
+// time so the progress bar has something to track on a long list.
+const DELETE_CHUNK = 100;
+
+function setDelProgress(done, total) {
+  const pct = total ? Math.round(done / total * 100) : 0;
+  $('#del-progress .fill').style.width = pct + '%';
+  $('#del-progress-text').textContent = `Deleting ${done} of ${total} (${pct}%)`;
+}
+
+// Shared by "Delete all" and "Delete selected".
+async function deleteReviewRows(rows, button) {
+  button.disabled = true;
+  $('#del-progress').classList.add('on');
+  setDelProgress(0, rows.length);
+  let ok = 0, failed = 0, done = 0, firstError = '';
+  for (let i = 0; i < rows.length; i += DELETE_CHUNK) {
+    const chunk = rows.slice(i, i + DELETE_CHUNK);
+    try {
+      const d = await api('/api/security/bulk', {
+        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: state.tenant,
+          rows: chunk.map(r => ({ PCID: r.PCID, TNNM: r.TNNM, AUTH: r.AUTH })) }),
+      });
+      ok += d.deleted;
+      failed += d.failed.length;
+      if (d.failed.length && !firstError) firstError = d.failed[0].error;
+    } catch (e) {
+      failed += chunk.length;
+      if (!firstError) firstError = e.message;
+    }
+    done += chunk.length;
+    setDelProgress(done, rows.length);
+  }
+  button.disabled = false;
+  setTimeout(() => $('#del-progress').classList.remove('on'), 600);
+  toast(failed ? `${ok} deleted, ${failed} failed. ${firstError}`
+               : `${ok} review record${ok === 1 ? '' : 's'} deleted.`, !!failed);
+  state.picked.clear();
+  loadSecurity();
+}
+
 $('#delete-all').addEventListener('click', async () => {
   const rows = tabRows('review');
   if (!rows.length) { toast('Nothing on the Review tab to delete.'); return; }
   if (!confirm(`Delete all ${rows.length} review record${rows.length === 1 ? '' : 's'}? This cannot be undone.`))
     return;
-  $('#delete-all').disabled = true;
-  let ok = 0, failed = 0;
-  for (const r of rows) {
-    try {
-      await api('/api/security', {
-        method: 'DELETE', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tenant: state.tenant, PCID: r.PCID, TNNM: r.TNNM, AUTH: r.AUTH }),
-      });
-      ok++;
-    } catch (e) {
-      failed++;
-    }
+  deleteReviewRows(rows, $('#delete-all'));
+});
+
+$('#delete-selected').addEventListener('click', async () => {
+  const rows = tabRows('review').filter(r => state.picked.has(rowKey(r)));
+  if (!rows.length) { toast('Nothing is selected.'); return; }
+  const names = rows.slice(0, 5).map(r => `  ${r.PCID} on ${r.TNNM}`).join('\n') +
+    (rows.length > 5 ? `\n  …and ${rows.length - 5} more` : '');
+  if (!confirm(`Delete ${rows.length} selected review record${rows.length === 1 ? '' : 's'}?\n\n${names}\n\nThis cannot be undone.`))
+    return;
+  deleteReviewRows(rows, $('#delete-selected'));
+});
+
+/* -------------------------------------------------- auto-match M3 users --- */
+// One /api/users/match call per TNNM, so each tenant's MNS150MI user list is
+// read once however many records sit on it; the panel's summary line counts
+// the tenants off as they come back. Apply then writes the ticked proposals
+// with batched UpdUsrInfo calls (/api/security/bulk-update).
+const MATCH_THRESHOLD = 0.6;
+const UPDATE_CHUNK = 100;
+const matchState = { proposals: [], skipped: [], running: false };
+
+async function runAutoMatch() {
+  if (matchState.running) return;
+  const blankOnly = $('#m-blank-only').checked;
+  const rows = filteredSortedRows().filter(r => !blankOnly || !String(r.UMSG ?? '').trim());
+  matchState.proposals = []; matchState.skipped = [];
+  renderMatch();
+  if (!rows.length) {
+    $('#m-summary').textContent = blankOnly
+      ? 'Every row shown already has a UMSG. Untick "Only rows with no UMSG yet" to re-check them.'
+      : 'No rows shown on the Users tab.';
+    return;
   }
-  $('#delete-all').disabled = false;
-  toast(failed ? `${ok} deleted, ${failed} failed.` : `${ok} review record${ok === 1 ? '' : 's'} deleted.`, !!failed);
-  loadSecurity();
+  const groups = {};
+  for (const r of rows) (groups[r.TNNM] ||= []).push(r);
+  const tenants = Object.keys(groups);
+  matchState.running = true;
+  $('#m-refresh').disabled = true;
+  const notes = [];
+  for (let i = 0; i < tenants.length; i++) {
+    const tnnm = tenants[i];
+    $('#m-summary').textContent =
+      `Matching ${rows.length} row${rows.length === 1 ? '' : 's'} — tenant ${i + 1} of ${tenants.length} (${tnnm})…`;
+    try {
+      const d = await api('/api/users/match', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: state.tenant, tnnm, threshold: MATCH_THRESHOLD,
+          rows: groups[tnnm].map(r => ({ PCID: r.PCID, TNNM: r.TNNM, AUTH: r.AUTH,
+                                        M3ID: r.M3ID ?? '', UMSG: r.UMSG ?? '' })) }),
+      });
+      if (d.m3_error) notes.push(`${tnnm}: M3 lookup failed${d.rows.some(x => x.match) ? ', IFS export used' : ''}`);
+      for (const x of d.rows) (x.match ? matchState.proposals : matchState.skipped).push(x);
+    } catch (e) {
+      for (const r of groups[tnnm]) matchState.skipped.push({ PCID: r.PCID, TNNM: r.TNNM, skip: e.message });
+    }
+    renderMatch();
+  }
+  for (const p of matchState.proposals) p.picked = true;
+  matchState.running = false;
+  $('#m-refresh').disabled = false;
+  $('#m-summary').textContent =
+    `${matchState.proposals.length} of ${rows.length} row${rows.length === 1 ? '' : 's'} matched over ` +
+    `${MATCH_THRESHOLD * 100}% across ${tenants.length} tenant${tenants.length === 1 ? '' : 's'}.` +
+    (notes.length ? ' ' + notes.join('; ') + '.' : '');
+  renderMatch();
+}
+
+function renderMatch() {
+  const tb = $('#t-match tbody');
+  tb.innerHTML = '';
+  for (const p of matchState.proposals) {
+    const box = el('input', { type: 'checkbox', style: 'width:auto' });
+    box.checked = !!p.picked;
+    box.addEventListener('change', () => { p.picked = box.checked; updateMatchApply(); });
+    const was = (v, now) => String(v ?? '').trim() && String(v).trim() !== now
+      ? el('div', { class: 'sub', style: 'text-decoration:line-through' }, String(v)) : null;
+    tb.append(el('tr', {},
+      el('td', {}, box),
+      el('td', { class: 'mono' }, p.PCID),
+      el('td', {}, p.TNNM),
+      el('td', { class: 'mono' }, was(p.M3ID, p.match.usid), p.match.usid),
+      el('td', {}, was(p.UMSG, p.match.email), p.match.email || '',
+         p.match.name ? el('div', { class: 'sub' }, p.match.name) : null),
+      el('td', { class: 'mono' }, (p.match.score * 100).toFixed(0) + '%'),
+      el('td', { class: 'sub' }, p.match.source === 'ifs_export' ? 'IFS export' : 'M3')));
+  }
+  if (!matchState.proposals.length)
+    tb.append(el('tr', {}, el('td', { colspan: 7, class: 'empty' },
+      matchState.running ? 'Matching…' : 'Nothing to apply.')));
+  const sb = $('#t-match-skip tbody');
+  sb.innerHTML = '';
+  for (const x of matchState.skipped)
+    sb.append(el('tr', {},
+      el('td', { class: 'mono' }, x.PCID), el('td', {}, x.TNNM),
+      el('td', { style: 'white-space:normal' }, x.skip,
+        x.best && x.best.usid ? el('span', { class: 'sub' },
+          ` (best: ${x.best.usid}${x.best.email ? ' / ' + x.best.email : ''})`) : null)));
+  $('#m-skip-n').textContent = matchState.skipped.length ? `— ${matchState.skipped.length}` : '';
+  updateMatchApply();
+}
+
+function updateMatchApply() {
+  const n = matchState.proposals.filter(p => p.picked).length;
+  $('#m-apply').disabled = !n || matchState.running;
+  $('#m-apply').textContent = n ? `Apply ${n}` : 'Apply';
+  const all = $('#m-check-all');
+  all.checked = !!n && n === matchState.proposals.length;
+  all.indeterminate = n > 0 && n < matchState.proposals.length;
+}
+
+$('#auto-match').addEventListener('click', () => {
+  $('#m-pct').textContent = MATCH_THRESHOLD * 100;
+  $('#mpanel').classList.add('on');
+  runAutoMatch();
+});
+$('#m-close').addEventListener('click', () => $('#mpanel').classList.remove('on'));
+$('#m-refresh').addEventListener('click', runAutoMatch);
+$('#m-blank-only').addEventListener('change', runAutoMatch);
+const setAllMatches = on => { for (const p of matchState.proposals) p.picked = on; renderMatch(); };
+$('#m-select-all').addEventListener('click', () => setAllMatches(true));
+$('#m-select-none').addEventListener('click', () => setAllMatches(false));
+$('#m-check-all').addEventListener('change', e => setAllMatches(e.target.checked));
+
+$('#m-apply').addEventListener('click', async () => {
+  const picked = matchState.proposals.filter(p => p.picked);
+  if (!picked.length) return;
+  if (!confirm(`Write M3ID and UMSG on ${picked.length} Users record${picked.length === 1 ? '' : 's'}?`))
+    return;
+  $('#m-apply').disabled = true;
+  let ok = 0, failed = 0, done = 0, firstError = '';
+  for (let i = 0; i < picked.length; i += UPDATE_CHUNK) {
+    const chunk = picked.slice(i, i + UPDATE_CHUNK);
+    $('#m-state').textContent = `Writing ${done} of ${picked.length}…`;
+    try {
+      const d = await api('/api/security/bulk-update', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenant: state.tenant, rows: chunk.map(p => ({
+          PCID: p.PCID, TNNM: p.TNNM, AUTH: p.AUTH,
+          M3ID: p.match.usid, UMSG: p.match.email || '' })) }),
+      });
+      ok += d.updated;
+      failed += d.failed.length;
+      if (d.failed.length && !firstError) firstError = d.failed[0].error;
+    } catch (e) {
+      failed += chunk.length;
+      if (!firstError) firstError = e.message;
+    }
+    done += chunk.length;
+  }
+  $('#m-state').textContent = '';
+  toast(failed ? `${ok} updated, ${failed} failed. ${firstError}`
+               : `${ok} Users record${ok === 1 ? '' : 's'} updated.`, !!failed);
+  if (!failed) $('#mpanel').classList.remove('on');
+  await loadSecurity();
+  if (failed) runAutoMatch();
 });
 
 /* ------------------------------------------------------ get default users --- */
@@ -1205,6 +1594,7 @@ document.addEventListener('keydown', e => {
   $('#panel').classList.remove('on');
   $('#xpanel').classList.remove('on');
   $('#apanel').classList.remove('on');
+  $('#mpanel').classList.remove('on');
 });
 
 /* --------------------------------------------------------------- init --- */

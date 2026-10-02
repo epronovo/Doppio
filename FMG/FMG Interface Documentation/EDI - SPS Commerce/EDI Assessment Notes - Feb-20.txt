@@ -1,0 +1,53 @@
+Non-Happy Path Testing
+
+credit limit violation
+part not mapped
+not tested forecasted order
+
+Forecast data from EDI
+
+
+Test plan for evidence
+
+
+EDI email customer "what would you have us test in this situation"
+
+---- 
+Some customers we have not done business with since 2022, etc.
+
+Caterpillar - check with sales rep. on inactive locations
+
+Who is going to fix what types of issues
+Who is monitoring what
+
+Return EDI test plans
+Partial shipment
+change in order date
+change in price
+
+Need cutover plan ----
+Paccar Parts Cutover
+	- Every week request last 30 days of files to capture Open from Harbinger
+	- Rich Ostry / Jeff Finch
+
+All open orders and close as many old orders as possible
+
+80 Oct not filled
+x from Nov
+350 from Dec
+
+
+Cutover Plan
+	Include everything needed to make interfaces work
+
+Cutover plan for other apps
+Focus on what can go live (see potential 'Interim' state)
+- tested non happy path
+- detailed cutover plan
+
+- Look at McMaster Carr
+
+
+
+
+

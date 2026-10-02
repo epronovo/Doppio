@@ -1,0 +1,13 @@
+600011066
+CenPOS Production
+
+Admin
+
+Password Aug-6-2025: YdrUO2SCz5kROOeaWgeo@
+Prior Password: xgafOky0vDaMmVWMzEKk@
+
+ASR_M3_Service
+Password Aug-6-2025: 86ff8CkbKO82Xg2WeN8N@
+
+
+https:/www.cenpos.net/vt

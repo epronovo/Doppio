@@ -342,6 +342,13 @@ def load_maps(conn: sqlite3.Connection) -> dict:
                                       _s(r["custom_5_code"]))
         for r in conn.execute("SELECT * FROM ADP_Concur_CompanyMap")
     }
+
+    # The Company Data Source Map's Travel Wizzard flag, by Expense Group
+    # Code - the key the 350 tab's gate looks up the 305 Custom 21 by.
+    maps["travel_wizard"] = {
+        _s(r["expense_group_code"]): _s(r["travel_wizard"]).upper()
+        for r in conn.execute("SELECT * FROM ADP_Concur_CompanySourceMap")
+    }
     return maps
 
 
@@ -414,6 +421,27 @@ def ADP_Concur_legal_country(emp: dict, maps: dict) -> str:
     """AH: =IFERROR(VLOOKUP(Z5,'Country Map'!A:B,2,FALSE),"Legal Country Not Mapped")"""
     hit = maps["country"].get(_s(emp.get("legal_country_code")))
     return hit if hit else UNMAPPED["legal_country"]
+
+
+def ADP_Concur_travel_country(maps: dict, expense_group: str,
+                              legal_country: str) -> str:
+    """
+    350 AI Custom 3 (Country of Employment):
+    =IF(VLOOKUP('305 ADP Employee (All)'!AP5,'Company Data Source Map'!E:H,4,FALSE)="Y",'305 ADP Employee (All)'!J5,"")
+
+    The 305 Ctry Code (J) for anybody whose Custom 21 (AP) carries a Travel
+    Wizzard Y on the Company Data Source Map, blank for an N.
+
+    Two deliberate differences from the tab. A database that has not loaded
+    a workbook with the map yet is not gated at everybody's expense - the
+    country goes through, as it would have before the map existed. And a
+    Custom 21 the map does not carry is #N/A on the tab but blank here, with
+    a warning from check_one(): it only touches the 350, so it is not allowed
+    to block the person's 305 and 360 the way an UNMAPPED value would.
+    """
+    if not maps["travel_wizard"]:
+        return legal_country
+    return legal_country if maps["travel_wizard"].get(_s(expense_group)) == "Y" else ""
 
 
 def ADP_Concur_locale_code(emp: dict, maps: dict, legal_country: str) -> str:
@@ -667,6 +695,8 @@ def derive_ukg(emp: dict, maps: dict, cfg: dict) -> dict:
         "term_date": "",
         "invoice_access": access,
         "login_id": ADP_Concur_login_id(emp, cfg),
+        # UKG writes no 350, so there is no Custom 3 to gate.
+        "travel_country": "",
     }
 
 
@@ -699,6 +729,13 @@ def derive_adp(emp: dict, maps: dict, cfg: dict) -> dict:
         "term_date": ADP_Concur_term_date(emp, concur_status),
         "invoice_access": access,
         "login_id": ADP_Concur_login_id(emp, cfg),
+        # 350 AI: the gate keys on 305 AP, which on ADP is Org Unit 1.
+        "travel_country": ADP_Concur_travel_country(maps, org_unit_1,
+                                                    legal_country),
+        # Not stored - read by check_one() to warn about a Custom 21 the
+        # Company Data Source Map does not carry.
+        "_travel_wizard_missing": bool(maps["travel_wizard"])
+                                  and org_unit_1 not in maps["travel_wizard"],
     }
 
 
@@ -969,6 +1006,13 @@ def check_one(emp: dict, derived: dict, cfg: dict) -> list[tuple]:
                             + (" (this person is terminated - dropping them "
                                "from the load fixes it too)" if terminated else ""))
 
+    if derived.get("_travel_wizard_missing"):
+        add("warning", "travel_country",
+            f"Custom 21 '{_s(derived.get('concur_expense_group'))}' is not on "
+            "the Company Data Source Map, so the 350 Custom 3 (Country of "
+            "Employment) is left blank. The workbook's tab shows #N/A for this "
+            "person - add the Expense Group Code to the map.")
+
     if not derived["supervisor_id"] and not terminated:
         add("warning", "supervisor_id",
             "No supervisor. ADP has no Supervisor ID and the Supervisor Map "
@@ -1084,11 +1128,10 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         # without Concur Invoice rather than given it and left unable to use it.
         "BU": ("field", "invoice_access"),           # Invoice User
         "BV": ("field", "invoice_access"),           # Invoice Approver
-        # Travel Wizard User. ADP's tab writes a flat Y for every row; UKG's
-        # tab leaves it blank for all 360 of its rows rather than writing N,
-        # so the miss was silent - a position FIELD_MAP does not cover comes
-        # out empty rather than N. Written the same Y for both, per the
-        # 18th-of-the-month load: every employee is checked for it.
+        # Travel Wizard User. ADP's tab writes a flat Y for every row. UKG's
+        # tab left it blank, and the miss was silent because a position
+        # FIELD_MAP does not cover comes out empty rather than N. UKG now
+        # writes an explicit N; see FIELD_MAP_BY_SOURCE.
         "CH": ("const", "Y"),                        # Travel Wizard User
         "CE": ("const", "Y"),                        # Future Use 2
     },
@@ -1098,6 +1141,10 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
         "R": ("field", "travel_profile"),            # Travel Class Name
         "T": ("field", "org_unit_1"),                # Org Unit / Division
         "AG": ("field", "org_unit_1"),               # Custom 1 (Division) - =T5
+        # Custom 3 (Country of Employment): the 305 Ctry Code, gated on the
+        # Company Data Source Map's Travel Wizzard flag for the 305 Custom
+        # 21 - see ADP_Concur_travel_country().
+        "AI": ("field", "travel_country"),
     },
     "360": {
         "A":  ("const", "360"),
@@ -1128,7 +1175,7 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
 
 # Where a source's own tab points a column somewhere else.
 #
-# Six differences between the ADP and UKG tabs, all of them real:
+# Seven differences between the ADP and UKG tabs, all of them real:
 #
 #  * 305 C Middle Name - UKG has no middle name column at all.
 #  * 305 AB / AC - UKG's derived block leaves Term Date and Preferred Name
@@ -1140,6 +1187,8 @@ FIELD_MAP: dict[str, dict[str, tuple[str, str]]] = {
 #  * 305 L Ledger Code and Z Custom 5 Department - ADP's are still flat
 #    copies of Org Unit 1; UKG's now come from the Company Map's own Ledger
 #    Code / Custom 5 Code columns, since the 18th-of-the-month workbook.
+#  * 305 CH Travel Wizard User - Y for every ADP employee, N for every UKG
+#    employee.
 #  * 360 AC Display Image In-line - ADP hard-codes Y, UKG feeds it from
 #    Invoice Access; and AD Auto Open Image is Y on ADP and N on UKG.
 #  * 700 P Approval Limit Currency - ADP writes the employee's reimbursement
@@ -1157,6 +1206,7 @@ FIELD_MAP_BY_SOURCE: dict[str, dict[str, dict[str, tuple[str, str]]]] = {
             "AP": ("field", "concur_expense_group"),  # Expense Group Code, not Org Unit 1
             "L":  ("field", "concur_ledger_code"),    # Company Map's Ledger Code
             "Z":  ("field", "concur_custom_5"),       # Company Map's Custom 5 Code
+            "CH": ("const", "N"),                    # Travel Wizard User
         },
         "360": {
             "AC": ("field", "invoice_access"),       # Display Image In-line

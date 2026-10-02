@@ -1,0 +1,9 @@
+Factory track
+	Pick and pack process
+		Hangs 
+		Can't reach server and shuts down
+
+
+
+1439 --- Infor --
+

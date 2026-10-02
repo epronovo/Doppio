@@ -1,0 +1,16 @@
+API Gateway
+	Two places
+		Available APIs
+		Authorized Apps
+		
+
+Initial product load
+	First products
+	standard price book
+	Maumee price book
+	
+
+Follow up on record type - [DES-030] - Initial load in SharePoint 3.4.3
+
+https://inforonline.sharepoint.com/:x:/r/sites/PWA-Barnes/TEST%20SCRIPTS/SIT%20Completed%20Test%20Scripts/SalesForce%20Interface/Script%20SFA04%20-%20%5BDANIEL%5D%20Initial%20Load%20Product%20and%20Price%20Book%20Entries%20SIT%2020241106.xlsx?d=wc3d3cf9a1b7a42c4851836835faef863&csf=1&web=1&e=ooEp2g
+

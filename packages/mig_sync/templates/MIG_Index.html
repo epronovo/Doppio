@@ -148,6 +148,9 @@
   .groupbox .body{padding:10px 14px}
   .changeslist{margin:0; padding-left:18px; font-size:12px}
   .muted{color:var(--doppio-gray)}
+  input.chk{padding:0; width:15px; height:15px; accent-color:var(--doppio-red); vertical-align:middle; cursor:pointer}
+  th.chkcol,td.chkcol{width:32px; padding-right:0}
+  .tablewrap.tall{max-height:440px; overflow-y:auto}
   .small{font-size:12px}
 
   /* -------------------------------------------------------------- drop */
@@ -181,6 +184,7 @@
   <div class="tab" data-pane="field-groups">Field Groups</div>
   <div class="tab" data-pane="export-summary">Export Summary</div>
   <div class="tab" data-pane="migration-review">Migration Review</div>
+  <div class="tab" data-pane="xtend-code">Xtend Code</div>
 </div>
 
 <main>
@@ -409,6 +413,48 @@
       <div class="phase" id="mr-phase"></div>
     </div>
     <div id="mr-results"></div>
+  </div>
+</section>
+
+<!-- ============================================================ XTEND CODE -->
+<section class="pane" id="pane-xtend-code">
+  <div class="card">
+    <h3>Tenant</h3>
+    <div class="tenants" id="xc-tenants"></div>
+    <div class="small muted" style="margin-top:8px">Needed only to map an MDP workbook: <code>MNS120MI.Get</code> looks up the table's TX40 for MainTableName.</div>
+  </div>
+  <div class="card">
+    <h3>Import / extract definitions</h3>
+    <div class="dropzone" id="xc-drop">
+      <div><b>Drop a definitions file here</b> — or <label style="color:var(--doppio-red); cursor:pointer; text-decoration:underline">browse<input type="file" id="xc-file" accept=".xlsx,.csv" hidden></label></div>
+      <div class="small" style="margin-top:6px">.xlsx or .csv with the <code>m3xtend</code> columns, or an MDP table-column workbook (<code>Table Name:</code> + <code>Column Name</code> … <code>Indexes</code>) which is mapped after asking for miname / trname / DynamicTable. Each miname / trname group imported replaces that group's existing rows; other groups are left alone.</div>
+    </div>
+    <div id="xc-map" hidden></div>
+    <div class="runrow">
+      <button class="secondary" id="xc-export">Extract to .xlsx</button>
+      <span id="xc-export-link"></span>
+    </div>
+    <div id="xc-io-banner"></div>
+  </div>
+  <div class="card">
+    <h3>m3xtend definitions</h3>
+    <div class="small muted" id="xc-db"></div>
+    <div class="runrow">
+      <input id="xc-filter" type="search" placeholder="Filter by MI program, transaction, table…" style="flex:1; min-width:220px; max-width:420px">
+      <span class="small muted" id="xc-selcount"></span>
+    </div>
+    <div id="xc-groups"></div>
+    <div class="runrow">
+      <button class="secondary" id="xc-refresh">Refresh</button>
+      <button class="primary" id="xc-generate" disabled>Generate selected</button>
+    </div>
+    <div id="xc-banner"></div>
+    <div class="progresswrap" id="xc-progress" hidden>
+      <div class="lbl"><span id="xc-phase-lbl">Working…</span><span id="xc-count"></span></div>
+      <div class="bar" id="xc-bar"><i></i></div>
+      <div class="phase" id="xc-phase"></div>
+    </div>
+    <div id="xc-results"></div>
   </div>
 </section>
 
@@ -1288,6 +1334,237 @@ function countsLine(el_, pairs) {
     } catch (e) { banner('mr', e.message, 'error'); }
     finally { scanBtn.disabled = false; }
   });
+})();
+
+/* =============================================================================
+   XTEND CODE  (no tenant - m3xtend sqlite table -> Xtend/CTOS import JSON)
+============================================================================= */
+(() => {
+  const genBtn = $('#xc-generate');
+  const tenant = mkTenantForm({ title: 'Tenant (MNS120MI)', idPrefix: 'xct', hideDivision: true });
+  $('#xc-tenants').appendChild(tenant.container);
+
+  function table(headers, rows) {
+    const t = el('table');
+    t.appendChild(el('thead', {}, el('tr', {}, headers.map(h => el('th', { text: h })))));
+    const tb = el('tbody');
+    rows.forEach(cells => tb.appendChild(el('tr', {}, cells.map(c =>
+      c instanceof Node ? el('td', {}, c) : el('td', { text: c ?? '' })))));
+    t.appendChild(tb);
+    return el('div', { class: 'tablewrap' }, t);
+  }
+
+  /* ---- definitions list: filter + selection (both remembered per browser) ---- */
+  const STORE_KEY = 'mig.xtend.selection', FILTER_KEY = 'mig.xtend.filter';
+  const gkey = g => g.miname + '|' + g.trname;
+  let groups = [];
+  let selected = new Set();
+  try { selected = new Set(JSON.parse(localStorage.getItem(STORE_KEY) || '[]')); } catch (e) {}
+  try { $('#xc-filter').value = localStorage.getItem(FILTER_KEY) || ''; } catch (e) {}
+  const saveSel = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify([...selected])); } catch (e) {} };
+
+  function visibleGroups() {
+    const terms = $('#xc-filter').value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return groups;
+    return groups.filter(g => {
+      const hay = [g.miname, g.trname, g.MainTable, g.MainTableName, g.DynamicTable].join(' ').toLowerCase();
+      return terms.every(t => hay.includes(t));
+    });
+  }
+
+  function renderGroups() {
+    const box = $('#xc-groups'); clearNode(box);
+    const vis = visibleGroups();
+    const nSel = groups.filter(g => selected.has(gkey(g))).length;
+    $('#xc-selcount').textContent = `${nSel} of ${groups.length} selected` +
+      (vis.length !== groups.length ? ` · ${vis.length} shown` : '');
+    genBtn.disabled = nSel === 0;
+    genBtn.textContent = nSel ? `Generate selected (${nSel})` : 'Generate selected';
+    if (!groups.length) return;
+    if (!vis.length) { box.appendChild(el('div', { class: 'small muted', text: 'No definitions match the filter.' })); return; }
+
+    const visSel = vis.filter(g => selected.has(gkey(g))).length;
+    const all = el('input', { type: 'checkbox', class: 'chk', title: 'Select / clear all shown' });
+    all.checked = visSel === vis.length;
+    all.indeterminate = visSel > 0 && visSel < vis.length;
+    all.addEventListener('change', () => {
+      vis.forEach(g => all.checked ? selected.add(gkey(g)) : selected.delete(gkey(g)));
+      saveSel(); renderGroups();
+    });
+
+    const t = el('table');
+    t.appendChild(el('thead', {}, el('tr', {}, [el('th', { class: 'chkcol' }, all),
+      ...['MI program', 'Transaction', 'Main table', 'Table name', 'Dynamic table', 'Fields', 'Keys'].map(h => el('th', { text: h }))])));
+    const tb = el('tbody');
+    vis.forEach(g => {
+      const cb = el('input', { type: 'checkbox', class: 'chk' });
+      cb.checked = selected.has(gkey(g));
+      cb.addEventListener('change', () => {
+        cb.checked ? selected.add(gkey(g)) : selected.delete(gkey(g));
+        saveSel(); renderGroups();
+      });
+      const tr = el('tr', { style: 'cursor:pointer' }, [el('td', { class: 'chkcol' }, cb),
+        ...[g.miname, g.trname, g.MainTable, g.MainTableName, g.DynamicTable, g.fields, g.keys].map(v => el('td', { text: v ?? '' }))]);
+      tr.addEventListener('click', e => { if (e.target !== cb) { cb.checked = !cb.checked; cb.dispatchEvent(new Event('change')); } });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb);
+    box.appendChild(el('div', { class: 'tablewrap tall' }, t));
+  }
+
+  $('#xc-filter').addEventListener('input', () => {
+    try { localStorage.setItem(FILTER_KEY, $('#xc-filter').value); } catch (e) {}
+    renderGroups();
+  });
+
+  async function loadGroups() {
+    genBtn.disabled = true;
+    try {
+      const j = await api('/api/xtend-code/groups');
+      $('#xc-db').textContent = 'Source: ' + j.db;
+      groups = j.groups;
+      // Drop remembered selections for groups that no longer exist.
+      const live = new Set(groups.map(gkey));
+      selected = new Set([...selected].filter(k => live.has(k)));
+      saveSel();
+      if (!groups.length) banner('xc', 'No rows in m3xtend.', 'info');
+      renderGroups();
+    } catch (e) { banner('xc', e.message, 'error'); }
+  }
+
+  function renderResults(result) {
+    const box = $('#xc-results'); clearNode(box);
+    if (result.zip_download) {
+      box.appendChild(el('div', { class: 'runrow' },
+        el('a', { href: '/api/download/' + result.zip_download, text: 'Download all (' + result.zip_file + ')' })));
+    }
+    const links = files => {
+      const span = el('span');
+      files.forEach((f, i) => {
+        if (i) span.appendChild(document.createTextNode(' · '));
+        span.appendChild(el('a', { href: '/api/download/' + f.download, text: f.file }));
+      });
+      return span;
+    };
+    box.appendChild(table(['MI program', 'Transaction', 'Dynamic table', 'Files'],
+      result.groups.map(g => [g.miname, g.trname, g.DynamicTable, links(g.downloads)])));
+  }
+
+  $('#xc-refresh').addEventListener('click', () => { banner('xc', ''); loadGroups(); });
+
+  genBtn.addEventListener('click', async () => {
+    genBtn.disabled = true;
+    clearNode($('#xc-results'));
+    try {
+      const picked = groups.filter(g => selected.has(gkey(g))).map(g => ({ miname: g.miname, trname: g.trname }));
+      const { result } = await runJobWithId('xc', '/api/xtend-code/generate', { groups: picked });
+      renderResults(result);
+      banner('xc', `${result.files.length} file(s) written to ${result.output_dir}.`, 'success');
+    } catch (e) { banner('xc', e.message, 'error'); }
+    finally { renderGroups(); }
+  });
+
+  /* ---- extract / import of the m3xtend definitions ---- */
+  function ioBanner(msg, kind) {
+    const b = $('#xc-io-banner'); clearNode(b);
+    if (msg) b.appendChild(el('div', { class: 'banner ' + (kind || 'info'), text: msg }));
+  }
+
+  $('#xc-export').addEventListener('click', async () => {
+    const btn = $('#xc-export'); btn.disabled = true;
+    ioBanner('');
+    try {
+      const j = await api('/api/xtend-code/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const link = $('#xc-export-link'); clearNode(link);
+      link.appendChild(el('a', { href: '/api/download/' + j.download, text: j.file }));
+      ioBanner(j.message, 'success');
+    } catch (e) { ioBanner(e.message, 'error'); }
+    finally { btn.disabled = false; }
+  });
+
+  function imported(j) {
+    ioBanner(j.message, j.warning ? 'info' : 'success');
+    // Pre-select what was just imported so Generate is the next click.
+    (j.groups || []).forEach(label => selected.add(label.replace(' / ', '|')));
+    saveSel();
+    clearNode($('#xc-results'));
+    loadGroups();
+  }
+
+  /* MDP table-column workbook: prompt for the three values the mapping
+     can't derive (miname, trname, DynamicTable), then import-mapped. */
+  function showMapForm(j) {
+    const box = $('#xc-map'); clearNode(box); box.hidden = false;
+    const mi = el('input', { placeholder: 'e.g. EXT410MI', style: 'width:130px' });
+    const tr = el('input', { placeholder: 'e.g. Delivery', style: 'width:150px' });
+    const dyn = el('input', { placeholder: 'e.g. EXT410 or ' + j.table, style: 'width:150px' });
+    const go = el('button', { class: 'primary', text: 'Map + import' });
+    const cancel = el('button', { class: 'secondary', text: 'Cancel' });
+    const note = el('div', { class: 'small muted', style: 'margin-top:8px' });
+    const updNote = () => {
+      note.textContent = dyn.value.trim().toUpperCase().startsWith('EXT')
+        ? 'DynamicTable starts with EXT: FieldName = EX + last four characters of each column (e.g. ' + (j.keys[0] || 'OQCONO') + ' → EX' + (j.keys[0] || 'OQCONO').slice(-4) + ').'
+        : 'FieldName = the column name as-is.';
+    };
+    dyn.addEventListener('input', updNote); updNote();
+
+    box.appendChild(el('div', { class: 'tenant-box', style: 'margin-top:12px' }, [
+      el('h4', { text: `Map ${j.file} → m3xtend` }),
+      el('div', { class: 'small', style: 'margin-bottom:10px',
+        text: `Table ${j.table}: ${j.columns} column(s); index 00 keys (direction I): ${j.keys.join(', ') || 'none'}.` }),
+      el('div', { class: 'tenant-row' }, [
+        el('div', { class: 'fld' }, [el('label', { text: 'miname' }), mi]),
+        el('div', { class: 'fld' }, [el('label', { text: 'trname' }), tr]),
+        el('div', { class: 'fld' }, [el('label', { text: 'DynamicTable' }), dyn]),
+        go, cancel,
+      ]),
+      note,
+    ]));
+    mi.focus();
+
+    cancel.addEventListener('click', () => { clearNode(box); box.hidden = true; ioBanner(''); });
+    go.addEventListener('click', async () => {
+      if (!mi.value.trim() || !tr.value.trim() || !dyn.value.trim())
+        return ioBanner('miname, trname and DynamicTable are all required.', 'error');
+      if (!tenant.ready)
+        return ioBanner('Connect a tenant first - MainTableName comes from MNS120MI.Get.', 'error');
+      go.disabled = true;
+      try {
+        const r = await api('/api/xtend-code/import-mapped', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file: j.file, miname: mi.value, trname: tr.value, dynamic_table: dyn.value,
+                                tenant_id: tenant.tenantId }),
+        });
+        clearNode(box); box.hidden = true;
+        imported(r);
+      } catch (e) { ioBanner(e.message, 'error'); go.disabled = false; }
+    });
+  }
+
+  async function importFile(files) {
+    if (!files || !files.length) return;
+    const f = files[0];
+    if (!confirm(`Import ${f.name} into m3xtend?\n\nRows for every miname / trname group imported will be replaced. ` +
+                 `An MDP table-column workbook will ask for miname / trname / DynamicTable first.`)) return;
+    const fd = new FormData();
+    fd.append('file', f);
+    ioBanner('');
+    clearNode($('#xc-map')); $('#xc-map').hidden = true;
+    try {
+      const j = await api('/api/xtend-code/import', { method: 'POST', body: fd });
+      if (j.needs_mapping) { ioBanner(j.message, 'info'); showMapForm(j); }
+      else imported(j);
+    } catch (e) { ioBanner(e.message, 'error'); }
+    finally { $('#xc-file').value = ''; }
+  }
+
+  const drop = $('#xc-drop');
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hot'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hot'); }));
+  drop.addEventListener('drop', e => importFile(e.dataTransfer.files));
+  $('#xc-file').addEventListener('change', e => importFile(e.target.files));
+
+  loadGroups();
 })();
 
 /* ----------------------------------------------------------------- tabs */

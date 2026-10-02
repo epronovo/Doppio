@@ -1,0 +1,98 @@
+openapi: 3.0.3
+info:
+  title: Azure Logic App Trigger
+  version: 1.0.0
+servers:
+  - url: https://prod-21.eastus2.logic.azure.com
+    description: Azure Logic App Base URL
+paths:
+  /workflows/d92d140431af4d258374d2e94234af8b/triggers/Manual/paths/invoke:
+    post:
+      summary: Trigger Logic App
+      parameters:
+        - name: api-version
+          in: query
+          required: true
+          schema:
+            type: string
+          example: '2016-10-01'
+        - name: sp
+          in: query
+          required: true
+          schema:
+            type: string
+          example: '/triggers/Manual/run'
+        - name: sv
+          in: query
+          required: true
+          schema:
+            type: string
+          example: '1.0'
+        - name: sig
+          in: query
+          required: true
+          schema:
+            type: string
+          example: 'wWCW6uJyLJawKottNM9tFAwxW7Qok5y_u3fUukImUQw'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                DBFFILE: { type: string }
+                LABEL1: { type: string }
+                LBLFMT: { type: string }
+                SET: { type: integer }
+                PRNTER: { type: string }
+                CNTRC: { type: string }
+                BGRSWT: { type: number }
+                BOXES: { type: integer }
+                CADDR1: { type: string }
+                CADDR2: { type: string }
+                CCITY: { type: string }
+                CONAME: { type: string }
+                CORIGN: { type: string }
+                CPART: { type: string }
+                CSTATE: { type: string }
+                CUSA1: { type: string }
+                CUSA2: { type: string }
+                CUSA3: { type: string }
+                CUSNM: { type: string }
+                CZIPCD: { type: string }
+                DADDR1: { type: string }
+                DADDR2: { type: string }
+                DADDR3: { type: string }
+                DATE: { type: string, format: date }
+                DNAME1: { type: string }
+                DROPPT: { type: string }
+                DZIP: { type: string }
+                ENGREV: { type: string }
+                LOTNO: { type: string }
+                MISC1: { type: string }
+                MISC2: { type: string }
+                MISC3: { type: string }
+                ORDNUM: { type: string }
+                PARTNO: { type: string }
+                PACKNO: { type: string }
+                LINENO: { type: string }
+                PDESC: { type: string }
+                PONO: { type: string }
+                PWT: { type: number }
+                QTY: { type: integer }
+                SERIAL: { type: string }
+                SUPPID: { type: string }
+                USRDF1: { type: string }
+                USRDF2: { type: string }
+                KITNO: { type: string }
+                ORIGIN: { type: string }
+                REFNUM: { type: string }
+      responses:
+        '200':
+          description: Success
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
